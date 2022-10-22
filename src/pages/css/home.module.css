@@ -1,0 +1,516 @@
+.home {
+    
+    width:100vw;
+    height:100vh;
+	display:flex;
+	flex-direction:column;
+	position: relative;
+}
+
+.title{
+	font-family: Webrockwell;
+	font-size: 30px;
+	color:#cdd4da;
+	cursor: default;
+	padding-left: 50px;
+	text-shadow: 3px 3px 2px black;
+}
+
+.fieldHeading{
+	font-family: Webrockwell;
+	font-size: 24px;
+	color:#a5a5a5;
+	cursor: default;
+	
+	text-shadow: 2px 2px 1px black;
+}
+.rowHeading{
+	
+	font-family: Webrockwell;
+	font-size: 23px;
+	color:#dddada;
+	cursor: default;
+	
+	text-shadow: 3px 3px 2px black;
+}
+
+.acceptButton{
+	flex: .1;
+	color: white;
+	cursor: pointer;
+	transition: background 0.3s;
+	padding: 3px 3px;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-size: large;
+	text-align: center;
+	background-color: green;
+}
+.acceptButton:hover{
+	color: white;
+	background-color: #33FF33
+}
+
+.titleButton{
+	flex: .1;
+	color: white;
+	cursor: pointer;
+	transition: background 0.3s;
+	padding: 3px 3px;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-size: large;
+	text-align: center;
+
+}
+.titleButton:hover{
+	color: white;
+	background-color: white
+}
+
+
+
+.closeButton{
+	flex: .1;
+	color: #666666;
+	cursor: pointer;
+	transition: background 0.3s;
+	padding: 3px 3px;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-size: large;
+	text-align: center;
+}
+.closeButton:hover{
+	color: white;
+	background-color: red;
+}
+
+.contextItem{
+	position: relative;
+	display: flex;
+	padding: 15px 15px;
+	text-decoration: none;
+	color: #a5a5a5;
+	transition: background 0.3s;
+	cursor: pointer;
+}
+
+.noResults{ 
+    flex:1;               
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 0;
+    text-decoration: none;
+    color: #a3aab3;
+    cursor: default;
+}
+.darkMenu {
+	display: flex;
+	flex-direction: row;
+	padding: 15px 15px;
+	color: #777171;
+	transition: background 0.3s;
+	cursor: pointer;
+	
+	height: 25px;
+	text-decoration: none;
+	color: #777171;
+}
+
+.darkMenu:hover {
+	color: white;
+	background-color: rgba(80, 80, 80, .7);
+}
+
+.glow {
+	display:"flex"
+}
+
+.glow:hover {
+	box-shadow: 0px 0px 30px 30px #ffffff55;
+	background-color: #ffffff55;
+}
+
+.glowText {
+	color: #888888;
+	cursor: pointer;
+}
+
+.glowText:hover {
+	color:white;
+}
+ 
+.result{
+	display: flex;
+	flex-direction: row;
+	padding-left: 10px;
+	padding-top:5px;
+	padding-bottom: 5px;
+	color: #777171;
+	transition: background 0.3s;
+	cursor: pointer;
+	justify-items: center;
+	justify-content:left;
+	
+	text-decoration: none;
+	color: #777171;
+}
+.result:hover {
+	color: white;
+	background-color: rgba(80, 80, 80, .4);
+}
+
+.menu__item {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 15px 0;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+
+}
+
+.menu__item:hover {
+
+	background: #dddddd33;
+}
+
+/* create tooltip after each menu item  */
+.menu__item::after {
+	position: absolute;
+	display: inline-block;
+	/* ::before, ::after are inline as default
+  
+  /*  makes tooltip vertically center within each one of menu items  */
+	top: 50%;
+	transform: translateY(-50%);
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: 100%;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+	margin-left: 15px;
+
+	/* makes words in same line   */
+	white-space: nowrap;
+
+	padding: 7px 12px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: #ffe51c;
+
+	/*  invisible (can't see it but can click on it)  */
+	opacity: 0;
+	/* can't click  */
+	visibility: hidden;
+	transition: opacity 1s;
+}
+
+/* show tooltip if hover on menu item */
+.menu__item:hover::after{
+	opacity: 1;
+	visibility: visible;
+}
+
+.menuToolTip{
+	display: flex;
+	flex-direction: row;
+	padding: 15px 15px;
+	color: #777171;
+	transition: background 0.3s;
+	cursor: pointer;
+	background-color: rgba(80, 80, 80, .1);
+	height: 25px;
+	text-decoration: none;
+	color: #777171;
+}
+
+
+
+.menuToolTip:hover {
+	color: white;
+	background-color: rgba(80, 80, 80, .7);
+}
+.menuToolTip::after {
+	position: absolute;
+	display: inline-block;
+	margin-left: 15px;
+	white-space: nowrap;
+	padding: 7px 12px;
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: #ffe51c;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 1s;
+}
+
+.menuToolTip:hover::after {
+	opacity: 1;
+	visibility: visible;
+}
+
+.CancelButton {
+	text-align: center;
+
+	width: 80px;
+	padding-left: 0px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-family: WebRockwell;
+	font-size: 18px;
+	font-weight: bolder;
+	color: #77717155;
+	cursor: pointer;
+}
+
+.CancelButton:hover {
+	color: white;
+	background-color: #FFFFFF20;
+}
+
+.OKButton {
+	text-align: center;
+	cursor: pointer;
+	width:50px;
+	padding-left:0px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-family: WebRockwell;
+	font-size: 18px;
+	font-weight: bolder;
+	color: #cdd4da;
+}
+.OKButton:hover {
+	color: white;
+	background-color: rgba(80, 80, 80, .7);
+}
+
+.OKDisabled {
+	
+	color: #777171;
+	text-align: center;
+	cursor: default;
+	width: 50px;
+	padding-left: 0px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-family: WebRockwell;
+	font-size: 18px;
+	font-weight: bolder;
+}
+
+.toolmenuButton {
+	padding-left: 5px;
+	font-family: WebRockwell;
+	font-size: 15px;
+	font-weight: bolder;
+	color: #cdd4da;
+	cursor: pointer;
+}
+.toolmenuButton:hover {
+	color: white;
+	background-color: rgba(80, 80, 80, .7);
+}
+.toolbarActive {
+	background-color:rgba(40, 40, 40, .7);
+	color:white;
+	display: flex;
+	flex-direction: row;
+	padding: 7px 7px;
+	border-radius: 10px;
+	cursor: pointer;
+	height: 15px;
+	text-decoration: none;
+
+}
+.toolbar {
+	display: flex;
+	flex-direction: row;
+	padding: 7px 7px;
+	transition: background 0.3s;
+	cursor: pointer;
+
+	height: 15px;
+	text-decoration: none;
+	color: #777171;
+}
+.toolbar:hover {
+	color: #cdd4da;
+	background-color: rgba(40, 40, 40, .7);
+}
+.currentResult{
+	color: white;
+	background-color: rgba(80,80,80,.7);
+}
+.resultImg{
+
+	width: 25px;
+	height: 25px;
+	
+	overflow: hidden;
+	border-radius: 5px;
+}
+.resultTxt{
+	
+	padding-top:3px;  
+	padding-left:15px;
+	width:100%; 
+	text-align:left;
+	
+}
+
+
+.noResult{
+	color: #666666;
+
+	padding-bottom: 30px;
+	text-decoration: none;
+	align-items: center;
+	justify-content: center;
+	align-items: center;
+
+}
+
+.searchHeading {
+	font-family: WebRockwell;
+	font-size:18px;
+	position:relative;
+		color:#cdd4da;
+	cursor: default;
+	display: flex;
+	padding-left: 10px;
+	
+	
+}
+
+
+.searchInput{
+	width: 90%;
+	background-color:rgba(0, 0, 0, 1);
+	font-size: 22px;
+	font-family: WebPapyrus;
+	outline: 0;
+	border-width: 0 ;
+	
+	color:white;
+	text-align: left;
+	text-indent: 5px;
+
+	
+}
+/*border-color: #ffe51c;*/
+.userMenu {
+	display:inline-block;
+	width: 40 px;
+	height: 95 px;
+	
+}
+
+
+
+.loading{
+	background-image:url('/Images/AngularDice.webp'); 
+	background-position: center center; 
+	background-size:200px 200px;
+	
+	background-repeat: no-repeat;
+	height: 100vh;
+	width: 100vw;
+}
+
+.logo{
+	background-image:url('/Images/logo.png'); 
+	background-position: center center; 
+
+	background-size: 60px 60px;
+	background-repeat: no-repeat;
+	height: 100vh;
+	width: 100vw;
+}
+.loadingText
+{
+	position: fixed;
+	bottom: 20px;
+	left:50%;
+	font-family: WebPapyrus;
+	font-size: 25px;
+	color: #ffe51c;
+	transform: translate(-50%, -50%);
+ 	margin: 0 auto;
+}
+
+
+.menuName{
+    flex:1;       
+    position: relative;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 5px;
+    text-decoration: none;
+    color: #c7cfda;
+    cursor: pointer; 
+}
+.menuName:hover{
+   color:white;
+}
+
+.hoverWhite {
+	color: #c7cfda;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.hoverWhite:hover {
+	color:white;
+}
+
+.menuNameActive{
+    flex:1;       
+    position: relative;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 5px;
+    text-decoration: none;
+    color: #c7cfda;
+    cursor: pointer;
+    background-color: rgba(80,80,80,.7);
+}
+
+.check {
+
+	margin:3px;
+	margin-right: 5px;
+  width: 11px;
+  height: 11px;
+  border: 1px dotted #70787a;
+	
+  background-color:rgba(0, 0, 0, 0);
+  cursor:"pointer"
+}
+.checked {
+	 
+	margin:3px;
+	margin-right: 7px;
+	  width: 11px;
+  height: 11px;
+  background-image: radial-gradient( #FFFFFF 25%,  #101314 100%);
+  background-repeat: no-repeat;
+  background-position: center;
+ border: 1px dotted #70787a;
+   cursor:"pointer"
+}

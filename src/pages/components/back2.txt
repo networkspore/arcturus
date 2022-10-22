@@ -1,0 +1,38 @@
+ /* const party = useZust((state) => state.party)
+    const setParty = useZust((state) => state.setParty)
+    const addPartyMember = (c) => useZust.setState(produce((state) => {
+        state.party.push(c);
+    }));
+    const cancelPartyMember = (p) => useZust.setState(produce((state) => {
+        party.forEach((member, i) => {
+            if(member.PCID == p.PCID){
+                state.party.splice(i,1);
+            }
+        });
+    }));
+    const updateParty = (i, c) => useZust.setState(produce((state) => {
+        state.party[i] = c;
+    }));
+
+    const updatePartyPCscenePosition = (PCID, sceneID, position) => useZust.setState(produce((state)=>{
+        for(let i=0;i<party.length;i++){
+            if(party[i].PCID == PCID){
+                state.party[i].sceneID = sceneID;
+                state.party[i].object.position = position;
+            }
+        }
+    }))
+
+    const hidePartyCharacter = (i) => useZust.setState(produce((state) => {
+        state.party[i].object.position = null;
+        state.party[i].sceneID = null;
+    }));
+
+    const hideSceneParty = () => useZust.setState(produce((state) => {
+        for(let i = 0; i < party.length ; i++){
+            if (state.party[i].sceneID == campaignScene.sceneID){
+                state.party[i].object.position = null;
+                state.party[i].sceneID = null;
+            }
+        }
+    }));*/

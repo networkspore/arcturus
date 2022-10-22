@@ -1,0 +1,62 @@
+.loading{
+	background-image:url('/Images/AngularDice.webp'); 
+	background-position: center center; 
+	background-size:200px 200px;
+	background-color:black;
+	background-repeat: no-repeat;
+	height: 100vh;
+	width: 100vw;
+	position:fixed;
+	left:0px;
+	top:0px;
+}
+
+.logo{
+	background-image:url('/Images/logo.png'); 
+	background-position: center center; 
+
+	background-size: 60px 60px;
+	background-repeat: no-repeat;
+	height: 100vh;
+	width: 100vw;
+}
+.loadingText
+{
+	position: fixed;
+	bottom: 140px;
+	left:50%;
+	font-family: Papyrus;
+	font-size: 25px;
+	color: #ffe51c;
+	transform: translate(-50%, -50%);
+ 	margin: 0 auto;
+}
+.connectingText
+{
+	position: fixed;
+	bottom: 100px;
+	left:50%;
+	font-family: Papyrus;
+	font-size: 25px;
+	color: #ffe51c;
+	transform: translate(-50%, -50%);
+ 	margin: 0 auto;
+}
+
+.serverStatus
+{
+	background-color: rgba(10,12,14,.5);
+	display:flex;
+	align-items: center;
+	padding-left:100px;
+	padding-right:100px;
+	
+	position: fixed;
+	left: 50%;
+	top:0;
+	transform: translate(-50%);
+	padding-top: 5px;
+	font-family: Papyrus;
+	font-size: 25px;
+	color: #ffe51c;
+}

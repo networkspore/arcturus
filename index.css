@@ -1,0 +1,56 @@
+@charset "utf-8";
+/* CSS Document */
+* 
+
+::-webkit-scrollbar {
+	width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: #55555511;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: #555;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+
+
+html, body{
+	margin: 0px;
+
+	overflow:hidden;
+}
+
+.connected
+{
+	position: fixed;
+	bottom: 16px;
+	left:calc(100vw - 140px);
+	font-family: WebPapyrus;
+	font-size: 25px;
+	color: #ffe51c;
+	
+ 	margin: 0 auto;
+	opacity: 0.2;
+	z-index: 99;
+}
+
+
+@font-face {
+  font-family: 'WebPapyrus';
+  src: url('fonts/PAPYRUS.woff') format('woff'),
+       url('fonts/PAPYRUS.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'WebRockwell';
+  src: url('fonts/ROCK.woff') format('woff'),
+       url('fonts/ROCK.ttf') format('truetype');
+}

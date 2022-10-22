@@ -1,0 +1,145 @@
+
+.welcomeFrame{
+	position: fixed;
+	top: calc(50vh - 450px);
+	left: calc(50vw - 450px);
+/*	margin-left: auto; 
+	margin-right: auto; 
+	border-radius: 15px;*/  
+	padding-left: 10;  
+	white-space:normal;
+
+}
+
+.frame{
+	z-index: 0;
+	position: 0;
+}
+.heading
+{
+	font-family: WebRockwell;
+	font-size: 50px;
+	font-weight: bolder;
+	color: #cdd4da;
+	margin-top: 20px;
+}
+
+.p2{
+	
+	font-family: WebPapyrus;
+	font-size: 25px;
+	color: #ffe51c;
+}
+
+.p3{
+	font-family:WebPapyrus;
+	font-size: 35px;
+	color: #ffe51c;
+}
+
+
+.paddingTop30
+{
+	padding-top: 30px;
+}
+
+.paddingTop100{
+	padding-top:100px;
+}
+
+.paddingTop90{
+	padding-top:90px;
+}
+
+
+.blkSubmit{
+	font-family: WebPapyrus;
+	font-size: 12px;
+	
+	background: #101314;
+	border-color: #ffe51c;
+	outline:0;
+	padding: 20px;
+}
+.OKButton {
+	text-align: center;
+	cursor: pointer;
+
+	padding-left: 0px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-family: WebRockwell;
+	font-size: 18px;
+	font-weight: bolder;
+	color: #cdd4da;
+
+}
+
+.OKButton:hover {
+	color: white;
+	background-color: rgba(80, 80, 80, .7);
+}
+.blkLargeInput{
+	width: 600px;
+	background-color:black;
+	font-size: 40px;
+	font-family: WebPapyrus;
+	outline: 0;
+	border-width: 0;
+	border-color: #00000000;
+	color: white;
+	text-align: center;
+}
+
+.blkPassInput{
+	width: 300px;
+	background-color:rgba(0, 0, 0, 0);
+	font-size: 25px;
+	font-family: WebPapyrus;
+	outline: 0;
+	border-width: 0 0 2px;
+	border-color: #ffe51c;
+	color:#D6BD00;
+	text-align: center;
+}
+.blkInput{
+	width: 400px;
+	background-color:rgba(0, 0, 0, 0);
+	font-size: 35px;
+	font-family: WebPapyrus;
+	outline: 0;
+	border-width: 0;
+	border-color: #00000000;
+	color:white;
+	text-align: center;
+}
+
+
+
+.disclaimer{
+	font-family: WebPapyrus;
+	font-size: 16px;
+	color: #A69300;
+	
+}
+.terms{
+	font-family: WebPapyrus;
+	font-size: 16px;
+	color: #A69300;
+}
+
+.cover {
+ object-fit: cover;
+	object-position:right bottom;
+  height:100vh;
+ width: 100%;
+
+}
+
+.coverMiddle {
+	 object-fit: cover;
+	object-position:center center;
+  height:100%;
+ width: 100%;
+}
+

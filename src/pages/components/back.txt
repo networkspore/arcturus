@@ -1,0 +1,58 @@
+/*const placeables = useZust((state) => state.placeables);
+    const setPlaceables = useZust((state) => state.setPlaceables)
+    const addPlaceables = (pArray) => useZust.setState(produce((state) => {
+        if (state.placeables == null) {
+            state.placeables = pArray;
+        } else {
+            state.placeables = placeables.concat(pArray);
+        }
+
+    }));
+
+    const updatePlaceablePosition = (placeableSceneID, position) => useZust.setState(produce((state) => {
+    
+        if(placeables !=null )
+        {
+          
+            placeables.forEach((placeable, i) => {
+                if (placeable.placeableSceneID == placeableSceneID) {
+
+                    state.placeables[i].object.position = position;
+                }
+            });
+        }
+        
+        
+
+    }));
+
+    const updatePlaceable = (placeableUpdate) => useZust.setState(produce((state) => {
+    
+        if(placeables!=null)
+        {
+            placeables.forEach((placeable, i) => {
+                if (placeable.placeableSceneID == placeableUpdate.placeableSceneID) {
+
+                    state.placeables[i] = placeableUpdate;
+                }
+            });
+        }
+    }));
+
+    const onRemoveScenePlaceable = (placeableSceneID) => useZust.setState(produce((state) => {
+        if (placeables != null) {
+            if(placeables.length == 1)
+            {
+                if(placeables[0].placeableSceneID == placeableSceneID){
+                    state.placeables = [];
+                }
+            }else{
+                placeables.forEach((placeable, i) => {
+                    if (placeable.placeableSceneID == placeableSceneID) {
+                        state.placeables.splice(i, 1);
+                    }
+                });
+            }
+        }
+
+    }));*/

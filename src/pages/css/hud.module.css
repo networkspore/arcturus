@@ -1,0 +1,181 @@
+.menu__item > i {
+  font-size: 2.2em; /* 2.2*16px */
+}
+
+
+.menu__item {
+border-radius: 10px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+  text-decoration: none;
+  color: #666666;
+  transition: background 0.3s;
+  
+}
+.menuImg{
+  opacity: .5;
+ filter: invert(100%) sepia(13%) saturate(7500%) hue-rotate(204deg) brightness(114%) contrast(111%);
+}
+.menuImgActive{
+  opacity:.5;
+  filter: invert(67%) sepia(85%) saturate(543%) hue-rotate(8deg) brightness(94%) contrast(101%);
+}
+.menu__item:hover {
+  filter: drop-shadow(1px 2px 1px rgb(255, 255, 255, .5))
+}
+
+.menuActive {
+  
+ border-radius: 10px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  text-decoration: none;
+  color: #666666;
+  transition: background 0.3s;
+background-color: black;
+border: 1px solid #776a05;
+}
+
+
+
+.menu__item::after, .menuActive::after {
+
+  position: absolute;
+  display: inline-block; /* ::before, ::after are inline as default
+    
+  /*  makes tooltip vertically center within each one of menu items  */
+  top: -10px;
+  transform: translate(-50%,-50%);
+  
+  /* starting tooltip 100% left of menu item (just the right of them)   */
+  left: 0%;
+  
+  /* linked to the HTML attribute value  */
+  content: attr(about);
+  
+  /* set margin between menu item and tooltip  */
+  margin-left:50% ;
+  
+  /* makes words in same line   */
+  white-space: nowrap;
+  
+  padding: 7px 12px;
+  
+  /* 90% of current font size   */
+  font-size: 0.9em;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 15px;
+  color: #ffe51c;
+  
+  /*  invisible (can't see it but can click on it)  */
+  opacity: 0;
+  /* can't click  */
+  visibility: hidden;
+  transition: opacity 1s;
+}
+
+/* show tooltip if hover on menu item */
+.menu__item:hover::after,.menuActive:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu__button {
+
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  text-decoration: none;
+  color: #666666;
+  transition: background 0.3s;
+ 
+}
+.menu__button:hover{
+  filter: drop-shadow(1px 1px 1px rgb(255, 255, 255, .5))
+}
+
+
+.menu__button::after, .menuActive::after {
+
+  position: absolute;
+  display: inline-block; /* ::before, ::after are inline as default
+    
+  /*  makes tooltip vertically center within each one of menu items  */
+  top:-10px;
+  transform: translate(-50%,-50%);
+  
+  /* starting tooltip 100% left of menu item (just the right of them)   */
+  left: 0%;
+  
+  /* linked to the HTML attribute value  */
+  content: attr(about);
+  
+  /* set margin between menu item and tooltip  */
+  margin-left:50% ;
+  
+  /* makes words in same line   */
+  white-space: nowrap;
+  
+  padding: 7px 12px;
+  
+  /* 90% of current font size   */
+  font-size: 0.9em;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 15px;
+  color: #ffe51c;
+  
+  /*  invisible (can't see it but can click on it)  */
+  opacity: 0;
+  /* can't click  */
+  visibility: hidden;
+  transition: opacity 1s;
+}
+
+/* show tooltip if hover on menu item */
+.menu__button:hover::after,.menuActive:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.resultImg{
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  padding: 15px 15px;
+  color: #a5a5a5;
+  transition: background 0.3s;
+  cursor: pointer;
+  background-color: rgba(80, 80, 80, .1);
+  height: 50px;
+  text-decoration: none;
+
+}
+
+.result:hover {
+  color: white;
+  background-color: rgba(80, 80, 80, .7);
+}
+
+.resultText {
+  font-family: Webrockwell;
+  font-size: 24px;
+
+
+
+  text-shadow: 2px 2px 1px black;
+}

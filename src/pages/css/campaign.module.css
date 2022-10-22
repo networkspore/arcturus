@@ -1,0 +1,416 @@
+.boxHighlight{
+    box-shadow:1px 1px 10px #D6BD00;
+    border-radius: 10px;
+    overflow:hidden; 
+}
+
+.boxHighlight:hover{
+    box-shadow:1px 1px 20px #ffe51c;
+}
+.boxHighlight:active:hover{
+    box-shadow: 1px 1px 30px #ffe51c;
+}
+
+.textButton{
+    font-family: sans-serif; 
+    font-size:12px;
+    color:#70787a;
+    cursor: pointer;
+}
+.textButton:hover{
+    color:white;
+}
+
+.paragraph{
+     line-height: 1.2;
+}
+.chatHeading{
+    
+
+    font-size: 20px;
+    font-weight: bold;
+    color: #D6BD00;
+    font-family: WebPapyrus;
+    text-shadow: 2px 2px 2px black;
+    padding: 0px;
+}
+.check {
+
+	margin:3px;
+	margin-right: 5px;
+  width: 11px;
+  height: 11px;
+  border: 1px dotted #70787a;
+	
+  background-color:rgba(0, 0, 0, 0);
+  cursor:"pointer"
+}
+.checked {
+	 
+	margin:3px;
+	margin-right: 7px;
+	  width: 11px;
+  height: 11px;
+  background-image: radial-gradient( #ffe51c 25%,  #101314 100%);
+  background-repeat: no-repeat;
+  background-position: center;
+
+   cursor:"pointer"
+}
+
+.character{
+    background-image:url('/Images/add.png');
+    background-size:50px 50px;
+    background-repeat: no-repeat;
+    background-position:center center;
+    width:100%;
+    height:100%;
+    overflow: hidden;
+    border-radius: 10px;
+     border:"1px solid #606060"
+}
+.character:hover{
+    background-color: rgba(80,80,80,.5);
+}
+.heroText{
+    position:fixed;
+    top:50px;
+    left:50%;
+    transform: translate(-50%);
+     font-family: WebPapyrus;
+    color: #D6BD00;
+    font-size: 60px;
+    text-shadow: 2px 2px 2px #5d6166;
+}
+
+.arrow{
+    content: url("Images/rightDull.png");
+}
+
+.arrow:hover{
+    content: url("Images/right.png")
+}
+
+
+.heroSelect{
+font-family: WebPapyrus;
+	font-size: 25px;
+	color: #D6BD00;
+	background: rgba(10,13,14,.5);
+	border-color: #ffe51c;
+	outline:0;
+	padding: 10px;
+    border-radius: 30px;
+}
+.heroSelect:hover{
+   background: rgba(10,13,14,.8);
+}
+.titleHeading{
+    padding: 10px;
+    text-align: left;
+    font-family: WebRockwell;
+    font-size: 20px;
+    font-weight: bold;
+    color: #cdd4da;
+    text-shadow: 2px 2px 2px #101314;
+ 
+}
+
+.systemHeading{
+    
+
+    font-size: 12px; 
+    font-weight: bold;
+    color: #a5b8d1;
+    font-family: WebPapyrus;
+    text-shadow: 2px 2px 2px black;
+    padding: 0px;
+}
+
+.systemMessage{
+   
+    color: white;
+    font-size: 10px;  
+    font-style: normal;
+     font-family: WebPapyrus;
+    padding: 0px;
+}
+
+.chatMessage{
+   
+    color: white;
+    font-size: 14px;  
+    font-style: normal;
+     font-family: Verdana, Geneva, Tahoma, sans-serif;
+    padding: 0px;
+}
+
+.botUI{
+    
+    display:flex;
+    flex-direction:rows;
+    background-color: #282828cc;
+}
+
+.noResults{ 
+    flex:1;               
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 0;
+    text-decoration: none;
+    color: #a3aab3;
+    cursor: default;
+}
+
+.offlineName{
+    flex:1;               
+    position: relative;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 5px 0;
+    text-decoration: none;
+    color: #a3aab3;
+    cursor: default;
+}
+
+.menuName{
+    flex:1;       
+    position: relative;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 5px 0;
+    text-decoration: none;
+    color: #c7cfda;
+    cursor: pointer; 
+}
+.menuName:hover{
+   color:white;
+}
+
+.clickText{
+    color: #c7cfda;
+    cursor: pointer; 
+}
+
+.clickText:hover{
+   color:white;
+}
+
+
+.menuNameActive{
+    flex:1;       
+    position: relative;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding: 5px 0;
+    text-decoration: none;
+    color: #c7cfda;
+    cursor: pointer;
+    background-color: rgba(80,80,80,.7);
+}
+
+.menuIcon{
+    flex:.1;               
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 0;
+    text-decoration: none;
+    cursor: pointer;
+}
+.menuIcon:hover{
+    background-color: rgba(80,80,80,.5);
+}
+
+.icon{ 
+    position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px 0;
+  text-decoration: none;
+  background-color: rgba(80,80,80,.5);
+  flex-direction: row;
+}
+.icon:hover{
+    background-color: rgba(120,120,120,.5);
+}
+.controlItem{
+    flex: 0.1;
+}
+
+.mainTitle{
+    font-family: WebRockwell;
+	font-size: 60px;
+	font-weight: bolder;
+	color: #cdd4da;
+    text-shadow: 2px 4px #101314;
+    
+}
+
+.subMainTitle{
+    font-family: WebPapyrus;
+	font-size: 25px;
+	color: #ffe51c;
+}
+
+.whiteTitle{
+    font-family: WebPapyrus;
+	font-size: 40x;
+	color: #cdd4da
+}
+
+.blkSubmit{
+	font-family: WebPapyrus;
+	font-size: 12px;
+	background: #101314;
+	border-color: #ffe51c;
+	outline:0;
+	padding: 20px;
+    color: #D6BD00;
+}
+.blkSubmit2{
+	font-family: WebPapyrus;
+	font-size: 12px;
+	background: #101314;
+	border-color: #ffe51c;
+	outline:0;
+	padding: 10px;
+    color: #D6BD00;
+}
+
+.arrowSubmit{
+    border: 0px none;
+    color: #D6BD00;
+    font-family: WebRockwell;
+    font-size: 70px;
+    background-color: rgba(0,0,0,0);
+    
+    text-shadow: 2px 4px #101314;
+}
+
+.imageButton{
+     border: 1px solid #ffe51c;
+    display: inline-block;
+    cursor: pointer;
+    font-family: WebPapyrus;
+    font-size: 18px;
+    color: #D6BD00;
+    background-color: rgba(10,13,14,.5);
+}
+
+.imageButton:hover
+{
+    color:#ffe51c;
+    background-color: rgba(7,10,11,.9);
+}
+
+.blkInput{
+	background-color:rgba(0, 0, 0, 0);
+	font-size: 40px;
+	font-family: WebPapyrus;
+	outline: 0;
+	border-width: 0 0 2px;
+	border-color: #ffe51c;
+	color:#D6BD00;
+	text-align: center;
+}
+.smallBlkInput{
+	background-color:rgba(0, 0, 0, 0);
+	font-size: 20px;
+	font-family: WebPapyrus;
+	outline: 0;
+	border-width: 0 0 2px;
+	border-color: #ffe51c;
+	color:#D6BD00;
+	text-align: left;
+    width:100%;
+}
+
+.blkInputSubmit{
+	background-color:rgba(0, 0, 0, 0);
+	font-size: 40px;
+	font-family: WebPapyrus;
+	outline: 0;
+	border-width: 0 0 2px;
+	border-color: #ffe51c;
+	color:#D6BD00;
+	text-align: center;
+    cursor: pointer;
+}
+.blkInputSubmit:hover{
+	color:#ffe51c;
+}
+
+.disclaimer{
+	font-family: WebPapyrus;
+	font-size: 16px;
+	color: #A69300;
+	
+}
+
+
+.result{
+	display: flex;
+	flex-direction: row;
+	padding: 15px 15px;
+	color: #777171;
+	transition: background 0.3s;
+	cursor: pointer;
+	background-color: rgba(80,80,80,.1);
+	height:25px;
+	text-decoration: none;
+	color: #777171;
+}
+.result:hover{
+	color: white;
+	background-color: rgba(80,80,80,.7);
+}
+.currentResult{
+	color: white;
+	background-color: rgba(80,80,80,.7);
+    height:25px;
+	text-decoration: none;
+    display: flex;
+	flex-direction: row;
+	padding: 15px 15px;
+    cursor: default;
+}
+.resultImg{
+
+	width: 25px;
+	height: 25px;
+	
+	overflow: hidden;
+	border-radius: 5px;
+}
+.resultTxt{
+	
+	padding-top:3px;  
+	padding-left:15px;
+    padding-Right:15px;
+	width:100%; 
+	text-align:left;
+	
+}
+
+.closeButton{
+	flex: .1;
+	color: #666666;
+	cursor: pointer;
+	transition: background 0.3s;
+	padding: 3px 3px;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-size: large;
+	text-align: center;
+}
+.closeButton:hover{
+	color: white;
+	background-color: red;
+}

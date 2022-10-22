@@ -1,0 +1,48 @@
+import { shaderMaterial } from '@react-three/drei';
+import * as THREE from 'three';
+/*
+import glsl from 'babel-plugin-glsl'
+
+// uUvScale: { value: 1 / textureWidthHeight }
+
+export const ScaleShaderMaterial = shaderMaterial (
+    {uMap:{type:'t', value: }}
+)
+    
+const uniforms = {
+    mapScale: {
+        value: 10
+    },
+    map: {
+        type: 't',
+        value: worldMap
+    },
+}
+
+
+/* fragment shader:
+
+void main() {
+    vec4 color = texture2D(map, (vUv * uUvScale) + (vUvOffsets * uUvScale));
+    gl_FragColor = vec4(1.0, 1.0, 1.0, color.a);
+}
+
+
+const _VS = "void main() { \
+        vec4 mvPosition = vec4( position, 1.0 );\
+        #ifdef USE_INSTANCING\
+        mvPosition = instanceMatrix * mvPosition;\
+        #endif\
+        gl_Position = projectionMatrix * modelViewMatrix * mvPosition;\
+    }";
+
+const _FS = "\
+    void main() { \
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\
+    }";
+    //  <meshStandardMaterial map={worldMap} />
+      vec4 color = texture2D(map, (vUv * mapScale));\
+    gl_FragColor = vec4(1.0, 1.0, 1.0, color.a);\
+    // vertexShader={_VS}
+
+    */
