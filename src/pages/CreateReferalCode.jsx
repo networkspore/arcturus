@@ -74,7 +74,7 @@ export const CreateReferalCode = (props = {}) => {
             setCodeList(tmpCodes);
             
         }
-    },[availableCodes])
+    },[availableCodes, copied])
 
     function copyToClipboard(value){
   

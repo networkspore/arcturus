@@ -53,8 +53,8 @@ export const HomePage = () => {
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
                     <ImageDiv netImage={{
                         image: "Images/icons/person.svg",
-                        width: 130,
-                        height: 130,
+                        width: 120,
+                        height: 120,
                         filter: "invert(100%)"
                     }} />
                     <div style={{ width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
@@ -75,7 +75,7 @@ export const HomePage = () => {
 
                 </div>
                
-                <div style={{ width: "170px", paddingLeft:"15px" }}>
+                <div style={{ width: "170px", paddingLeft:"20px" }}>
                     <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
                         onClick={(e) => {
                             setshowIndex(1)
@@ -111,10 +111,10 @@ export const HomePage = () => {
                             >
                            
                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="Images/icons/people-outline.svg" width={20} height={20} />
+                                <img style={{ filter: "invert(100%)" }} src="Images/icons/settings-outline.svg" width={20} height={20} />
                             </div>
                             <div style={{ paddingLeft: "10px" }} >
-                                Contacts
+                                Settings
                             </div>
                         </div>
                      

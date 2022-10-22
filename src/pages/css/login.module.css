@@ -148,8 +148,10 @@
 }
 
 .check {
-
-	margin:3px;
+	padding-top:2px;
+	margin-bottom: 5px;
+	margin-top:5px;
+	margin-left: 5px;
 	margin-right: 5px;
   width: 11px;
   height: 11px;
@@ -160,12 +162,15 @@
 }
 
 .checked {
+	padding-top:2px;
 	
-	border: 1px solid #70787a75;
-	margin:3px;
+margin-bottom: 5px;
+	margin-top: 5px;
+	margin-left: 5px;
 	margin-right: 5px;
 	  width: 11px;
   height: 11px;
+border: 1px solid #70787a75;
   background-image: radial-gradient( #ffffff 25%,  #10131430 70%);
   background-repeat: no-repeat;
   background-position: center;

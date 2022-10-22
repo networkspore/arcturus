@@ -36,71 +36,84 @@ const HomeMenu = ({ props}) => {
     const [showIndex, setShowIndex] = useState(false);
 
     
-    const [connected, setConnected] = useState(false)
+   
 
     const location = useLocation()
 
-
-
-    useEffect(()=>{
-        if(user.userID > 0)
-        {
-            setConnected(true)
-           
-            socket.on("disconnect", (res)=>{
-                setConnected(false)
-       
-            })
-        }
-    },[user])
+    const [connected, setConnected] = useState(false)
 
     useEffect(() => {
         const currentLocation = location.pathname;
+
+        const isConnected = (socket != null) ? socket.connected : false;
+
+        if(connected != isConnected) setConnected(isConnected)
         
-        switch(currentLocation)
-        {
-            case '/login':
-                setShowIndex(1)
-                break;
-            case '/welcome':
-                setShowIndex(2)
-                break;
-                
-            case '/recoverpassword':
-                setShowIndex(5)
-                break;
-        }
+       if(user.userID > 0)
+       {
+           if (currentLocation == '/') {
+
+                if (connected) {   
+                    navigate("/search")
+                } else {
+                    navigate('/home')
+                }
+            }else{
+                const firstSlash = currentLocation.indexOf("/")
+                const tmp = currentLocation.slice(firstSlash)
+                const locationArray = String(currentLocation).split("/").reverse()
+            
+                const rootDirectory = locationArray.pop();
+
+                switch(rootDirectory)
+                {
+                    case "search":
+                        if(connected){
+                            if (!showMenu) setShowMenu(true);
+                            setShowIndex(4)
+                        }else{
+                            navigate('/home')
+                        }
+                        break;
+                    case "home":
+                        if (!showMenu) setShowMenu(true);
+                        setShowIndex(3);
+                        break;
+                    default:
+                        if (connected) {
+                            if (!showMenu) setShowMenu(true);
+                            setShowIndex(3)
+                        } else {
+                            navigate('/home')
+                        }
+                }
+
+            }
+        
+       }else{
+            if (showMenu) setShowMenu(false)
+            
+            switch (currentLocation) {
+                case '/':
+                case '/login':
+                    setShowIndex(1)
+                    break;
+                case '/welcome':
+                    setShowIndex(2)
+                    break;
+
+                case '/recoverpassword':
+                    setShowIndex(5)
+                    break;
+                default:
+                    navigate("/")
+                    break;
+            }
+       }
         
        
-        if (currentLocation == '/') {
-
-            if(connected){
-                if (!showMenu) setShowMenu(true)
-                setShowIndex(3)
-            }else{
-                setShowIndex(1)
-                setShowMenu(false)
-            }
-
-        }
-
-        if(currentLocation == '/search')
-        {
-            if(connected){
-                if (!showMenu) setShowMenu(true)
-                    setShowIndex(3)
-            }else{
-                setShowIndex(1)
-                // navigate("/")
-            }
-            
-        }
-        if(currentLocation == '/home'){
-            setShowIndex(4)
-            if(!showMenu) setShowMenu(true)
-        }
     
-    }, [location,connected])
+    }, [location,user,socket])
 
     useEffect(() => {
        
@@ -136,6 +149,7 @@ const HomeMenu = ({ props}) => {
    
 
     function onProfileClick(e){
+      
         if(connected){
             toNav("/home")
         }else{
@@ -145,29 +159,7 @@ const HomeMenu = ({ props}) => {
 
     return (
         <>
-            <div style={{ 
-                position: "fixed", top: 0, right: 0, height: 30, 
-                backgroundImage: "linear-gradient(to bottom, #00000088,#10131488)" }}>
-                <div style={{display:"flex"}}>
-                    
-                    <div style={{paddingTop:"6px",display:"flex",cursor:"pointer", backgroundColor:"black"}} >
-                        <div onClick={(e) =>{
-                            toNav("/")
-                        }}>
-                        <img src={connected ? "Images/logo.png" : "Images/logout.png"} width={30} height={30} />
-                        </div>
-                        <div onClick={onProfileClick} style={{ 
-                            fontFamily: "WebPapyrus", 
-                            color:"#c7cfda",
-                            fontSize:"16px",
-                            paddingTop:"5px",
-                            paddingLeft:"10px",
-                            paddingRight:"10px"
-                        }}> {connected ? user.userName : <div style={{display:"flex"}}><div>Log</div><div style={{width:"6px"}}>&nbsp;</div><div>In</div> </div> }</div>
-                    </div>
-                    
-                </div>
-            </div>
+          
 
             
        
@@ -191,7 +183,7 @@ const HomeMenu = ({ props}) => {
                     <div style={{ display: "flex", flexDirection: "column", height: pageSize.height, fontFamily: "WebPapyrus" }}>
                         <div style={{ flex: 1 }}>
 
-                            {connected &&
+                            {connected  &&
                                 <>
                                     <NavLink className={location.pathname == "/search" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/search'}>
                                         <img src="Images/logo.png" width={50} height={50} />
@@ -230,6 +222,30 @@ const HomeMenu = ({ props}) => {
                 </div>
 
             }
+            <div style={{
+                position: "fixed", top: 0, right: 0, height: 30,
+                backgroundImage: "linear-gradient(to bottom, #00000088,#10131488)"
+            }}>
+                <div style={{ display: "flex" }}>
+
+                    <div style={{ paddingTop: "6px", display: "flex", cursor: "pointer", backgroundColor: "black" }} >
+                        <div onClick={(e) => {
+                            toNav("/")
+                        }}>
+                            <img src={connected ? "Images/logo.png" : "Images/logout.png"} width={30} height={30} />
+                        </div>
+                        <div onClick={onProfileClick} style={{
+                            fontFamily: "WebPapyrus",
+                            color: "#c7cfda",
+                            fontSize: "16px",
+                            paddingTop: "5px",
+                            paddingLeft: "10px",
+                            paddingRight: "10px"
+                        }}> {connected ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
+                    </div>
+
+                </div>
+            </div>
         </>
     )
     

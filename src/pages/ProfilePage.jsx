@@ -51,7 +51,7 @@ export const ProfilePage = (props = {}) =>{
                             paddingBottom: 10,
                         textAlign: "center",
                         width: "100%",
-                        paddingTop: "20px",
+                        paddingTop: "10px",
                         fontFamily: "WebRockwell",
                         fontSize: "18px",
                         fontWeight: "bolder",
@@ -113,7 +113,8 @@ export const ProfilePage = (props = {}) =>{
                         </div>
                         <div style={{ width: 2, height: "100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
                         <div style={{ display: "flex", alignItems: "center", flexDirection:"column", justifyContent:"center", width:530 }}>
-                                <div style={{  width: "100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
+                            
+                            <div style={{  width: "100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
                             <div style={{width:"300px",
                                 fontFamily:"Webrockwell",
                                 color: "#cdd4da",
@@ -128,47 +129,51 @@ export const ProfilePage = (props = {}) =>{
                                             border: "0px", 
                                             color: "white", 
                                             backgroundColor: "black",
+                                            fontFamily: "WebPapyrus", 
                                             
                                         }} /> </div>
                                 <div style={{ paddingLeft: "20px" }} > Handle </div>
                             </div>
                             <div style={{ height: "20px" }}></div>
                             <div style={{ display: "flex",  paddingTop: "20px" }} >
-                                    <div> <input value={'Click to change...'} type={"text"} style={{cursor:"pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
+                                    <div> <input value={'Click to change...'} type={"text"} style={{fontFamily:"WebPapyrus", cursor:"pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
                                 <div style={{ paddingLeft: "20px" }} > Password </div>
                             </div>
                                 <div style={{ height: "20px" }}></div>
                             <div style={{ display: "flex",  paddingTop: "20px" }} >
-                                    <div> <input type={"text"} value={"Click to verify..."} style={{cursor:"pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
+                                            <div> <input type={"text"} value={"Click to verify..."} style={{ fontFamily: "WebPapyrus", cursor:"pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
                                 <div style={{ paddingLeft: "20px" }} > Email</div>
                             </div>
                                 <div style={{ height: "20px" }}></div>
                             <div style={{ display: "flex", paddingTop: "20px" }} >
-                                    <div> <input value={new Date().toString()} type={"text"} style={{ width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
+                                            <div> <input value={new Date().toString()} type={"text"} style={{ fontFamily: "WebPapyrus", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
                                     <div style={{ paddingLeft: "20px", color:" #777777" }} > Modified </div>
                             </div>
-                                <div style={{ height: "20px" }}></div>
-                            </div>
-                                </div>
-                                <div style={{
-                                    justifyContent: "center",
                             
-                                    paddingTop: "10px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    width:"100%"
-                                }}>
-                                    <div  className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
-                                   
-                                    <div style={{
+                                  <div style={{
+                                        justifyContent: "center",
+                                
+                                        paddingTop: "10px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        width:"100%"
+                                    }}>
+                                        <div  className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
+                                        
+                                        <div style={{
 
-                                        marginLeft: "20px", marginRight: "20px",
-                                        height: "50px",
-                                        width: "1px",
-                                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                                    }}></div>
+                                            marginLeft: "20px", marginRight: "20px",
+                                            height: "50px",
+                                            width: "1px",
+                                            backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                                        }}>
+                                            
+                                        </div>
                                     <div  className={styles.OKButton} onClick={onOKclick} >OK</div>
                                 </div>
+                            </div>
+                                </div>
+                              
                         </div>
                            
                     </div>

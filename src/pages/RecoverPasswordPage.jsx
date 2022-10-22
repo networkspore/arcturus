@@ -184,7 +184,7 @@ export const RecoverPasswordPage = (props = {}) => {
 
 
 
-            <div style={{ paddingTop: '60px' }}>
+            <div style={{ paddingTop: '40px' }}>
                 <div style={{
 
                     fontSize: "20px",
