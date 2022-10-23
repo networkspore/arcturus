@@ -16,6 +16,7 @@ import react from '@vitejs/plugin-react'
 
 
 // https://vitejs.dev/config/
+
 export default defineConfig({
     plugins: [react()],
     server: {
@@ -27,7 +28,7 @@ export default defineConfig({
 src/constants/httpvars.jsx
 -------
   const host = "localhost";
-  const socketPort = 54944;
+  const socketPort = 13377;
   
   const socketToken = "ANY STRING"
   
