@@ -233,6 +233,7 @@ const HomeMenu = ({ props}) => {
    
 
     function onProfileClick(e){
+      
         if(connected){
             toNav("/home")
         }else{
@@ -242,29 +243,7 @@ const HomeMenu = ({ props}) => {
 
     return (
         <>
-            <div style={{ 
-                position: "fixed", top: 0, right: 0, height: 30, 
-                backgroundImage: "linear-gradient(to bottom, #00000088,#10131488)" }}>
-                <div style={{display:"flex"}}>
-                    
-                    <div style={{paddingTop:"6px",display:"flex",cursor:"pointer", backgroundColor:"black"}} >
-                        <div onClick={(e) =>{
-                            toNav("/")
-                        }}>
-                        <img src={connected ? "Images/logo.png" : "Images/logout.png"} width={30} height={30} />
-                        </div>
-                        <div onClick={onProfileClick} style={{ 
-                            fontFamily: "WebPapyrus", 
-                            color:"#c7cfda",
-                            fontSize:"16px",
-                            paddingTop:"5px",
-                            paddingLeft:"10px",
-                            paddingRight:"10px"
-                        }}> {connected ? user.userName : <div style={{display:"flex"}}><div>Log</div><div style={{width:"6px"}}>&nbsp;</div><div>In</div> </div> }</div>
-                    </div>
-                    
-                </div>
-            </div>
+          
 
             
        
@@ -289,7 +268,7 @@ const HomeMenu = ({ props}) => {
                     <div style={{ display: "flex", flexDirection: "column", height: pageSize.height, fontFamily: "WebPapyrus" }}>
                         <div style={{ flex: 1 }}>
 
-                            {connected &&
+                            {connected  &&
                                 <>
                                     <NavLink className={location.pathname == "/search" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/search'}>
                                         <img src="Images/logo.png" width={50} height={50} />
@@ -328,6 +307,30 @@ const HomeMenu = ({ props}) => {
                 </div>
 
             }
+            <div style={{
+                position: "fixed", top: 0, right: 0, height: 30,
+                backgroundImage: "linear-gradient(to bottom, #00000088,#10131488)"
+            }}>
+                <div style={{ display: "flex" }}>
+
+                    <div style={{ paddingTop: "6px", display: "flex", cursor: "pointer", backgroundColor: "black" }} >
+                        <div onClick={(e) => {
+                            toNav("/")
+                        }}>
+                            <img src={connected ? "Images/logo.png" : "Images/logout.png"} width={30} height={30} />
+                        </div>
+                        <div onClick={onProfileClick} style={{
+                            fontFamily: "WebPapyrus",
+                            color: "#c7cfda",
+                            fontSize: "16px",
+                            paddingTop: "5px",
+                            paddingLeft: "10px",
+                            paddingRight: "10px"
+                        }}> {connected ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
+                    </div>
+
+                </div>
+            </div>
         </>
     )
     

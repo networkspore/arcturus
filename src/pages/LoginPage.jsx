@@ -185,7 +185,7 @@ return (
         top: "50%",
         position: "fixed",
         transform:"translate(-50%,-50%)",
-        width: 575,
+        width: 600,
         
         boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
         backgroundImage: "linear-gradient(to bottom,  #00030490,#13161780)",
@@ -267,14 +267,17 @@ return (
                     </div>
                   
                 </div>
-                <div style={{paddingLeft:20}} name="loginRemember" className={styles.checkPos} >
+                
+                <div style={{paddingLeft:20,}} name="loginRemember" className={styles.checkPos} >
                     <div className={data.loginRemember ? styles.checked : styles.check} name="loginRemember" onClick={onLoginRemember} />
                     <div onClick={onLoginRemember} style={
                         {
+                            fontFamily:"WebPapyrus",
                         cursor: "pointer", 
                         color: (data.loginRemember) ? "#ffffffDD" : "#777777",
                         textShadow: (data.loginRemember) ? "1px 1px 2px #000000" : "",
-                        }} className={styles.keep}>Keep me signed in.</div>
+                        
+                        }} >Keep me signed in.</div>
                 </div>
                 <div style={{ width:"100%", display:"flex", justifyContent:"right"}}>
                     <div onClick={handleSubmit} style={{

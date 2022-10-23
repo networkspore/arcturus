@@ -52,7 +52,7 @@ export const ProfilePage = (props = {}) =>{
                             paddingBottom: 10,
                         textAlign: "center",
                         width: "100%",
-                        paddingTop: "20px",
+                        paddingTop: "10px",
                         fontFamily: "WebRockwell",
                         fontSize: "18px",
                         fontWeight: "bolder",
@@ -104,7 +104,8 @@ export const ProfilePage = (props = {}) =>{
                         </div>
                         <div style={{ width: 2, height: "100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
                         <div style={{ display: "flex", alignItems: "center", flexDirection:"column", justifyContent:"center", width:530 }}>
-                                <div style={{  width: "100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
+                            
+                            <div style={{  width: "100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
                             <div style={{width:"300px",
                                 fontFamily:"Webrockwell",
                                 color: "#cdd4da",
@@ -119,6 +120,7 @@ export const ProfilePage = (props = {}) =>{
                                             border: "0px", 
                                             color: "white", 
                                             backgroundColor: "black",
+                                            fontFamily: "WebPapyrus", 
                                             
                                         }} /> </div>
                                 <div style={{ paddingLeft: "20px" }} > Handle </div>
@@ -141,13 +143,18 @@ export const ProfilePage = (props = {}) =>{
                                    
                                     <div style={{
 
-                                        marginLeft: "20px", marginRight: "20px",
-                                        height: "50px",
-                                        width: "1px",
-                                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                                    }}></div>
+                                            marginLeft: "20px", marginRight: "20px",
+                                            height: "50px",
+                                            width: "1px",
+                                            backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                                        }}>
+                                            
+                                        </div>
                                     <div  className={styles.OKButton} onClick={onOKclick} >OK</div>
                                 </div>
+                            </div>
+                                </div>
+                              
                         </div>
                            
                     </div>
