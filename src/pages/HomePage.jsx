@@ -9,36 +9,44 @@ import { ContactsPage } from './ContactsPage';
 import { ProfilePage } from './ProfilePage';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { LocalAssetsPage } from './LocalAssetsPage';
+import { AccountSettingsPage } from './AccountSettingsPage';
 
 
 
 
 
 
-export const HomePage = () => {
+export const HomePage = (props ={}) => {
+
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
     const [showIndex, setshowIndex] = useState(0)
     const nav = useNavigate();
     const setUser = useZust((state) => state.setUser)
-    const setShowMenu = useZust((state) => state.setShowMenu)
-    const socket = useZust((state) => state.socket)
-    const setSocket = useZust((state) => state.setSocket)
-    const setAutoLogin = useZust((state) => state.setAutoLogin)
 
-    const disconnectSocket = () => useZust.setState((state)=>{
-        state.socket.disconnect();
-        state.socket = null;
-    })
+    const [connected, setConnected] = useState(false);
+
+    const [profile, setProfile] = useState({
+        name:"Offline", 
+        image:{}
+    });
 
 
     const onLogoutClick = (e) => {
-        setAutoLogin(false);
-        setUser();
-        setShowMenu(false);
-        disconnectSocket();
+        props.logOut();
     
     }
+ 
+
+    useEffect(()=>{
+        if(connected != props.connected) setConnected(props.connected)
+
+        props.getProfile((value)=>{
+          console.log(value)
+            setProfile(value)
+        })
+        
+    },[props])
 
     return (
         
@@ -51,13 +59,8 @@ export const HomePage = () => {
                  
                 }}></div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
-                    <ImageDiv netImage={{
-                        image: "Images/icons/person.svg",
-                        width: 130,
-                        height: 130,
-                        filter: "invert(100%)"
-                    }} />
-                    <div style={{ width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
+                    <ImageDiv netImage={profile.image} />
+                    <div style={{ paddingTop:5, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
                         <div style={{
 
                             textAlign: "center",
@@ -67,15 +70,16 @@ export const HomePage = () => {
                             color: "#cdd4da",
                             textShadow: "2px 2px 2px #101314",
 
-                        }} >{user.userName}</div>
+                        }} >{ profile.name }</div>
 
                     </div>
 
                     <div style={{ paddingTop: 3, height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
 
                 </div>
-               
-                <div style={{ width: "170px", paddingLeft:"15px" }}>
+                        
+                <div style={{ width: 260, paddingLeft:"15px" }}>
+                    
                     <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
                         onClick={(e) => {
                             setshowIndex(1)
@@ -83,7 +87,7 @@ export const HomePage = () => {
                     >
 
                         <div>
-                            <img style={{ filter: "invert(100%)" }} src="Images/icons/id-card-outline.svg" width={20} height={20} />
+                            <img style={{ filter: "invert(100%)" }} src="Images/icons/person-circle-outline.svg" width={20} height={20} />
                         </div>
                         <div style={{ paddingLeft: "10px" }} >
                            Profile
@@ -103,22 +107,22 @@ export const HomePage = () => {
                             Local Assets
                         </div>
                     </div>
-
-                        <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
+                        {connected &&                        <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
                             onClick={(e)=>{
-                                setshowIndex(3)
+                                setshowIndex(4)
                             }}
                             >
                            
                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="Images/icons/people-outline.svg" width={20} height={20} />
+                                <img style={{ filter: "invert(100%)" }} src="Images/icons/id-card-outline.svg" width={20} height={20} />
                             </div>
                             <div style={{ paddingLeft: "10px" }} >
-                                Contacts
+                                Account Settings
                             </div>
                         </div>
                      
-                 
+                    }
+
                     
                   
                 </div>
@@ -156,6 +160,9 @@ export const HomePage = () => {
             
             {showIndex == 3 &&
                 <ContactsPage />
+            }
+            {showIndex == 4 &&
+                <AccountSettingsPage cancel={() => { setshowIndex(0) }}  />
             }
        </>
         

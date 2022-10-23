@@ -9,8 +9,8 @@ export const ImageDiv = (props = {}) => {
     const [scaleImgWidth, setScaleWidth] = useState("0px");
     const [scaleImgHeight, setScaleHeight] = useState("0px");
     const [filter, setFilter] = useState("")
-
-
+    const [backgroundImage, setBackgroundImage] = useState("")
+    const [backgroundColor, setBackgroundColor] = useState("")
     const [width, setWidth] = useState(110)
     const [height, setHeight] = useState(110)
 
@@ -27,7 +27,7 @@ export const ImageDiv = (props = {}) => {
         }
 
         if ("netImage" in props) {
-            var info = { width: 0, height: 0, image: "" , filter:""};
+            var info = { width: 0, height: 0, image: "" , filter:"", backgroundImage: "", backgroundColor:"#000000"};
             const tmp = props.netImage;
             if ("image" in tmp) {
                 info.image = tmp.image;
@@ -41,7 +41,13 @@ export const ImageDiv = (props = {}) => {
             if ("filter" in tmp) {
                 info.filter = tmp.filter;
             }
-
+            if ("backgroundImage" in tmp) {
+                info.backgroundImage = tmp.backgroundImage;
+            }
+            if ("backgroundColor" in tmp) {
+                info.backgroundColor = tmp.backgroundColor;
+            }
+         
             if (info.width > w || info.height > h) {
 
 
@@ -65,12 +71,12 @@ export const ImageDiv = (props = {}) => {
             }
             setFilter(info.filter);
             setImg(info.image);
-
-          
+            setBackgroundImage(info.backgroundImage)
+            setBackgroundColor(info.backgroundColor)
         }
 
 
-    }, [])
+    }, [props])
 
    
 
@@ -80,7 +86,8 @@ export const ImageDiv = (props = {}) => {
             justifyContent: "center", 
             width: width, 
             height: height, 
-            backgroundColor: "black", 
+            backgroundColor: backgroundColor, 
+            backgroundImage: backgroundImage,
             overflow: "hidden", 
             borderRadius: "borderRadius" in props ? props.borderRadius :  "20px" 
             }}>

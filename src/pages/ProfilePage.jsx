@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import useZust from "../hooks/useZust";
 import { ImageDiv } from "./components/UI/ImageDiv";
-import { CreateReferalCode } from "./CreateReferalCode";
+
 import styles from './css/home.module.css'
 
 export const ProfilePage = (props = {}) =>{
@@ -19,9 +19,10 @@ export const ProfilePage = (props = {}) =>{
     const [showIndex, setShowIndex] = useState(0);
     
     useEffect(() => {
+        if(socket!= null){
         socket.emit("getProfileInfo", (info)=>{
-            setProfileInfo()
-        })
+        })}
+
     }, [])
 
 
@@ -66,7 +67,7 @@ export const ProfilePage = (props = {}) =>{
                     <div style={{ paddingLeft: "15px", display: "flex", height:"430px",  }}>
 
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 200, padding: "10px" }}>
-                            <div style={{ cursor: "pointer" }} className={styles.glow}>
+                            <div style={{ cursor: "pointer" }} >
                             <ImageDiv netImage={{
                                 image: "Images/icons/person.svg",
                                 width: 130,
@@ -99,17 +100,7 @@ export const ProfilePage = (props = {}) =>{
                            
                             <div style={{ paddingTop:3, height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
                             
-                            <div className={styles.CancelButton} style={{
-                                position: "relative",
-                                transform: "translate(0px,240px)", 
-                                fontSize: "13px", 
-                                color: "#cdd4da",
-                                textShadow: "2px 2px 2px #101314",
-                                fontFamily:"Webrockwell",
-                                width:190
-                            }} onClick={(e)=>{
-                                setShowIndex(1)
-                            }}>Create Referal Code</div>
+                           
                         </div>
                         <div style={{ width: 2, height: "100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
                         <div style={{ display: "flex", alignItems: "center", flexDirection:"column", justifyContent:"center", width:530 }}>
@@ -133,21 +124,9 @@ export const ProfilePage = (props = {}) =>{
                                 <div style={{ paddingLeft: "20px" }} > Handle </div>
                             </div>
                             <div style={{ height: "20px" }}></div>
-                            <div style={{ display: "flex",  paddingTop: "20px" }} >
-                                    <div> <input value={'Click to change...'} type={"text"} style={{cursor:"pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
-                                <div style={{ paddingLeft: "20px" }} > Password </div>
-                            </div>
-                                <div style={{ height: "20px" }}></div>
-                            <div style={{ display: "flex",  paddingTop: "20px" }} >
-                                    <div> <input type={"text"} value={"Click to verify..."} style={{cursor:"pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
-                                <div style={{ paddingLeft: "20px" }} > Email</div>
-                            </div>
-                                <div style={{ height: "20px" }}></div>
-                            <div style={{ display: "flex", paddingTop: "20px" }} >
-                                    <div> <input value={new Date().toString()} type={"text"} style={{ width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
-                                    <div style={{ paddingLeft: "20px", color:" #777777" }} > Modified </div>
-                            </div>
-                                <div style={{ height: "20px" }}></div>
+                           
+                      
+                        
                             </div>
                                 </div>
                                 <div style={{
@@ -174,11 +153,7 @@ export const ProfilePage = (props = {}) =>{
                     </div>
                 </div>
                 }
-                {showIndex == 1 &&
-                    <CreateReferalCode back={()=>{
-                
-                        setShowIndex(0)}}/>
-                }
+           
 
             </>
         )

@@ -25,14 +25,13 @@ import { get } from "idb-keyval";
     const [data, setData] = useState({ loginRemember: false, loginName: "", loginPass: "" });
     const [cookie, setCookie] = useCookies(['login']);
    
-     const setSocketConnected = useZust((state) => state.setSocketConnected)
+
      
     const navigate = useNavigate(); 
     
     const [disable, setDisable] = useState(false)
     const autoLogin = useZust((state) => state.autoLogin)
- 
-    const setShowMenu = useZust((state) => state.setShowMenu)
+
     
    // const [overlayPos, setOverlayPos] = useState({top:200, left:200})
    // const overlaySize = {width: 600, height: 400};
@@ -42,7 +41,9 @@ import { get } from "idb-keyval";
    // const scrollTop = useZust((state) => state.scrollTop)
 
     const setLoginPage = useZust((state) => state.setLoginPage);
-    const setCampaigns = useZust((state) => state.setCampaigns);
+
+
+    const setConnected = useZust((state) => state.setConnected)
 
     const onLoginRemember = e =>{
         setData(prevState => ({
@@ -148,7 +149,7 @@ import { get } from "idb-keyval";
                 setContacts(contacts)
                 setContactRequests(requests)
                 setSocket(sock);
-         
+                setConnected(true)
                 
 
                 var dir = get("localDirectory" + user.userID)
@@ -168,14 +169,10 @@ import { get } from "idb-keyval";
                     }
 
                 })
-                navigate("/search")
+            
                 return true;
             })
-            sock.on("failedLogin", () =>{
-                setDisable(false)
-                alert("Please check your credentials and try again.")
-                return false
-            })
+            
         }
     }
 

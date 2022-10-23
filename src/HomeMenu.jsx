@@ -13,8 +13,11 @@ import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 
 
 
+
 const HomeMenu = ({ props}) => {
    
+    const location = useLocation()
+
     const goToEditor = useZust((state) => state.torilActive);
     const setTorilActive =useZust((state) => state.setTorilActive);
     const [showMenu, setShowMenu] = useState(false) 
@@ -30,77 +33,171 @@ const HomeMenu = ({ props}) => {
     const toNav = useNavigate()
     const currentCampaign = useZust((state) => state.currentCampaign)
 
-
-   
-
     const [showIndex, setShowIndex] = useState(false);
 
     
-    const [connected, setConnected] = useState(false)
+    const connected = useZust((state)=>state.connected)
+    const setConnected = useZust((state) => state.setConnected)
 
-    const location = useLocation()
+    const localDirectory = useZust((state) => state.localDirectory)
 
+    const setAutoLogin = useZust((state) => state.setAutoLogin)
+    
+    const socketOff = (value) => useZust.setState(produce((state)=>{
+        state.socket.off(value)
+    }))
 
+    const socketOn = (value, listener) => useZust.setState(produce((state) => {
+        state.socket.off(value, listener)
+    }))
+
+    const disconnectSocket = () => useZust.setState(produce((state) => {
+        if(state.socket!= null){
+            state.socket.disconnect();
+            state.socket = null;
+        }
+    }))
+
+    const logout = () => {
+        setAutoLogin(false);
+        setUser();
+        disconnectSocket();
+
+    }
 
     useEffect(()=>{
         if(user.userID > 0)
         {
-            setConnected(true)
-           
-            socket.on("disconnect", (res)=>{
+        
+            socketOff("disconnect")
+            socketOn("disconnect", (res)=>{
+                switch(res)
+                {
+                    case "io server disconnect":
+                        break;
+                    
+                }
+                
                 setConnected(false)
-       
+
+            })
+            socketOff("connect")
+            socketOn("connect", (res)=>{
+                setConnected(true)
             })
         }
     },[user])
 
+    const getProfile = (callback) =>{
+        if(localDirectory == "")
+        {
+            if(connected)
+            {
+               
+                callback({
+                    name: (user.userHandle == "") ? user.userName : user.userHandle, 
+                    image: { 
+                        image: "Images/icons/person.svg" , 
+                        backgroundColor: "#44444450",
+                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                        width: 130,
+                        height: 130, 
+                        filter:"invert(100%)"
+                    }
+                })
+               
+            }else{
+                callback({
+                    name: "Offline", 
+                    image: { 
+                        image: "" ,
+                        width: 130,
+                        height: 130,
+                        backgroundColor:"#44444450",
+                        backgroundImage:"radial-gradient(black 20%, #0000FF70 50%, #00000040 100%)", 
+                        filter: "invert(100%)" 
+                    }
+                })
+            }
+        }else{
+
+        }
+    }
+
     useEffect(() => {
         const currentLocation = location.pathname;
-        
-        switch(currentLocation)
-        {
-            case '/login':
-                setShowIndex(1)
-                break;
-            case '/welcome':
-                setShowIndex(2)
-                break;
+
+
+        if (user.userID > 0) {
+            if (currentLocation == '/') {
+
+                if (connected) {
+                    navigate("/search")
+                } else {
+                    navigate('/home')
+                }
+            } else {
+               // const firstSlash = currentLocation.indexOf("/")
+                const tmp = currentLocation.slice(0)
+                const locationArray = tmp.split("/").reverse()
+     
+                locationArray.pop();
+                const rootDirectory = locationArray.pop();
+
                 
-            case '/recoverpassword':
-                setShowIndex(5)
-                break;
-        }
-        
-       
-        if (currentLocation == '/') {
+                switch (rootDirectory) {
+                    case "search":
+                        
+                        if (connected) {
+                            if (!showMenu) setShowMenu(true);
+                            setShowIndex(3)
+                        } else {
+                            navigate('/home')
+                        }
+                        break;
+                    case "home":
+                        if (!showMenu) setShowMenu(true);
+                        setShowIndex(4);
+                        break;
+                    default:
+                        if (connected) {
+                            if (!showMenu) setShowMenu(true);
+                            setShowIndex(4)
+                        } else {
+                            navigate('/home')
+                        }
+                }
 
-            if(connected){
-                if (!showMenu) setShowMenu(true)
-                setShowIndex(3)
-            }else{
-                setShowIndex(1)
-                setShowMenu(false)
             }
 
+        } else {
+            if (showMenu) setShowMenu(false)
+
+            switch (currentLocation) {
+                case '/':
+                case '/login':
+                    setShowIndex(1)
+                    break;
+                case '/welcome':
+                    setShowIndex(2)
+                    break;
+                case '/home':
+                    if (!showMenu) setShowMenu(true);
+                    setShowIndex(4)
+                    break;
+
+                case '/recoverpassword':
+                    setShowIndex(5)
+                    break;
+                default:
+                    navigate("/")
+                    break;
+            }
         }
 
-        if(currentLocation == '/search')
-        {
-            if(connected){
-                if (!showMenu) setShowMenu(true)
-                    setShowIndex(3)
-            }else{
-                setShowIndex(1)
-                // navigate("/")
-            }
-            
-        }
-        if(currentLocation == '/home'){
-            setShowIndex(4)
-            if(!showMenu) setShowMenu(true)
-        }
-    
-    }, [location,connected])
+
+
+    }, [location, user, socket,connected])
 
     useEffect(() => {
        
@@ -172,21 +269,22 @@ const HomeMenu = ({ props}) => {
             
        
         {showIndex == 1 &&
-            <LoginPage />
+                <LoginPage connected={connected} />
         }
-        {showIndex == 2 && user.userID < 1 &&
-            <WelcomePage />
+        {showIndex == 2  &&
+                <WelcomePage connected={connected} />
         }
         {showIndex == 3 &&
-            <SearchPage />
+                <SearchPage connected={connected} />
         }
         {showIndex == 4 &&
-           <HomePage />
+                <HomePage connected={connected} logOut={logout} getProfile={getProfile} />
         }
         {showIndex == 5 &&
-            <RecoverPasswordPage />
+                <RecoverPasswordPage connected={connected} />
         }
-            {(connected && showMenu) &&
+  
+            {(showMenu) &&
                 <div style={{ position: "fixed", top: 0, left: 0, height: pageSize.height, width: 85, backgroundImage: "linear-gradient(to bottom, #00000088,#20232588)" }}>
                     <div style={{ display: "flex", flexDirection: "column", height: pageSize.height, fontFamily: "WebPapyrus" }}>
                         <div style={{ flex: 1 }}>
@@ -212,12 +310,12 @@ const HomeMenu = ({ props}) => {
 
                         </div>
                         <div style={{ flex: 0.1 }}>
-
+                            {connected &&
                             <NavLink className={location.pathname == "/createRealm" ? styles.menuActive : styles.menu__item} about="Create Realm"
                                 to={'/createRealm'}>
                                 <img src="Images/realm.png" width={60} height={60} />
                             </NavLink>
-
+                            }
 
 
                             <NavLink className={location.pathname == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}

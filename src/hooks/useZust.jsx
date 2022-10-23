@@ -9,7 +9,8 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
-
+   connected: false,
+   setConnected: (value = false) => set({connected:value}),
    localDirectory: "",
    setLocalDirectory: (value = "") => set({localDirectory: value}),
    localHandle:null,
@@ -74,8 +75,8 @@ const useZust = create((set) => ({
    torilActive: false,
    setTorilActive: (active = true) => set({torilActive: active}),
 
-   user: { LoggedIn: false, userID: '', userName: '', userEmail: '', userSuper: 0, userDirectories: [] },
-   setUser: (u = { LoggedIn: false, userID: '', userName: '', userEmail: '', userSuper: 0, userDirectories:[] }) => set({user: u}),
+   user: { LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '' },
+   setUser: (u = { LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '' }) => set({user: u}),
    
    socket: null,
    setSocket: (sock = null) => set({socket: sock}),
