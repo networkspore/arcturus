@@ -157,8 +157,7 @@ export const ProfilePage = (props = {}) =>{
                               
                         </div>
                            
-                    </div>
-                </div>
+             
                 }
            
 

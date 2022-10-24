@@ -2,15 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import useZust from '../hooks/useZust';
 import styles from './css/home.module.css';
 
-
+import crc32 from 'crc/crc32';
 
 
 import { get, set } from 'idb-keyval';
 import produce from 'immer';
+import { NavLink } from 'react-router-dom';
 
 
 
-export const LocalAssetsPage = () => {
+export const LocalStoragePage = () => {
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
 
@@ -20,9 +21,11 @@ export const LocalAssetsPage = () => {
     }));
 
     const files = useZust((state) => state.files)
+    
     const addFile = (value) => useZust.setState(produce((state)=>{
         state.files.push(value)
     }))
+
     const clearFiles = () => useZust.setState(produce((state)=>{
         state.files = [];
     }))
@@ -30,36 +33,20 @@ export const LocalAssetsPage = () => {
         state.files = value;
     }))
 
+    const configFile = useZust((state) => state.configFile)
+
+    const setConfigFile = useZust((state) => state.setConfigFile)
+
     const [showIndex, setShowIndex] = useState(); 
 
     const [fileList, setFileList] = useState([])
     
 
-    function onAddImage(e) {
-       setShowIndex(2)
-    }
-
-    function onAdd3DObject(e) {
-       setShowIndex(0)
-    }
-
-    function newMenuOnClick(e) {
-        if(showIndex == 1)
-        {
-            setShowIndex(0)
-        }else{
-            setShowIndex(1)
-        }
-    }
-
     function refreshOnClick(e) {
 
     }
 
-    function addImageObject(imgObj) {
-
-    }
-
+  
     function formatBytes(bytes, decimals = 2) {
         if (!+bytes) return '0 Bytes'
 
@@ -123,43 +110,54 @@ export const LocalAssetsPage = () => {
 
     useEffect(()=>{
         if(localDirectory != ""){
-            if(files.length > 0)
+            if(Array.isArray(files))
             {
-                                
-               var tmp = []
-                files.forEach(item => {
-                    const iSize = formatBytes( item.file.size)
-                    const iModified = formatedNow( new Date (item.file.lastModified));
-                
-                    const iType = item.file.type ;
+                if (files.length > 0) {
 
-                    
+                    var tmp = []
+                    files.forEach(item => {
+                        const iSize = formatBytes(item.size)
+                        const iModified = formatedNow(new Date(item.lastModified));
 
-                    tmp.push(
-                        <div style={{ display: "flex" }} className={styles.result}>
-                            <div style={{ width: 180, color: "#777777", }}>{iType}</div>
-                            <div style={{ flex: 1, color: "white", }}>{item.file.name}</div>
-                            <div style={{ width: 225, color: "#777777", }}>{iModified}</div>
-                            <div style={{ width: 150, color: "#777777", }}>{iSize}</div>
-                        </div>
-                    )
-                   
-                });
-                setFileList(tmp)
-                set(localDirectory, files)
+                        const iType = item.type;
+
+
+
+                        tmp.push(
+                            <div style={{ display: "flex" }} className={styles.result}>
+                                <div style={{ width: 180, color: "#777777", }}>{iType}</div>
+                                <div style={{ flex: 1, color: "white", }}>{item.name}</div>
+                                <div style={{ width: 225, color: "#777777", }}>{iModified}</div>
+                                <div style={{ width: 150, color: "#777777", }}>{iSize}</div>
+                            </div>
+                        )
+
+                    });
+                    setFileList(tmp)
+                    set(localDirectory, files)
+                } else {
+                    setFileList([])
+
+                }
             }else{
                 setFileList([])
-                
             }
+           
         }
     },[files])
     
 
 
     async function pickAssetDirectory() {
-        const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-        
-        await handleFirst(dirHandle)
+        try{
+            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+            
+            await handleFirst(dirHandle)
+        }catch (error) {
+            if(error == DOMException.ABORT_ERR) {
+                
+            }
+        }
     }
 
    
@@ -179,6 +177,9 @@ export const LocalAssetsPage = () => {
         await handleDirectoryEntry(dirHandle)
     }
 
+   async function asyncAddFile(value) {
+        addFile(value)
+   }
 
     async function handleDirectoryEntry (dirHandle) {
         
@@ -187,7 +188,7 @@ export const LocalAssetsPage = () => {
             
             
             if (entry.kind === "file") {
-                console.log("entry")
+               
                 /*entry
                 fileSystemHandle
                 kind:
@@ -196,8 +197,8 @@ export const LocalAssetsPage = () => {
                 queryPermission
                 requestPermission
                 */
-                const file = await entry.getFile();
-                console.log(file)
+                
+              
                 /*
                 file
                 name:
@@ -205,9 +206,25 @@ export const LocalAssetsPage = () => {
                 type:
                 size:
                 */
-                set(file.name, {handle: entry, file:file})
+
+                getFileInfo(entry).then((res)=>
+                    { 
+                        const newFile = { crc: res.crc, name: entry.name, size: res.size, lastModified: res.lastModified, type: res.type, handle: entry }
+                        set(newFile.name, newFile)
+                        
+                        if(newFile.name == "arcturus.config.json")
+                        {
+                            setConfigFile(newFile)
+                        }else{
+                            addFile(newFile)
+                        }
+                        
+                    }
+                ).catch ((err)=>{
+                    console.log(err)
+                })
+
                 
-                addFile({file:file, handle:entry})
                 
                // out[file.name] = file;
             }
@@ -219,7 +236,17 @@ export const LocalAssetsPage = () => {
         
     }
 
-
+    async function getFileInfo(entry){
+        const file = await entry.getFile();
+        
+        file.arrayBuffer().then((arrayBuffer)=>{
+            return new Promise(resolve => {
+                const crc = crc32(arrayBuffer).toString(16)
+                resolve({crc:crc, size:file.size, type:file.type, lastModified:file.lastModified})
+            });
+        })
+        
+    }
 
     return (
         
@@ -248,7 +275,7 @@ export const LocalAssetsPage = () => {
                         backgroundImage: "linear-gradient(#131514, #000304EE )",
 
                 }}>
-                    Local Assets
+                    Local Storage
                 </div>
                 <div style={{ 
                     display: "flex", 
@@ -256,11 +283,24 @@ export const LocalAssetsPage = () => {
                     backgroundColor:"#66666650",
                     
                      alignItems: "center",
-                    
+                    marginLeft:"10px",
+                    marginRight:"10px",
+                    paddingLeft:"10px"
                     }}>
-                    <div id='AddButton' className={showIndex == 1 ? styles.toolbarActive : styles.toolbar} style={{ display: "flex", alignItems:"center" }}>
+                    
+                    <NavLink to={localDirectory == "" ? "/home/localstorage" : "/home/localstorage/init"} about={"Start"} className={styles.tooltip__item}>
+                        <div style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
+
+                            <img src='/Images/icons/power-outline.svg' width={25} height={25} style={{ 
+                                filter: localDirectory == "" ? "Invert(25%)" : configFile.handle != null ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)" 
+                            }} />
+
+                        </div>
+                    </NavLink>
+                    
+                    <div about={"Reload"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
                      
-                            <img src='Images/icons/refresh-outline.svg' width={25} height={25} style={{ filter: "invert(100%)" }} />
+                        <img src='/Images/icons/reload-outline.svg' width={25} height={25} style={{ filter: localDirectory == "" ? "Invert(25%)" : "Invert(100%"}} />
                      
                     </div>
 
@@ -288,10 +328,10 @@ export const LocalAssetsPage = () => {
                                 paddingTop: "3px",
                                 paddingRight:"5px"
                                 }}>
-                                <img src='Images/icons/server-outline.svg' style={{
+                                <img src='/Images/icons/server-outline.svg' style={{
                                     width:"25px",
                                     height:"25px",
-                                    filter:"invert(100%)"
+                                    filter: localDirectory == "" ? "Invert(25%)" : "invert(100%)"
                                 }} />
                             </div>
                             {localDirectory != "" &&

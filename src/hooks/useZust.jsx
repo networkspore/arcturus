@@ -9,6 +9,10 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   configFile:{crc:"", name:"", lastModified:"", type:"", size:0, handle:null},
+   setConfigFile:(value = {}) => set({configFile: value}),
+   systemMessages:[],
+   setSystemMessages: (value = []) => set({systemMessages: value}),
    connected: false,
    setConnected: (value = false) => set({connected:value}),
    localDirectory: "",

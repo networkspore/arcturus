@@ -160,7 +160,7 @@ useEffect(()=>{
             if (status.statusName != "confirming")
             {
                 tmpList.push(
-                    <div onClick={(e) => { onContact(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent:"left", alignItems:"center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                    <div key={contact.userID} onClick={(e) => { onContact(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent:"left", alignItems:"center", fontFamily: "WebPapyrus" }} className={styles.result}>
 
                         <div style={{  textShadow:"2px 2px 2px black"}}>{name}</div>
                         <div style={{ flex:1 }} />
@@ -169,7 +169,7 @@ useEffect(()=>{
                 )
             }else{
                 confirmList.push(
-                    <div onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize:"13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                    <div key={contact.userID} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize:"13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
 
                         <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
                     </div>
@@ -213,7 +213,7 @@ const onAcknowledgeContact = (response) => {
            
 
                 tmpList.push(
-                    <div onClick={(e) => { onRequestAcknowledge(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                    <div key={contact.userID} onClick={(e) => { onRequestAcknowledge(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
 
                         <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
              
@@ -286,7 +286,8 @@ const endSearch = () => {
                         width: 130,
                         height: 130,
                     }} />
-                    <div style={{ width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
+                    <div style={{ width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", display:"flex", justifyContent:"center" }}>
+                        <div style={{display:"flex", justifyContent:"center", alignItems:"center"}} >
                         <div style={{
 
                             textAlign: "center",
@@ -298,8 +299,11 @@ const endSearch = () => {
                             display:"flex",
                               justifyContent: "center",
                               alignItems:"center",
-                        }} >Arcturus<div style={{fontSize:12, fontFammily:"Webrockwell"}}>RPG.io</div></div>
-
+                        }} >Arcturus</div>
+                            <div style={{ fontSize: 16, color: "#cdd4da", fontFamily:"Webrockwell" }}>RPG</div>
+                            <div style={{ fontSize: 12, color: "#cdd4da", fontFamily: "Webrockwell" }}>.io</div>
+                        </div>
+                        
                     </div>
 
                     <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>

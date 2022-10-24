@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import useZust from '../hooks/useZust';
 
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import styles from './css/home.module.css';
 import produce from 'immer';
 
 import { ContactsPage } from './ContactsPage';
 import { ProfilePage } from './ProfilePage';
 import { ImageDiv } from './components/UI/ImageDiv';
-import { LocalAssetsPage } from './LocalAssetsPage';
+import { LocalStoragePage } from './LocalStoragePage';
 import { AccountSettingsPage } from './AccountSettingsPage';
 
 
@@ -24,7 +24,9 @@ export const HomePage = (props ={}) => {
     const nav = useNavigate();
     const setUser = useZust((state) => state.setUser)
 
-    const [connected, setConnected] = useState(false);
+    const connected =  useZust((state) => state.connected)
+
+    const location = useLocation();
 
     const [profile, setProfile] = useState({
         name:"Offline", 
@@ -36,17 +38,36 @@ export const HomePage = (props ={}) => {
         props.logOut();
     
     }
- 
+
 
     useEffect(()=>{
-        if(connected != props.connected) setConnected(props.connected)
-
-        props.getProfile((value)=>{
-          console.log(value)
+        props.getProfile((value) => {
             setProfile(value)
-        })
+        })        
+    },[])
+
+    useEffect(()=>{
+        const currentLocation = location.pathname;
+
+        const secondSlash = currentLocation.indexOf("/", 1)
+
+        const subLocation = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
         
-    },[props])
+        if(subLocation != ""){
+            const thirdSlash = subLocation.indexOf("/", 1)
+            
+            const subDirectory = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
+            console.log(subDirectory)
+            switch(subDirectory)
+            {
+                case "/localstorage":
+                    setshowIndex(2)
+                break;
+            }
+        }
+        
+    },[location])
+
 
     return (
         
@@ -80,33 +101,18 @@ export const HomePage = (props ={}) => {
                         
                 <div style={{ width: 260, paddingLeft:"15px" }}>
                     
-                    <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
-                        onClick={(e) => {
-                            setshowIndex(1)
-                        }}
-                    >
+                   
+                        <NavLink to={"/home/localstorage"}>
+                    <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
                         <div>
-                            <img style={{ filter: "invert(100%)" }} src="Images/icons/person-circle-outline.svg" width={20} height={20} />
+                            <img style={{ filter: "invert(100%)" }} src="/Images/icons/server-outline.svg" width={20} height={20} />
                         </div>
                         <div style={{ paddingLeft: "10px" }} >
-                           Profile
+                            Local Storage
                         </div>
                     </div>
-
-                    <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
-                        onClick={(e) => {
-                            setshowIndex(2)
-                        }}
-                    >
-
-                        <div>
-                            <img style={{ filter: "invert(100%)" }} src="Images/icons/server-outline.svg" width={20} height={20} />
-                        </div>
-                        <div style={{ paddingLeft: "10px" }} >
-                            Local Assets
-                        </div>
-                    </div>
+                    </NavLink>
                         {connected &&                        <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
                             onClick={(e)=>{
                                 setshowIndex(4)
@@ -114,7 +120,7 @@ export const HomePage = (props ={}) => {
                             >
                            
                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="Images/icons/id-card-outline.svg" width={20} height={20} />
+                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/id-card-outline.svg" width={20} height={20} />
                             </div>
                             <div style={{ paddingLeft: "10px" }} >
                                 Account Settings
@@ -144,18 +150,17 @@ export const HomePage = (props ={}) => {
                     <NavLink style={{width:"100%"}} to={"/"}  className={styles.menu__item} about={"Log-out"} onClick={onLogoutClick}>
                             <div style={{height:"70px",display:"flex", justifyItems:"center", alignItems:"center"}}>
                                 <div>
-                            <img style={{ filter: "invert(100%)" }} src="Images/icons/lock-open-outline.svg" width={30} height={30}  />
+                            <ImageDiv netImage={{ backgroundColor:"", image: "/Images/icons/lock-open-outline.svg", width: 25, height: 25, filter: "invert(100%)"}} width={40} height={40}  />
                                 </div>
                                
                             </div>
                     </NavLink>
 
             </div>
-            {showIndex == 1 && 
-                <ProfilePage cancel={()=>{setshowIndex(0)}} />
-            }
+        
+
             {showIndex == 2 &&
-               <LocalAssetsPage />
+               <LocalStoragePage />
             }
             
             {showIndex == 3 &&
@@ -168,3 +173,17 @@ export const HomePage = (props ={}) => {
         
     )
 }
+
+/* <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
+                        onClick={(e) => {
+                            setshowIndex(1)
+                        }}
+                    >
+
+                        <div>
+                            <img style={{ filter: "invert(100%)" }} src="Images/icons/person-circle-outline.svg" width={20} height={20} />
+                        </div>
+                        <div style={{ paddingLeft: "10px" }} >
+                           Profile
+                        </div>
+                    </div>*/

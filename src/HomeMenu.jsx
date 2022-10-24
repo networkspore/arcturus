@@ -9,6 +9,8 @@ import WelcomePage from "./pages/WelcomePage";
 import { SearchPage } from "./pages/SearchPage";
 import { HomePage } from "./pages/HomePage";
 import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
+import { SystemMessagesMenu } from "./SystemMessagesMenu";
+import { get } from "idb-keyval";
 
 
 
@@ -27,6 +29,24 @@ const HomeMenu = ({ props}) => {
 
     const user = useZust((state) => state.user);
     const socket = useZust((state) => state.socket);
+
+    const addSystemMessage = (msg) => useZust.setState(produce((state) => {
+        let found = false;
+        if (state.systemMessages.length > 0 ){
+            state.systemMessages.forEach(message => {
+                if(message.id == msg.id)
+                {
+                    found = true;
+                }
+            });
+        }
+   
+        if(!found){
+            state.systemMessages.push(
+                msg
+            )
+        }
+    }))
 
     const campaigns = useZust((state) => state.campaigns)
     const [camps, setCamps] = useState([]);
@@ -64,53 +84,140 @@ const HomeMenu = ({ props}) => {
         disconnectSocket();
 
     }
+    const setLocalDirectory = (value) => useZust.setState(produce((state) => {
+        state.localDirectory = value;
+    }))
+    const setFiles = (value) => useZust.setState(produce((state) => {
+        state.files = value;
+    }))
 
-    useEffect(()=>{
-        if(user.userID > 0)
-        {
-        
+
+
+    useEffect(() => {
+        if (user.userID > 0) {
+
             socketOff("disconnect")
-            socketOn("disconnect", (res)=>{
-                switch(res)
-                {
+            socketOn("disconnect", (res) => {
+                switch (res) {
                     case "io server disconnect":
                         break;
-                    
+
                 }
-                
+
                 setConnected(false)
 
             })
             socketOff("connect")
-            socketOn("connect", (res)=>{
+            socketOn("connect", (res) => {
                 setConnected(true)
             })
+
+            const initDirectory = {
+                id: 1,
+                text: "Select local directory.",
+                navigate: "/home/localstorage",
+                netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
+            }
+
+            const initStorage = {
+                id: 2,
+                text: "Start storage engine.",
+                navigate: "/home/localstorage/init",
+                netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%" }
+            }
+
+            get("localDirectory" + user.userID).then((value) => {
+
+
+                if (value != undefined) {
+                    const name = value.name;
+
+
+                    console.log(name)
+
+                    setLocalDirectory(name)
+                    const idbFiles = get(name);
+
+                    idbFiles.then((res) => {
+
+                        if (Array.isArray(res)) {
+                            if (res.length == 0) {
+                                addSystemMessage(initStorage)
+                            } else {
+                                let foundConfig = false;
+                                res.forEach(searchFile => {
+
+
+                                    if (searchFile.name == "arcturus.config.json") {
+                                        foundConfig = searchFile;
+                                    }
+                                });
+
+                                if (!foundConfig) {
+                                    addSystemMessage(initStorage)
+                                } else {
+                                    console.log("found config file")
+                                }
+                            }
+                            setFiles(res);
+                        } else {
+
+                            setFiles([])
+
+                            addSystemMessage(initStorage)
+                        }
+                    }).catch((error => {
+                        console.log(error)
+                        setFiles([])
+                        addSystemMessage(initStorage)
+                    }))
+                } else {
+                    console.log("systemMessage:")
+                    console.log(initDirectory)
+                    addSystemMessage(initDirectory)
+                }
+
+            }).catch((reason) => {
+                console.log(reason)
+                addSystemMessage(initDirectory)
+            })
         }
-    },[user])
+    }, [user])
+
+
+
+
+
+
+    
 
     const getProfile = (callback) =>{
+       
+       
         if(localDirectory == "")
         {
+          
             if(connected)
             {
-               
-                callback({
-                    name: (user.userHandle == "") ? user.userName : user.userHandle, 
-                    image: { 
-                        image: "Images/icons/person.svg" , 
+                const defaultProfile = {
+                    name: (user.userHandle == "" || user.userHandle == null) ? user.userName : user.userHandle,
+                    image: {
+                        image: "/Images/icons/person.svg",
                         backgroundColor: "#44444450",
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
                         width: 130,
-                        height: 130, 
-                        filter:"invert(100%)"
+                        height: 130,
+                        filter: "invert(100%)"
                     }
-                })
+                }
+              
+                callback(defaultProfile)
                
             }else{
                 callback({
                     name: "Offline", 
                     image: { 
-                        image: "" ,
+                        image: "/Images/icons/person.svg",
                         width: 130,
                         height: 130,
                         backgroundColor:"#44444450",
@@ -123,11 +230,12 @@ const HomeMenu = ({ props}) => {
 
         }
     }
+ 
 
     useEffect(() => {
         const currentLocation = location.pathname;
 
-
+        console.log(currentLocation)
         if (user.userID > 0) {
             if (currentLocation == '/') {
 
@@ -137,16 +245,17 @@ const HomeMenu = ({ props}) => {
                     navigate('/home')
                 }
             } else {
-               // const firstSlash = currentLocation.indexOf("/")
-                const tmp = currentLocation.slice(0)
-                const locationArray = tmp.split("/").reverse()
+                const secondSlash = currentLocation.indexOf("/",1)
+                
+                const rootDirectory = currentLocation.slice(0,secondSlash == -1 ? currentLocation.length : secondSlash)
+                
+              //  const subDirectory = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
      
-                locationArray.pop();
-                const rootDirectory = locationArray.pop();
-
+    
+                
                 
                 switch (rootDirectory) {
-                    case "search":
+                    case "/search":
                         
                         if (connected) {
                             if (!showMenu) setShowMenu(true);
@@ -155,7 +264,7 @@ const HomeMenu = ({ props}) => {
                             navigate('/home')
                         }
                         break;
-                    case "home":
+                    case "/home":
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(4);
                         break;
@@ -181,11 +290,6 @@ const HomeMenu = ({ props}) => {
                 case '/welcome':
                     setShowIndex(2)
                     break;
-                case '/home':
-                    if (!showMenu) setShowMenu(true);
-                    setShowIndex(4)
-                    break;
-
                 case '/recoverpassword':
                     setShowIndex(5)
                     break;
@@ -248,19 +352,19 @@ const HomeMenu = ({ props}) => {
             
        
         {showIndex == 1 &&
-                <LoginPage connected={connected} />
+                <LoginPage  />
         }
         {showIndex == 2  &&
-                <WelcomePage connected={connected} />
+                <WelcomePage />
         }
         {showIndex == 3 &&
-                <SearchPage connected={connected} />
+                <SearchPage  />
         }
         {showIndex == 4 &&
-                <HomePage connected={connected} logOut={logout} getProfile={getProfile} />
+                <HomePage  logOut={logout} getProfile={getProfile} />
         }
         {showIndex == 5 &&
-                <RecoverPasswordPage connected={connected} />
+                <RecoverPasswordPage  />
         }
   
             {(showMenu) &&
@@ -271,7 +375,7 @@ const HomeMenu = ({ props}) => {
                             {connected  &&
                                 <>
                                     <NavLink className={location.pathname == "/search" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/search'}>
-                                        <img src="Images/logo.png" width={50} height={50} />
+                                        <img src="/Images/logo.png" width={50} height={50} />
                                     </NavLink>
 
                                 </>
@@ -292,14 +396,14 @@ const HomeMenu = ({ props}) => {
                             {connected &&
                             <NavLink className={location.pathname == "/createRealm" ? styles.menuActive : styles.menu__item} about="Create Realm"
                                 to={'/createRealm'}>
-                                <img src="Images/realm.png" width={60} height={60} />
+                                <img src="/Images/realm.png" width={60} height={60} />
                             </NavLink>
                             }
 
 
                             <NavLink className={location.pathname == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
-                                <img src="Images/icons/person.svg" style={{ filter: "invert(100%)" }} width={45} height={50} />
+                                <img src="/Images/icons/person.svg" style={{ filter: "invert(100%)" }} width={45} height={50} />
                             </NavLink>
 
                         </div>
@@ -308,7 +412,7 @@ const HomeMenu = ({ props}) => {
 
             }
             <div style={{
-                position: "fixed", top: 0, right: 0, height: 30,
+                position: "fixed", top: 0, right: 0, height: 30, width:200,
                 backgroundImage: "linear-gradient(to bottom, #00000088,#10131488)"
             }}>
                 <div style={{ display: "flex" }}>
@@ -317,7 +421,7 @@ const HomeMenu = ({ props}) => {
                         <div onClick={(e) => {
                             toNav("/")
                         }}>
-                            <img src={connected ? "Images/logo.png" : "Images/logout.png"} width={30} height={30} />
+                            <img src={connected ? "/Images/logo.png" : "/Images/logout.png"} width={30} height={30} />
                         </div>
                         <div onClick={onProfileClick} style={{
                             fontFamily: "WebPapyrus",
@@ -330,6 +434,9 @@ const HomeMenu = ({ props}) => {
                     </div>
 
                 </div>
+                    
+                    <SystemMessagesMenu />
+                
             </div>
         </>
     )

@@ -127,18 +127,16 @@ import { get } from "idb-keyval";
         let pass = sha256(data.loginPass).toString();
         login(data.loginName, pass);
     }
-    const setLocalDirectory = (value) => useZust.setState(produce((state)=>{
-        state.localDirectory = value;
-    }))
-    const setFiles = (value) => useZust.setState(produce((state)=>{
-        state.files = value;
-    }))
+    
     function login(name_email = "", pass ="")
     {
         if(!disable){
             setDisable(true);
             const sock = io(socketIOhttp, { auth: { token: socketToken, user: { nameEmail: name_email, password: pass } }, transports: ['websocket'] });
-            
+            sock.on("disconnect",(error)=>{
+                alert("Could not connect. Check your password and try again.")
+              setDisable(false)
+            })
             sock.on("loggedIn", (user, contacts, requests) =>{
               
                 if(data.loginRemember){
@@ -152,23 +150,6 @@ import { get } from "idb-keyval";
                 setConnected(true)
                 
 
-                var dir = get("localDirectory" + user.userID)
-
-                dir.then((value) => {
-                    if(value != undefined){
-                        const name = value.name;
-
-                        setLocalDirectory(name)
-                        const idbFiles = get(name);
-                        
-                        idbFiles.then((res) => {
-                            setFiles(res);
-                        }).catch((error => {
-                            console.log(error)
-                        }))
-                    }
-
-                })
             
                 return true;
             })
