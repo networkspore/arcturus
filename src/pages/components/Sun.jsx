@@ -59,13 +59,13 @@ export function Sun() {
         <group>
             <mesh ref={useSun}  >
 
-                <sphereGeometry attach="geometry" args={[.37, 32, 32]} />
+                <sphereGeometry attach="geometry" args={[10, 32, 32]} />
                 <meshStandardMaterial opacity={1} attach="material" transparent color={"white"} map={sunMap} />
 
             </mesh>
           <mesh  >
 
-                <sphereGeometry attach="geometry" args={[.4, 32, 32]} />
+                <sphereGeometry attach="geometry" args={[10.1, 32, 32]} />
                 <meshStandardMaterial opacity={.5} attach="material" transparent color={"#faa014"} />
 
             </mesh>

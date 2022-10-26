@@ -28,6 +28,8 @@ export const HomePage = (props ={}) => {
 
     const location = useLocation();
 
+    const configFile = useZust((state) => state.configFile)
+
     const [profile, setProfile] = useState({
         name:"Offline", 
         image:{}
@@ -40,11 +42,35 @@ export const HomePage = (props ={}) => {
     }
 
 
+    const getProfile = (callback) => {
+      //  if (configFile.handle == null) {
+
+            const defaultProfile = {
+                name: user.userName,
+                image: {
+                    image:"/Images/icons/person.svg",
+                    backgroundColor: "#44444450",
+                    backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                    width: 130,
+                    height: 130,
+                    filter: "invert(100%)",
+                },
+                
+            }
+
+            callback(defaultProfile)
+      //  }
+    }
+
+
+
     useEffect(()=>{
-        props.getProfile((value) => {
+        
+        
+        getProfile((value)=>{
             setProfile(value)
-        })        
-    },[])
+        })
+    },[configFile])
 
     useEffect(()=>{
         const currentLocation = location.pathname;
@@ -67,7 +93,6 @@ export const HomePage = (props ={}) => {
         }
         
     },[location])
-
 
     return (
         
@@ -101,33 +126,36 @@ export const HomePage = (props ={}) => {
                         
                 <div style={{ width: 260, paddingLeft:"15px" }}>
                     
-                   
-                        <NavLink to={"/home/localstorage"}>
-                    <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-
-                        <div>
-                            <img style={{ filter: "invert(100%)" }} src="/Images/icons/server-outline.svg" width={20} height={20} />
-                        </div>
-                        <div style={{ paddingLeft: "10px" }} >
-                            Local Storage
-                        </div>
-                    </div>
-                    </NavLink>
-                        {connected &&                        <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
-                            onClick={(e)=>{
+                    {connected &&
+                        <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
+                            onClick={(e) => {
                                 setshowIndex(4)
                             }}
-                            >
-                           
-                           <div>
+                        >
+
+                            <div>
                                 <img style={{ filter: "invert(100%)" }} src="/Images/icons/id-card-outline.svg" width={20} height={20} />
                             </div>
                             <div style={{ paddingLeft: "10px" }} >
                                 Account Settings
                             </div>
                         </div>
-                     
+
                     }
+
+                   
+                    <NavLink to={"/home/localstorage"}>
+                        <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+
+                            <div>
+                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/server-outline.svg" width={20} height={20} />
+                            </div>
+                            <div style={{ paddingLeft: "10px" }} >
+                                Local Storage
+                            </div>
+                        </div>
+                    </NavLink>
+                       
 
                     
                   

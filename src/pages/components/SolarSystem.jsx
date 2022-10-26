@@ -36,7 +36,7 @@ const SolarSystem = ({props}) => {
                             <pointLight intensity={.9}
                                     
   />
-                        <ambientLight intensity={.5} />
+                        <ambientLight intensity={.3} />
                         <Sun />
                         <World />
                         

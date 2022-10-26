@@ -51,7 +51,7 @@ export function Transition(props) {
 
     
     const increase = .001;
-    const fastIncrease = .05;
+    const fastIncrease = .1;
     let i = 0;
 
     let setCamera = 0;
@@ -105,16 +105,16 @@ export function Transition(props) {
                         useFast = {x:true, y:true, z:true}
                     }                
 
-                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed) * (orbitF[0]-20 )) );
+                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed*10) * (orbitF[0]-200 )) );
                     y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF[1])  ;
-                    z = (Math.sin((clock.getElapsedTime() + offset) * speed ) * (orbitF[2] -20)) ;
+                    z = (Math.sin((clock.getElapsedTime() + offset) * speed *10) * (orbitF[2] -200)) ;
 
                     x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed) * (orbitF[0])));
                     y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF[1]);
                     z1 = (Math.sin((clock.getElapsedTime() + offset) * speed) * (orbitF[2]));
 
                     difference = diff(x, usePosition.current.position.x);
-
+                   
                     if (difference > .1 && useFast.x) {
                         if (usePosition.current.position.x < x) {
                             usePosition.current.position.x += fastIncrease;
@@ -168,11 +168,52 @@ export function Transition(props) {
                         useFast = {x:true, y:true, z:true}
                     }    
             
-                    x = -((Math.cos((clock.getElapsedTime() +40 ) * .05) * (210)) );
+                    x = -((Math.cos((clock.getElapsedTime() +20 ) * .05) * (1000)) );
                     y = (Math.cos((clock.getElapsedTime() ) * 1 ) * 0) ;
-                    z = (Math.sin((clock.getElapsedTime() +40 ) * .05 ) * (210)) ;
+                    z = (Math.sin((clock.getElapsedTime() +20 ) * .05 ) * (1000)) ;
 
-           
+
+                    difference = diff(x, usePosition.current.position.x);
+
+                    if (difference > .1 && useFast.x) {
+                        if (usePosition.current.position.x < x) {
+                            usePosition.current.position.x += fastIncrease;
+                        } else if (usePosition.current.position.x > x) {
+                            usePosition.current.position.x -= fastIncrease;
+                        }
+                        x = usePosition.current.position.x;
+                    } else {
+                        if (useFast) useFast.x = false;
+
+                    }
+
+                    difference = diff(y, usePosition.current.position.y);
+
+                    if (difference > .1 && useFast.y) {
+                        if (usePosition.current.position.y < y) {
+                            usePosition.current.position.y += fastIncrease;
+                        } else if (usePosition.current.position.y > y) {
+                            usePosition.current.position.y -= fastIncrease;
+                        }
+                        y = usePosition.current.position.y;
+                    } else {
+                        if (useFast) useFast.y = false;
+
+                    }
+
+                    difference = diff(z, usePosition.current.position.z);
+
+                    if (difference > .1 && useFast.z) {
+                        if (usePosition.current.position.z < z) {
+                            usePosition.current.position.z += fastIncrease;
+                        } else if (usePosition.current.position.z > z) {
+                            usePosition.current.position.z -= fastIncrease;
+                        }
+                        z = usePosition.current.position.z;
+                    } else {
+                        if (useFast) useFast.z = false;
+
+                    }
 
                  
 
@@ -242,7 +283,7 @@ export function Transition(props) {
                     
                        
 
-                        controls.setLookAt(x, y , z, x1, y1, z1);
+                        controls.setLookAt(x*10, y , z*10, x1, y1, z1);
                         controls.update(delta);
 
                         

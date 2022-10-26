@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import useZust from "../hooks/useZust";
 
 import styles from './css/home.module.css';
+import { ImageDiv } from "./components/UI/ImageDiv";
 
 
 export const InitStoragePage = () => {
@@ -86,7 +87,7 @@ export const InitStoragePage = () => {
     }
     
     function onCancelClick(e){
-
+        navigate("/home/localstorage")
     }
 
     function onOKclick(e){
@@ -122,13 +123,41 @@ export const InitStoragePage = () => {
 
 
                 }}>
-                    Storage Initialization
+                    Profile
                 </div>
-                <div style={{ paddingLeft: "15px", display: "flex", flex:1}}>
+                <div style={{ paddingLeft: "15px", display: "flex", height: "430px", }}>
 
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 200, padding: "10px" }}>
-                      
-                     
+                        <div style={{ cursor: "pointer" }} >
+                            <ImageDiv netImage={{
+                                image: "Images/icons/person.svg",
+                                width: 130,
+                                height: 130,
+                                filter: "invert(100%)"
+                            }} />
+                            <div style={{
+                                position: "relative",
+                                transform: "translate(17px,-15px)",
+                                fontSize: "13px",
+                                color: "#cdd4da",
+                                textShadow: "1px 1px 2px #101314, -1px -1px 1px #101314",
+                                fontFamily: "Webrockwell",
+                                cursor: "pointer"
+                            }} onClick={onCancelClick}>Select Image</div>
+                        </div>
+                        <div style={{ width: 200, backgroundImage: "linear-gradient(to right, #00030400, #77777777, #00030400)" }}>
+                            <div style={{
+
+                                textAlign: "center",
+                                fontFamily: "WebRockwell",
+                                fontSize: "15px",
+                                fontWeight: "bolder",
+                                color: "#cdd4da",
+                                textShadow: "2px 2px 2px #101314",
+
+                            }} >{user.userName}</div>
+
+                        </div>
 
                         <div style={{ paddingTop: 3, height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
 
@@ -164,31 +193,30 @@ export const InitStoragePage = () => {
 
                             </div>
                         </div>
-                       
+                        <div style={{
+                            justifyContent: "center",
+
+                            paddingTop: "10px",
+                            display: "flex",
+                            alignItems: "center",
+                            width: "100%"
+                        }}>
+                            <div className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
+
+                            <div style={{
+
+                                marginLeft: "20px", marginRight: "20px",
+                                height: "50px",
+                                width: "1px",
+                                backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                            }}>
+
+                            </div>
+                            <div className={styles.OKButton} onClick={onOKclick} >OK</div>
+                        </div>
                     </div>
-                    
                 </div>
-                <div style={{
-                    justifyContent: "center",
-              
-                    paddingTop: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    width: "100%"
-                }}>
-                    <div className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
 
-                    <div style={{
-
-                        marginLeft: "20px", marginRight: "20px",
-                        height: "50px",
-                        width: "1px",
-                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                    }}>
-
-                    </div>
-                    <div className={styles.OKButton} onClick={onOKclick} >OK</div>
-                </div>
             </div>
        
         </>     

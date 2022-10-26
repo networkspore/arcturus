@@ -191,47 +191,7 @@ const HomeMenu = ({ props}) => {
 
     
 
-    const getProfile = (callback) =>{
-       
-       
-        if(localDirectory == "")
-        {
-          
-            if(connected)
-            {
-                const defaultProfile = {
-                    name: (user.userHandle == "" || user.userHandle == null) ? user.userName : user.userHandle,
-                    image: {
-                        image: "/Images/icons/person.svg",
-                        backgroundColor: "#44444450",
-                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-                        width: 130,
-                        height: 130,
-                        filter: "invert(100%)"
-                    }
-                }
-              
-                callback(defaultProfile)
-               
-            }else{
-                callback({
-                    name: "Offline", 
-                    image: { 
-                        image: "/Images/icons/person.svg",
-                        width: 130,
-                        height: 130,
-                        backgroundColor:"#44444450",
-                        backgroundImage:"radial-gradient(black 20%, #0000FF70 50%, #00000040 100%)", 
-                        filter: "invert(100%)" 
-                    }
-                })
-            }
-        }else{
-
-        }
-    }
- 
-
+   
     useEffect(() => {
         const currentLocation = location.pathname;
 
@@ -361,7 +321,7 @@ const HomeMenu = ({ props}) => {
                 <SearchPage  />
         }
         {showIndex == 4 &&
-                <HomePage  logOut={logout} getProfile={getProfile} />
+                <HomePage  logOut={logout}  />
         }
         {showIndex == 5 &&
                 <RecoverPasswordPage  />
