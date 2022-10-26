@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Sun } from './Sun';
 import { Planet } from './Planet';
-import {  Stars, useTexture } from '@react-three/drei';
+import {  useTexture } from '@react-three/drei';
 import { Asteroids } from './Asteroids';
-import { Toril } from './Toril';
+import { World } from './World';
+
 import { useRef } from 'react';
 import  SunBloom  from './effects/SunBloom';
-import { Transition } from './Camera/Transition';
+
 
 
 
@@ -37,10 +38,11 @@ const SolarSystem = ({props}) => {
   />
                         <ambientLight intensity={.5} />
                         <Sun />
-                         <Toril />
-                            <Planet offset={40} args={[.08, 32, 32]} spin={.006} map={venusText} color={"#888888"} receiveShadow orbit={true} orbitFactor={[15, .4, 15]} speed={.0003} position={[0, 0, 0]} />
+                        <World />
+                        
+                        <Planet offset={40} args={[.08, 32, 32]} spin={.006} map={venusText} color={"#888888"} receiveShadow orbit={true} orbitFactor={[15, .4, 15]} speed={.0003} position={[0, 0, 0]} />
                             
-                    <Planet map={marsText} spin={.005}  orbitFactor={[800, 0, 800]} args={[2, 32, 32]} speed={.0005} orbit={true} />
+                        <Planet map={marsText} spin={.005}  orbitFactor={[800, 0, 800]} args={[2, 32, 32]} speed={.0005} orbit={true} />
                     
                 
                     </scene>

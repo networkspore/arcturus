@@ -255,7 +255,7 @@ const WelcomePage = () => {
                                         paddingTop: "10px",
                                         paddingBottom: "10px",
                                     }}
-                                    class={((newEmail.length > 4)&&(valid)) ? styles.OKButton: ""} 
+                                    className={((newEmail.length > 4)&&(valid)) ? styles.OKButton: ""} 
                                   
                                 > Confirm </div>
                             </div>

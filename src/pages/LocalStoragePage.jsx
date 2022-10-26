@@ -5,13 +5,17 @@ import styles from './css/home.module.css';
 import crc32 from 'crc/crc32';
 
 
-import { get, set } from 'idb-keyval';
+import { set } from 'idb-keyval';
 import produce from 'immer';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
+import { InitStoragePage } from './InitStoragePage';
 
 
 
 export const LocalStoragePage = () => {
+
+    const location = useLocation();
+
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
 
@@ -40,6 +44,8 @@ export const LocalStoragePage = () => {
     const [showIndex, setShowIndex] = useState(); 
 
     const [fileList, setFileList] = useState([])
+
+    const [showInitPage, setShowInitPage] = useState(false)
     
 
     function refreshOnClick(e) {
@@ -85,29 +91,7 @@ export const LocalStoragePage = () => {
         return small ? stringNow : stringNow + ":" + stringSeconds + ":" + stringMiliseconds;
     }
 
-    /*Moved to login
-    useEffect(()=>{
-        if(localDirectory == ""){
-            var dir = get("localDirectory" + user.userID)
-
-            dir.then((value)=>{
-                
-                const name = value.name;
-                
-                setLocalDirectory(name)
-                const idbFiles = get(name);
-
-                idbFiles.then((res) => {
-                    setFiles(res);
-                }).catch((error => {
-                    console.log(error)
-                }))
-                    
-                    
-            })
-        }
-    },[])*/
-
+    
     useEffect(()=>{
         if(localDirectory != ""){
             if(Array.isArray(files))
@@ -145,7 +129,20 @@ export const LocalStoragePage = () => {
            
         }
     },[files])
-    
+
+    useEffect(()=>{
+        const currentLocation = location.pathname;
+
+        if (currentLocation == "/home/localstorage/init")
+        {
+            
+            setShowIndex(1)
+        }else{
+            setShowIndex(0)
+        }
+    },[location])
+
+
 
 
     async function pickAssetDirectory() {
@@ -406,7 +403,9 @@ export const LocalStoragePage = () => {
 
             </div>
         </div>
-
+        {showIndex == 1 &&
+            <InitStoragePage />
+        }
 
 
 
