@@ -72,16 +72,16 @@ const App = () => {
                             {page!= null  &&
                                 <Suspense fallback={Loader}>
 
-                                <Canvas  performance={{ min: 0.5, debounce: 100 }} mode="concurrent" shadows  camera={{ fov: 60, near: 1.0, far: 5000.0, position: [0, 10, 5] }}>
+                                <Canvas  performance={{ min: 0.5, debounce: 100 }} mode="concurrent" shadows  camera={{ fov: 60, near: 1.0, far: 10000.0 }}>
 
-                                        <Transition position={[0, 10, 5]} />
+                                        <Transition position={[1000,1000,1000]} />
                                         {(page < 10 &&
                                             <>
 
                                                 <SolarSystem position={[0, 0, 0]} />
 
 
-                                                <Stars radius={400} depth={2000} count={10000} factor={4}  />
+                                                <Stars radius={400} depth={2000} count={5000} factor={4}  />
                                             </>
                                         )}
                                         {(page == 10 &&

@@ -40,9 +40,9 @@ const SolarSystem = ({props}) => {
                         <Sun />
                         <World />
                         
-                        <Planet offset={40} args={[.08, 32, 32]} spin={.006} map={venusText} color={"#888888"} receiveShadow orbit={true} orbitFactor={[15, .4, 15]} speed={.0003} position={[0, 0, 0]} />
+                        <Planet offset={40} args={[1, 32, 32]} spin={.0006} map={venusText} color={"#888888"} receiveShadow orbit={true} orbitFactor={[800, 10, 100]} speed={.01} position={[0, 0, 0]} />
                             
-                        <Planet map={marsText} spin={.005}  orbitFactor={[800, 0, 800]} args={[2, 32, 32]} speed={.0005} orbit={true} />
+                        <Planet offset={-100} map={marsText} spin={.005}  orbitFactor={[700, 0, 900]} args={[1, 10, 10]} speed={.01} orbit={true} />
                     
                 
                     </scene>

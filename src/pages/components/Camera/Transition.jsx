@@ -27,7 +27,7 @@ export function Transition(props) {
     const size = useThree((state) => state.size);
 
    // const [camera, useCamera] = useState(useThree((state) => state.camera));
-
+    useEffect(() => { usePosition.current = { position: { x: 2000, y: 500, z:2000 } } }, [])
     
 
     const pageSize = useZust((state) => state.pageSize);
@@ -38,7 +38,7 @@ export function Transition(props) {
   //  gl.shadowMap.type = THREE.PCFSoftShadowMap;
 
     let offset = 0;
-    let orbitF = [30, .2, 30];
+    let orbitF = useRef( [30, .2, 30]);
     
     let speed = .005;
 
@@ -50,8 +50,8 @@ export function Transition(props) {
     let y1 = 0;
 
     
-    const increase = .001;
-    const fastIncrease = .1;
+    const increase = .1;
+    const fastIncrease = 3;
     let i = 0;
 
     let setCamera = 0;
@@ -66,7 +66,7 @@ export function Transition(props) {
         } 
     }
 
-    let useFast = {x:true, y:true, z:true};
+    let useFast = useRef( {x:true, y:true, z:true}) ;
 
     
     
@@ -92,6 +92,8 @@ export function Transition(props) {
         })
     },[socket,userCharacter])*/
 
+    const dM = 2;
+    const dM3 = 2;
 
     useFrame(({ delta, clock, camera }) => {
        
@@ -102,57 +104,81 @@ export function Transition(props) {
                     if(setCamera != page)
                     {
                         setCamera = page;
-                        useFast = {x:true, y:true, z:true}
+                        useFast.current = {x:true, y:true, z:true}
                     }                
 
-                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed*10) * (orbitF[0]-200 )) );
-                    y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF[1])  ;
-                    z = (Math.sin((clock.getElapsedTime() + offset) * speed *10) * (orbitF[2] -200)) ;
+                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed*.10) * (orbitF.current[0]+200 )) );
+                    y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1])  ;
+                    z = (Math.sin((clock.getElapsedTime() + offset) * speed *.10) * (orbitF.current[2] +200)) ;
 
-                    x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed) * (orbitF[0])));
-                    y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF[1]);
-                    z1 = (Math.sin((clock.getElapsedTime() + offset) * speed) * (orbitF[2]));
+                    x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed*5) * (orbitF.current[0]+8)));
+                    y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                    z1 = (Math.sin((clock.getElapsedTime() + offset) * speed*5) * (orbitF.current[2]+8));
 
                     difference = diff(x, usePosition.current.position.x);
                    
-                    if (difference > .1 && useFast.x) {
-                        if (usePosition.current.position.x < x) {
+                    if (difference > (fastIncrease*dM) && useFast.current.x) {
+                        if (usePosition.current.position.x < x + fastIncrease) {
                             usePosition.current.position.x += fastIncrease;
-                        } else if (usePosition.current.position.x > x) {
+                        } else if (usePosition.current.position.x > x - fastIncrease) {
                             usePosition.current.position.x -= fastIncrease;
                         }
                         x = usePosition.current.position.x;
                     } else {
-                        if (useFast) useFast.x = false;
-
+                        if (useFast.current.x) useFast.current.x = false;
+                        if (difference > increase * +10) {
+                            x = usePosition.current.position.x;
+                            if (usePosition.current.position.x < x + increase) {
+                                usePosition.current.position.x += increase;
+                            } else if (usePosition.current.position.x > x - increase) {
+                                usePosition.current.position.x -= increase;
+                            }
+                            x = usePosition.current.position.x;
+                        }
                     }
 
                     difference = diff(y, usePosition.current.position.y);
 
-                    if (difference > .1 && useFast.y) {
-                        if (usePosition.current.position.y < y) {
+                    if (difference > (fastIncrease * dM) && useFast.current.y) {
+                        if (usePosition.current.position.y < y + fastIncrease) {
                             usePosition.current.position.y += fastIncrease;
-                        } else if (usePosition.current.position.y > y) {
+                        } else if (usePosition.current.position.y > y - fastIncrease) {
                             usePosition.current.position.y -= fastIncrease;
                         }
                         y = usePosition.current.position.y;
                     } else {
-                        if (useFast) useFast.y = false;
-
+                        if (useFast.current.y) useFast.current.y = false;
+                        if (difference > increase + 10) {
+                            y = usePosition.current.position.y;
+                            if (usePosition.current.position.y < y + increase) {
+                                usePosition.current.position.y += increase;
+                            } else if (usePosition.current.position.y > y - increase) {
+                                usePosition.current.position.y -= increase;
+                            }
+                            y = usePosition.current.position.y;
+                        }
                     }
 
                     difference = diff(z, usePosition.current.position.z);
 
-                    if (difference > .1 && useFast.z) {
-                        if (usePosition.current.position.z < z) {
+                    if (difference > (fastIncrease * dM) && useFast.current.z) {
+                        if (usePosition.current.position.z < z + fastIncrease) {
                             usePosition.current.position.z += fastIncrease;
-                        } else if (usePosition.current.position.z > z) {
+                        } else if (usePosition.current.position.z > z - fastIncrease) {
                             usePosition.current.position.z -= fastIncrease;
                         }
                         z = usePosition.current.position.z;
                     } else {
-                        if (useFast) useFast.z = false;
-
+                        if (useFast.current.z) useFast.current.z = false;
+                        if (difference > increase + 10) {
+                            z = usePosition.current.position.z;
+                            if (usePosition.current.position.z < z + increase) {
+                                usePosition.current.position.z += increase;
+                            } else if (usePosition.current.position.z > z - increase) {
+                                usePosition.current.position.z -= increase;
+                            }
+                            z = usePosition.current.position.z;
+                        }
                     }
                 
                    controls.setLookAt(x, y , z +2, x1, y1, z1);
@@ -165,126 +191,173 @@ export function Transition(props) {
                 case 2:
                     if (setCamera != page) {
                         setCamera = page;
-                        useFast = {x:true, y:true, z:true}
-                    }    
-            
-                    x = -((Math.cos((clock.getElapsedTime() +20 ) * .05) * (1000)) );
-                    y = (Math.cos((clock.getElapsedTime() ) * 1 ) * 0) ;
-                    z = (Math.sin((clock.getElapsedTime() +20 ) * .05 ) * (1000)) ;
+                        useFast.current = { x: true, y: true, z: true }
+                    }
 
+                    x = -((Math.cos((clock.getElapsedTime() + offset+50) * speed*2) * (orbitF.current[0] - 4000)));
+                    y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                    z = (Math.sin((clock.getElapsedTime() + offset) * speed *2) * (orbitF.current[2] - 4000));
+
+                    x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed) * (orbitF.current[0])));
+                    y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                    z1 = (Math.sin((clock.getElapsedTime() + offset) * speed) * (orbitF.current[2]));
 
                     difference = diff(x, usePosition.current.position.x);
 
-                    if (difference > .1 && useFast.x) {
-                        if (usePosition.current.position.x < x) {
+                    if (difference > (fastIncrease * dM) && useFast.current.x) {
+                        if (usePosition.current.position.x < x + fastIncrease) {
                             usePosition.current.position.x += fastIncrease;
-                        } else if (usePosition.current.position.x > x) {
+                        } else if (usePosition.current.position.x > x - fastIncrease) {
                             usePosition.current.position.x -= fastIncrease;
                         }
                         x = usePosition.current.position.x;
                     } else {
-                        if (useFast) useFast.x = false;
-
+                        if (useFast.current.x) useFast.current.x = false;
+                        if (difference > increase * 10) {
+                            x = usePosition.current.position.x;
+                            if (usePosition.current.position.x < x + increase ) {
+                                usePosition.current.position.x += increase ;
+                            } else if (usePosition.current.position.x > x - increase) {
+                                usePosition.current.position.x -= increase ;
+                            }
+                            x = usePosition.current.position.x;
+                        }
                     }
 
                     difference = diff(y, usePosition.current.position.y);
 
-                    if (difference > .1 && useFast.y) {
-                        if (usePosition.current.position.y < y) {
+                    if (difference > (fastIncrease * dM) && useFast.current.y) {
+                        if (usePosition.current.position.y < y + fastIncrease) {
                             usePosition.current.position.y += fastIncrease;
-                        } else if (usePosition.current.position.y > y) {
+                        } else if (usePosition.current.position.y > y - fastIncrease) {
                             usePosition.current.position.y -= fastIncrease;
                         }
                         y = usePosition.current.position.y;
                     } else {
-                        if (useFast) useFast.y = false;
-
+                        if (useFast.current.y) useFast.current.y = false;
+                        if (difference > increase * 10) {
+                            y = usePosition.current.position.y;
+                            if (usePosition.current.position.y < y + increase ) {
+                                usePosition.current.position.y += increase;
+                            } else if (usePosition.current.position.y > y - increase ) {
+                                usePosition.current.position.y -= increase ;
+                            }
+                            y = usePosition.current.position.y;
+                        }
                     }
 
                     difference = diff(z, usePosition.current.position.z);
 
-                    if (difference > .1 && useFast.z) {
-                        if (usePosition.current.position.z < z) {
+                    if (difference > (fastIncrease * dM) && useFast.current.z) {
+                        if (usePosition.current.position.z < z + fastIncrease) {
                             usePosition.current.position.z += fastIncrease;
-                        } else if (usePosition.current.position.z > z) {
+                        } else if (usePosition.current.position.z > z - fastIncrease) {
                             usePosition.current.position.z -= fastIncrease;
                         }
                         z = usePosition.current.position.z;
                     } else {
-                        if (useFast) useFast.z = false;
-
+                        if (useFast.current.z) useFast.current.z = false;
+                        if (difference > increase * 10) {
+                            z = usePosition.current.position.z;
+                            if (usePosition.current.position.z < z + increase * 2) {
+                                usePosition.current.position.z += increase * 2;
+                            } else if (usePosition.current.position.z > z - increase * 2) {
+                                usePosition.current.position.z -= increase * 2;
+                            }
+                            z = usePosition.current.position.z;
+                        }
                     }
 
-                 
-
-                    controls.setLookAt(x, y,z, 0, 0,0);
+                    controls.setLookAt(x, y, z + 2, x1, y1, z1);
                     controls.update(delta);
                     break;
                 
 
                     case 3 :
                     
-                        if (setCamera != page) {
-                            setCamera = page;
-                            useFast = {x:true, y:true, z:true}
-                        
-                            
-                        }
-                        
-                        x = -((Math.cos((clock.getElapsedTime() + offset +4) * speed + .05) * (orbitF[0] +2)) );
-                        y = (Math.cos((clock.getElapsedTime() + offset) * speed -.2) * orbitF[1]) ;
-                    z = (Math.sin((clock.getElapsedTime() + offset +4) * speed + .05) * (orbitF[2] + 2));
+                    if (setCamera != page) {
+                        setCamera = page;
+                        useFast.current = { x: true, y: true, z: true }
+                    }
 
-                        x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed) * (orbitF[0])));
-                        y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF[1]);
-                        z1 = (Math.sin((clock.getElapsedTime() + offset) * speed) * (orbitF[2]));
+                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed * .5) * (orbitF.current[0] - 900)));
+                    y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                    z = (Math.sin((clock.getElapsedTime() + offset) * speed *.5) * (orbitF.current[2] - 800));
 
-                   difference = diff(x, usePosition.current.position.x);
-                  
-                    if (difference > .1 && useFast.x) {
-                        if (usePosition.current.position.x < x) {
-                            usePosition.current.position.x += fastIncrease;
-                        } else if (usePosition.current.position.x > x) {
-                            usePosition.current.position.x -= fastIncrease;
+                    x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed * 5) * (orbitF.current[0])));
+                    y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                    z1 = (Math.sin((clock.getElapsedTime() + offset) * speed * 4) * (orbitF.current[2]));
+
+                    difference = diff(x, usePosition.current.position.x);
+
+                    if (difference > ((fastIncrease /2) * dM3) && useFast.current.x) {
+                        if (usePosition.current.position.x < x + (fastIncrease /2)) {
+                            usePosition.current.position.x += (fastIncrease /2);
+                        } else if (usePosition.current.position.x > x - (fastIncrease /2)) {
+                            usePosition.current.position.x -= (fastIncrease /2);
                         }
                         x = usePosition.current.position.x;
-                    } else  {
-                       if(useFast) useFast.x = false;
-                        
+                    } else {
+                        if (useFast.current.x) useFast.current.x = false;
+                        if (difference > increase *2 ) {
+                            x = usePosition.current.position.x;
+                            if (usePosition.current.position.x < x + increase*2) {
+                                usePosition.current.position.x += increase*2;
+                            } else if (usePosition.current.position.x > x - increase*2) {
+                                usePosition.current.position.x -= increase*2;
+                            }
+                            x = usePosition.current.position.x;
+                        }
                     }
 
                     difference = diff(y, usePosition.current.position.y);
-                  
-                    if (difference > .1 && useFast.y) {
-                        if (usePosition.current.position.y < y) {
-                            usePosition.current.position.y += fastIncrease;
-                        } else if (usePosition.current.position.y > y) {
-                            usePosition.current.position.y -= fastIncrease;
+
+                    if (difference > ((fastIncrease /2) * dM3) && useFast.current.y) {
+                        if (usePosition.current.position.y < y + (fastIncrease /2)) {
+                            usePosition.current.position.y += (fastIncrease /2);
+                        } else if (usePosition.current.position.y > y - (fastIncrease /2)) {
+                            usePosition.current.position.y -= (fastIncrease /2);
                         }
                         y = usePosition.current.position.y;
                     } else {
-                        if (useFast)   useFast.y = false;
-                        
+                        if (useFast.current.y) useFast.current.y = false;
+                        if (difference > increase ) {
+                            y = usePosition.current.position.y;
+                            if (usePosition.current.position.y < y + increase) {
+                                usePosition.current.position.y += increase;
+                            } else if (usePosition.current.position.y > y - increase) {
+                                usePosition.current.position.y -= increase;
+                            }
+                            y = usePosition.current.position.y;
+                        }
                     }
 
                     difference = diff(z, usePosition.current.position.z);
-                    
-                    if (difference > .1 && useFast.z ) {
-                        if (usePosition.current.position.z < z) {
-                            usePosition.current.position.z += fastIncrease;
-                        } else if (usePosition.current.position.z > z) {
-                            usePosition.current.position.z -= fastIncrease;
+
+                    if (difference > ((fastIncrease /2) * dM3) && useFast.current.z) {
+                        if (usePosition.current.position.z < z + (fastIncrease /2)) {
+                            usePosition.current.position.z += (fastIncrease /2);
+                        } else if (usePosition.current.position.z > z - (fastIncrease /2)) {
+                            usePosition.current.position.z -= (fastIncrease /2);
                         }
                         z = usePosition.current.position.z;
                     } else {
-                        if (useFast)   useFast.z = false;
-                      
+                        if (useFast.current.z) useFast.current.z = false;
+                        if (difference > increase *2 ) {
+                            z = usePosition.current.position.z;
+                            if (usePosition.current.position.z < z + increase * 2) {
+                                usePosition.current.position.z += increase * 2;
+                            } else if (usePosition.current.position.z > z - increase * 2) {
+                                usePosition.current.position.z -= increase * 2;
+                            }
+                            z = usePosition.current.position.z;
+                        }
                     }
-                    
-                       
 
-                        controls.setLookAt(x*10, y , z*10, x1, y1, z1);
-                        controls.update(delta);
+                    controls.setLookAt(x, y, z, x1, y1, z1);
+                    controls.update(delta);
+
+
 
                         
                     break;

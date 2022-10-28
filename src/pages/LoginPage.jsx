@@ -195,7 +195,7 @@ return (
                 Log In
             </div>
             <form onSubmit={event => handleSubmit(event)}>
-                <div style={{paddingTop:"15px"}}>
+            <div style={{ display: "flex", paddingTop: "15px", justifyContent: "center", }}>
                     <div style={{
 
                         display: "flex",
@@ -204,8 +204,9 @@ return (
                         backgroundImage: "linear-gradient(to right, #00030430, #77777720, #00030430)",
                         paddingBottom: 5,
                         paddingTop: 5,
-                        paddingLeft:20,
-                        paddingRight:20
+                        paddingLeft:5,
+                        paddingRight:5,
+                        width:400,
                     }}>
                         <input onKeyUp={(e) => {
                             if (e.code == "Enter") {
@@ -218,7 +219,7 @@ return (
                     </div>
                 </div>
 
-                <div style={{ paddingTop:30 }}>
+            <div style={{ display: "flex", paddingTop: "30px", justifyContent: "center", }}>
                     <div style={{
 
                         display: "flex",
@@ -227,8 +228,8 @@ return (
                         backgroundImage: "linear-gradient(to right, #00030430, #77777720, #00030430)",
                         paddingBottom: 5,
                         paddingTop: 5,
-                        paddingLeft: 20,
-                        paddingRight: 20
+                        paddingLeft: 5,
+                        paddingRight: 5
                     }}>
                         <input onKeyUp={(e) => { if(e.code == "Enter"){
                             handleSubmit(e)

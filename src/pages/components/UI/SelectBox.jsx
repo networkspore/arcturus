@@ -11,10 +11,11 @@ const SelectBox = (props = {}, ref) => {
     const [selectedIndex, setSelectedIndex] = useState(-1);
 
     const id = "id" in props ? props.id : "";
-    let optionsStyle = {  zIndex:"9999",textAlign:"left", color: "#cdd4da" ,position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)", height: 100,  overflowY: "scroll" };
+    let optionsStyle = {  zIndex:"9999",textAlign:"left", color: "#cdd4da" ,position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)", maxHeight:60,   overflowY: "scroll" };
     const labelStyle = {margin:"0px 10px 10px 10px", display:"flex", alignItems:"center"}
     const textStyle = { backgroundColor: "rgba(0,0,0,0)", fontSize: "20px", fontFamily: "WebPapyrus", outline: 0, borderWidth: "0 0 2px", borderColor: "#ffe51c", color: "#D6BD00", textAlign: "left", width: "100%", cursor: "pointer" };
-    const editable = "editable" in props ? props.editable : false; 
+    const editable = "editable" in props ? props.editable : false;
+    const defaultValue = "defaultValue" in props ? props.defaultValue : null;
     
     if ("optionsStyle" in props){
         let optionsArray = Object.getOwnPropertyNames(props.optionsStyle);
@@ -29,6 +30,7 @@ const SelectBox = (props = {}, ref) => {
         let optionsArray = Object.getOwnPropertyNames(props.textStyle);
 
         optionsArray.forEach(element => {
+            
             textStyle[element] = props.textStyle[element];
         });
     }
@@ -46,7 +48,7 @@ const SelectBox = (props = {}, ref) => {
       
        if("options" in props){
           setOptions( props.options);
-          
+          if(defaultValue != null) setSelectedValue(defaultValue)
        } 
     }, [props])
 
@@ -59,8 +61,9 @@ const SelectBox = (props = {}, ref) => {
         if (options != null) {
             options.forEach((element, i) => {
                 array.push(
-                    <div style={labelStyle} tabIndex={i} id={"SelectBox:" + i} onClick={(e) => {
-                        const index = e.target.id.split(":")[1];
+                    <div key={element.value} style={labelStyle} tabIndex={i} onClick={(e) => {
+                       
+                        
                         setSelectedValue(element.value)
                       //  setSelectedIndex(Number(index))
                     }}>
@@ -185,15 +188,17 @@ const SelectBox = (props = {}, ref) => {
     } 
     return (
        
-        <div style={{display:"block"}}>
+        <div style={{display:"flex", flexDirection:"column"}}>
         <input onChange={(e)=>{
               
         }}  placeholder={props.placeholder} style={textStyle} ref={textBoxRef}  onKeyDown={(e)=>{
             if(!editable) e.preventDefault();
         }} type="text" onClick={(e) => onClicked(e)} onBlur={(e) => onBlurring(e)}/>
-           <div style={{display: showList ? "block" :"none" }}>
+            {showList &&
+           <div style={{display:  "flex", flexDirection:"column" }}>
             {list}
             </div>
+            }
             </div>
        
     )

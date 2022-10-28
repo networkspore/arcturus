@@ -9,17 +9,38 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
-   configFile:{crc:"", name:"", lastModified:"", type:"", size:0, handle:null},
+   terrainDirectory:{name:"terrain", handle: null,},
+   setTerrainDirectory: (value = { name: "terrain", handle: null, }) => set({ terrainDirectory: value }),
+
+   imagesDirectory: { name: "images", handle: null ,},
+   setImagesDirectory: (value = { name: "images", handle: null, }) => set({imagesDirectory: value}),
+
+   objectsDirectory: { name: "objects", handle: null,  },
+   setObjectsDirectory: (value = { name: "objects", handle: null, }) => set({objectsDirectory: value }),
+
+   texturesDirectory: { name: "textures", handle: null,  },
+   setTexturesDirectory: (value = { name: "textures", handle: null, }) => set({texturesDirectory: value }),
+
+   audioDirectory: {name:"audio", handle: null,},
+   setAudioDirectory: (value = { name: "audio", handle: null, }) => set({audioDirectory: value }),
+   
+   videoDirectory: {name:"video", handle: null,},
+   setVideoDirectory: (value = { name: "video", handle: null, }) => set({videoDirectory: value }),
+
+   localDirectory: { name: "", handle: null },
+   setLocalDirectory: (value = { name: "", handle: null }) => set({ localDirectory: value }),
+
+
+
+
+   configFile:{value:"", name:"", handle:null},
    setConfigFile:(value = {}) => set({configFile: value}),
    systemMessages:[],
    setSystemMessages: (value = []) => set({systemMessages: value}),
    connected: false,
    setConnected: (value = false) => set({connected:value}),
-   localDirectory: "",
-   setLocalDirectory: (value = "") => set({localDirectory: value}),
-   localHandle:null,
-   files: [],
-   setFiles: (value = false) => set({files:value}),
+   
+  
    showDirManager: false,
    setShowDirManager: (value = false) => set({showDirManager: value}),
    contacts: [],

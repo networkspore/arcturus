@@ -182,7 +182,7 @@ const WelcomePage = () => {
 
                     </div>
 
-                    <div style={{ paddingTop: "5px", color: "#77717180", fontSize: "12px", fontFamily:"Webrockwell" ,paddingBottom:"50px"}} >
+                    <div style={{ paddingTop: "5px", color: "#77717180",textShadow:"1px 1px 1px black", fontSize: "12px", fontFamily:"Webrockwell" ,paddingBottom:"50px"}} >
                         {valid ?  "Code valid." : "Enter a valid referral code."}
                     </div>
                             <div style={{paddingTop:"30px"}}>
@@ -212,7 +212,7 @@ const WelcomePage = () => {
 
                                        </div>
                             </div>
-                                <div style={{ paddingTop: "5px", color: "#77717180", fontFamily:"Webrockwell", fontSize:"12px", paddingBottom:"40px" }} >
+                    <div style={{ paddingTop: "5px", textShadow: "1px 1px 1px black", color: "#77717180", fontFamily:"Webrockwell", fontSize:"12px", paddingBottom:"40px" }} >
                                     {newEmail == "" ? "Enter an unused email." : "Email valid."}
                                 </div>
                     <div style={{ display: "flex", paddingTop: "20px", marginBottom:30, alignItems: "center", justifyContent: "center", }} >

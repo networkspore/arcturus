@@ -53,6 +53,8 @@ const HomeMenu = ({ props}) => {
     const toNav = useNavigate()
     const currentCampaign = useZust((state) => state.currentCampaign)
 
+    const setConfigFile = useZust((state) => state.setConfigFile)
+
     const [showIndex, setShowIndex] = useState(false);
 
     
@@ -91,8 +93,6 @@ const HomeMenu = ({ props}) => {
         state.files = value;
     }))
 
-
-
     useEffect(() => {
         if (user.userID > 0) {
 
@@ -130,47 +130,23 @@ const HomeMenu = ({ props}) => {
 
 
                 if (value != undefined) {
-                    const name = value.name;
 
 
-                    console.log(name)
 
-                    setLocalDirectory(name)
-                    const idbFiles = get(name);
+                    setLocalDirectory(value)
 
-                    idbFiles.then((res) => {
-
-                        if (Array.isArray(res)) {
-                            if (res.length == 0) {
-                                addSystemMessage(initStorage)
-                            } else {
-                                let foundConfig = false;
-                                res.forEach(searchFile => {
-
-
-                                    if (searchFile.name == "arcturus.config.json") {
-                                        foundConfig = searchFile;
-                                    }
-                                });
-
-                                if (!foundConfig) {
-                                    addSystemMessage(initStorage)
-                                } else {
-                                    console.log("found config file")
-                                }
-                            }
-                            setFiles(res);
-                        } else {
-
-                            setFiles([])
-
+                    get("configFile" + user.userID).then((res) => {
+                        if (res != undefined) {
+                            setConfigFile(res)
+                        }else{
                             addSystemMessage(initStorage)
                         }
-                    }).catch((error => {
-                        console.log(error)
-                        setFiles([])
+                    }).catch((err) => {
                         addSystemMessage(initStorage)
-                    }))
+                        console.log(err)
+                    })
+
+                    
                 } else {
                     console.log("systemMessage:")
                     console.log(initDirectory)
@@ -195,7 +171,7 @@ const HomeMenu = ({ props}) => {
     useEffect(() => {
         const currentLocation = location.pathname;
 
-        console.log(currentLocation)
+    
         if (user.userID > 0) {
             if (currentLocation == '/') {
 

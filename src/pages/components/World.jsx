@@ -45,13 +45,13 @@ export function World() {
     let x1 = 0;
     let y1 = 0;
 
-    const offset = 0;
+    const offset = 50;
     const orbitF = [1500, .2, 1500];
     const spin =  0.005;
     const cloudSpin = 0.01;
     
 
-    const moonOf = [3,.2,3];
+    const moonOf = [20,.2,20];
     const moonOffset = 0;
     const moonSpeed = .2;
 
@@ -87,13 +87,13 @@ export function World() {
      
             <mesh  ref={useClouds}  >
 
-                <sphereGeometry args={[10.1, 32, 32]} />
+                <sphereGeometry args={[5.2, 32, 32]} />
                 <meshStandardMaterial opacity={.6} map={cloudTexture} transparent />
             </mesh>
           
             <mesh   ref={usePlanet}  >
                
-                <sphereGeometry args={[10,32,32]} />
+                <sphereGeometry args={[5,32,32]} />
                 <meshStandardMaterial  map={worldTexture} />
             </mesh>
 

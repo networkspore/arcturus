@@ -518,7 +518,7 @@
 
 .check {
 
-	margin:3px;
+	margin-top:2px;
 	margin-right: 5px;
   width: 11px;
   height: 11px;
@@ -529,8 +529,8 @@
 }
 .checked {
 	 
-	margin:3px;
-	margin-right: 7px;
+	margin-top:2px;
+	margin-right: 5px;
 	  width: 11px;
   height: 11px;
   background-image: radial-gradient( #FFFFFF 25%,  #101314 100%);

@@ -93,7 +93,7 @@ export const LocalStoragePage = () => {
 
     
     useEffect(()=>{
-        if(localDirectory != ""){
+        if(localDirectory.name != ""){
             if(Array.isArray(files))
             {
                 if (files.length > 0) {
@@ -118,7 +118,7 @@ export const LocalStoragePage = () => {
 
                     });
                     setFileList(tmp)
-                    set(localDirectory, files)
+                 
                 } else {
                     setFileList([])
 
@@ -163,13 +163,13 @@ export const LocalStoragePage = () => {
 
     async function handleFirst (dirHandle) {
         
-        setFiles([])
+ 
         setFileList([])
       
         const name = await dirHandle.name;
   
-        setLocalDirectory(name)
-        set("localDirectory" + user.userID, {name: name, handle:dirHandle})
+        setLocalDirectory({ name: name, handle: dirHandle })
+        set("localDirectory" + user.userID, {name: name, handle: dirHandle})
         
         await handleDirectoryEntry(dirHandle)
     }
@@ -225,10 +225,10 @@ export const LocalStoragePage = () => {
                 
                // out[file.name] = file;
             }
-            if (entry.kind === "directory") {
+     /*       if (entry.kind === "directory") {
                 //const newOut = out[entry.name] = {};
                 await handleDirectoryEntry(entry);
-            }
+            }*/
         }
         
     }
@@ -285,11 +285,11 @@ export const LocalStoragePage = () => {
                     paddingLeft:"10px"
                     }}>
                     
-                    <NavLink to={localDirectory == "" ? "/home/localstorage" : "/home/localstorage/init"} about={"Start"} className={styles.tooltip__item}>
+                    <NavLink to={localDirectory.name == "" ? "/home/localstorage" : "/home/localstorage/init"} about={"Start"} className={styles.tooltip__item}>
                         <div style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
 
                             <img src='/Images/icons/power-outline.svg' width={25} height={25} style={{ 
-                                filter: localDirectory == "" ? "Invert(25%)" : configFile.handle != null ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)" 
+                                filter: localDirectory.name == "" ? "Invert(25%)" : configFile.handle != null ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)" 
                             }} />
 
                         </div>
@@ -297,7 +297,7 @@ export const LocalStoragePage = () => {
                     
                     <div about={"Reload"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
                      
-                        <img src='/Images/icons/reload-outline.svg' width={25} height={25} style={{ filter: localDirectory == "" ? "Invert(25%)" : "Invert(100%"}} />
+                        <img src='/Images/icons/reload-outline.svg' width={25} height={25} style={{ filter: localDirectory.name == "" ? "Invert(25%)" : "Invert(100%"}} />
                      
                     </div>
 
@@ -328,10 +328,10 @@ export const LocalStoragePage = () => {
                                 <img src='/Images/icons/server-outline.svg' style={{
                                     width:"25px",
                                     height:"25px",
-                                    filter: localDirectory == "" ? "Invert(25%)" : "invert(100%)"
+                                    filter: localDirectory.name == "" ? "Invert(25%)" : "invert(100%)"
                                 }} />
                             </div>
-                            {localDirectory != "" &&
+                            {localDirectory.name != "" &&
                                 <div style={{ color:  "#cdd4da",}}>
                                     fsa://
                                 </div>
@@ -343,12 +343,12 @@ export const LocalStoragePage = () => {
                                     height: "18px",
                                     textAlign: "left",
                                     border: "0px",
-                                    color: localDirectory == "" ? "#777777" : "#cdd4da",
+                                    color: localDirectory.name == "" ? "#777777" : "#cdd4da",
                                     backgroundColor: "#00000000",
                                  
                                                             
                                 }}>
-                                    {localDirectory == "" ? "Select a local directory..." : localDirectory}
+                                    {localDirectory.name == "" ? "Select a local directory..." : localDirectory.name}
                                 </div>
                                 
                             </div>
