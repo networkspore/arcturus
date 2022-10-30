@@ -24,22 +24,17 @@ export const InitStoragePage = () => {
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const objectsDirectory = useZust((state) => state.objectsDirectory);
     const texturesDirectory = useZust((state) => state.texturesDirectory);
-    const audioDirectory = useZust((state) => state.audioDirectory);
-    const videoDirectory = useZust((state) => state.videoDirectory);
+    const mediaDirectory = useZust((state) => state.mediaDirectory);
 
-    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
-    const setImagesDirectory = useZust((state) => state.setImagesDirectory);
-    const setObjectsDirectory = useZust((state) => state.setObjectsDirectory);
-    const setTexturesDirectory = useZust((state) => state.setTexturesDirectory);
-    const setAudioDirectory = useZust((state) => state.setAudioDirectory);
-    const setVideoDirectory = useZust((state) => state.setVideoDirectory);
+
+
 
     const [terrainDefault, setTerrainDefault] = useState(true);
     const [imagesDefault, setImagesDefault] = useState(true);
     const [objectsDefault, setObjectsDefault] = useState(true);
     const [texturesDefault, setTexturesDefault] = useState(true);
-    const [audioDefault, setAudioDefault] = useState(true);
-    const [videoDefault, setVideoDefault] = useState(true);
+    const [mediaDefault, setMediaDefault] = useState(true);
+
    
     const [defaultFolders, setDefaultFolders] = useState(false)
 
@@ -135,88 +130,40 @@ export const InitStoragePage = () => {
         })
     }
 
-    const setFolderDefaults = () =>{
-
-        if (!defaultFolders) {
-            localDirectory.handle.getDirectoryHandle("terrain", { create: true }).then((handle) => {
-                setTerrainDirectory({ name: handle.name, handle: handle });
-            })
-
-            localDirectory.handle.getDirectoryHandle("images", { create: true }).then((handle) => {
-                setImagesDirectory({ name: handle.name, handle: handle });
-            })
-
-            localDirectory.handle.getDirectoryHandle("objects", { create: true }).then((handle) => {
-                setObjectsDirectory({ name: handle.name, handle: handle });
-            })
-
-            localDirectory.handle.getDirectoryHandle("textures", { create: true }).then((handle) => {
-                setTexturesDirectory({ name: handle.name, handle: handle });
-            })
-
-            localDirectory.handle.getDirectoryHandle("audio", { create: true }).then((handle) => {
-                setAudioDirectory({ name: handle.name, handle: handle });
-            })
-
-            localDirectory.handle.getDirectoryHandle("video", { create: true }).then((handle) => {
-                setVideoDirectory({ name: handle.name, handle: handle });
-            })
-
-
-        } else {
-            if (imagesDefault) {
-                localDirectory.handle.getDirectoryHandle("images", { create: true }).then((handle) => {
-                    setImagesDirectory({ name: handle.name, handle: handle });
-                })
-            }
-            if (objectsDefault) {
-                localDirectory.handle.getDirectoryHandle("objects", { create: true }).then((handle) => {
-                    setObjectsDirectory({ name: handle.name, handle: handle });
-                })
-            }
-            if (terrainDefault) {
-                localDirectory.handle.getDirectoryHandle("terrain", { create: true }).then((handle) => {
-                    setTerrainDirectory({ name: handle.name, handle: handle });
-                })
-            }
-            if (texturesDefault) {
-                localDirectory.handle.getDirectoryHandle("textures", { create: true }).then((handle) => {
-                    setTexturesDirectory({ name: handle.name, handle: handle });
-                })
-            }
-            if (audioDefault) {
-                localDirectory.handle.getDirectoryHandle("audio", { create: true }).then((handle) => {
-                    setAudioDirectory({ name: handle.name, handle: handle });
-                })
-            }
-            if (videoDefault) {
-                localDirectory.handle.getDirectoryHandle("video", { create: true }).then((handle) => {
-                    setVideoDirectory({ name: handle.name, handle: handle });
-                })
-            }
-        }
-    }
-
     const setupConfigFile = (callback) => {
         getLocalPermissions(()=>{
 
-            setFolderDefaults()
+           
 
             localDirectory.handle.getFileHandle("acturus.config.json", { create: true }).then((fileHandle)=>{
                 
                 fileHandle.createWritable().then((configFileStream)=>{
-                    
+                   
                     const config = {
                         engineKey: codeRef.current.value,
                         defaultFileSharing: sharingPermissionsRef.current.getValue,
-                        customFolders: defaultFolders,
                         folders:{
-                            images: imagesDirectory.name,
-                            objects: objectsDirectory.name,
-                            textures: texturesDirectory.name,
-                            terrain: terrainDirectory.name,
-                            audio: audioDirectory.name,
-                            video: videoDirectory.name
+                            images: { name: !imagesDefault ? customFolders.images : imagesDirectory.name, 
+                                default: imagesDefault, 
+                                fileTypes: ["apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
+                            },
+                            objects: { name: !objectsDefault ? customFolders.objects : objectsDirectory.name, 
+                                default: objectsDefault,
+                                fileTypes: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"]
+                            },
+                            textures: { name: !texturesDefault ? customFolders.texture : texturesDirectory.name, 
+                                default: texturesDefault,
+                                fileTypes: ["apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
+                            },
+                            terrain: { name: !terrainDefault ? customFolders.terrain : terrainDirectory.name, 
+                                default: terrainDefault, 
+                                fileTypes: ["json"]
+                            },
+                            media: { name: !mediaDefault ? customFolders.media : mediaDirectory.name,
+                                default: mediaDefault,
+                                fileTypes: ["pcm", "mp3", "ogg", "webm", "aac", "wav", "3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", ".oga", ] 
+                            },
+                           
                         } 
                     }
 
@@ -225,7 +172,33 @@ export const InitStoragePage = () => {
 
                         const configFile = { value: config, name: fileHandle.name, handle: fileHandle }
 
-                        set("configFile" + user.userID, configFile)
+                        const engineKey = config.engineKey;
+
+                        
+                        
+
+                        if(!imagesDefault)
+                        {
+                            set("images" + engineKey, customFolders.images)
+                        }
+                        if(!objectsDefault)
+                        {
+                            set("objects" + engineKey, customFolders.objects)
+                        }
+                        if(!texturesDefault)
+                        {
+                            set("textures" + engineKey, customFolders.texture)
+                        }
+                        if(!terrainDefault)
+                        {
+                            set("terrain" + engineKey, customFolders.terrain)
+                        }
+                        if(!mediaDefault)
+                        {
+                            set("media" + engineKey, customFolders.media)
+                        }
+                        
+
                         setConfigFile(configFile)
                         
 
@@ -303,6 +276,8 @@ export const InitStoragePage = () => {
     const onFolder = (value) =>{
 
     }
+
+    const [customFolders, setCustomFolders] = useState({images:null, objects:null,terrain:null,texture:null,media:null})
 
     useEffect(()=>{
         switch(showIndex)
@@ -488,7 +463,14 @@ export const InitStoragePage = () => {
                                                             const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
                                                             const name = await dirHandle.name;
-                                                            setImagesDirectory({name:name, handle:dirHandle})
+                                                          
+                                                            
+                                                            setCustomFolders(
+                                                                produce((state)=>{
+                                                                    state.images = {name:name, handle:dirHandle};
+                                                                })
+                                                            )
+
                                                             setImagesDefault(false)
                                                         } catch (error) {
                                                             if (error == DOMException.ABORT_ERR) {
@@ -532,7 +514,13 @@ export const InitStoragePage = () => {
                                                         const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
                                                         const name = await dirHandle.name;
-                                                        setObjectsDirectory({ name: name, handle: dirHandle })
+                                                       
+                                                        setCustomFolders(
+                                                            produce((state) => {
+                                                                state.objects = { name: name, handle: dirHandle };
+                                                            })
+                                                        )
+
                                                         setObjectsDefault(false)
                                                     } catch (error) {
                                                         if (error == DOMException.ABORT_ERR) {
@@ -579,7 +567,12 @@ export const InitStoragePage = () => {
                                                         const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
                                                         const name = await dirHandle.name;
-                                                        setTexturesDirectory({ name: name, handle: dirHandle })
+                                                        setCustomFolders(
+                                                            produce((state) => {
+                                                                state.textures = { name: name, handle: dirHandle };
+                                                            })
+                                                        )
+
                                                         setTexturesDefault(false)
                                                     } catch (error) {
                                                         if (error == DOMException.ABORT_ERR) {
@@ -625,7 +618,12 @@ export const InitStoragePage = () => {
                                                         const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
                                                         const name = await dirHandle.name;
-                                                        setTerrainDirectory({ name: name, handle: dirHandle })
+                                                        setCustomFolders(
+                                                            produce((state) => {
+                                                                state.terrain = { name: name, handle: dirHandle };
+                                                            })
+                                                        )
+
                                                         setTerrainDefault(false)
                                                     } catch (error) {
                                                         if (error == DOMException.ABORT_ERR) {
@@ -661,7 +659,7 @@ export const InitStoragePage = () => {
                                             </div>
                                             <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width:190, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    Audio Folder:
+                                                    Media Folder:
                                                 </div>
                                                 <div style={{ flex: 1 }}>
 
@@ -670,13 +668,18 @@ export const InitStoragePage = () => {
                                                         const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
                                                         const name = await dirHandle.name;
-                                                        setAudioDirectory({ name: name, handle: dirHandle })
-                                                        setAudioDefault(false)
+                                                        setCustomFolders(
+                                                            produce((state) => {
+                                                                state.media = { name: name, handle: dirHandle };
+                                                            })
+                                                        )
+
+                                                        setMediaDefault(false)
                                                     } catch (error) {
                                                         if (error == DOMException.ABORT_ERR) {
 
                                                         }
-                                                        setAudioDefault(true)
+                                                        setMediaDefault(true)
                                                     }
                                                 }}
 
@@ -688,56 +691,24 @@ export const InitStoragePage = () => {
                                                             textAlign: "left",
                                                             border: "0px",
                                                             outline: 0,
-                                                            color: audioDefault ? "#ffffff80" : "white",
+                                                            color: mediaDefault ? "#ffffff80" : "white",
                                                             fontFamily: "webrockwell"
                                                         }} >
-                                                        {audioDirectory.name}
+                                                        {mediaDirectory.name}
                                                     </div>
 
                                                 </div>
-                                            <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setAudioDefault(prev => !prev) }} >
+                                            <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setMediaDefault(prev => !prev) }} >
                                                 <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                     default:
                                                 </div>
                                                 <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                    <div className={audioDefault ? styles.checked : styles.check} />
+                                                    <div className={mediaDefault ? styles.checked : styles.check} />
                                                 </div>
                                             </div>
                                             </div>
 
-                                            <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                                <div style={{ marginRight: 10, alignItems: "flex-end", width:190, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    Video Folder:
-                                                </div>
-                                                <div style={{ flex: 1 }}>
-
-                                                    <div
-
-                                                        style={{
-                                                            cursor: "pointer",
-                                                            width: 250,
-                                                            fontSize: 14,
-                                                            marginTop: 5,
-                                                            textAlign: "left",
-                                                            border: "0px",
-                                                            outline: 0,
-                                                            color: videoDefault ? "#ffffff80":  "white",
-                                                            fontFamily: "webrockwell"
-                                                        }} >
-                                                        {videoDirectory.name}
-                                                    </div>
-
-                                                </div>
-
-                                                <div style={{ display: "flex",marginTop:5, cursor:"pointer" }} onClick={(e) => { setVideoDefault(prev => !prev) }} >
-                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                        default:
-                                                    </div>
-                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                        <div className={videoDefault ? styles.checked : styles.check} />
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            
                              
 
                                         </>

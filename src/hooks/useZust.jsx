@@ -9,32 +9,44 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
-   terrainDirectory:{name:"terrain", handle: null,},
-   setTerrainDirectory: (value = { name: "terrain", handle: null, }) => set({ terrainDirectory: value }),
+   terrainDirectory: { name: "terrain", handle: null },
+   setTerrainDirectory: (value = { name: "terrain", handle: null }) => set({ terrainDirectory: value }),
 
-   imagesDirectory: { name: "images", handle: null ,},
-   setImagesDirectory: (value = { name: "images", handle: null, }) => set({imagesDirectory: value}),
+   imagesDirectory: { name: "images", handle: null },
+   setImagesDirectory: (value = { name: "images", handle: null }) => set({imagesDirectory: value}),
 
-   objectsDirectory: { name: "objects", handle: null,  },
-   setObjectsDirectory: (value = { name: "objects", handle: null, }) => set({objectsDirectory: value }),
+   objectsDirectory: { name: "objects", handle: null },
+   setObjectsDirectory: (value = { name: "objects", handle: null }) => set({objectsDirectory: value }),
 
-   texturesDirectory: { name: "textures", handle: null,  },
-   setTexturesDirectory: (value = { name: "textures", handle: null, }) => set({texturesDirectory: value }),
+   texturesDirectory: { name: "textures", handle: null },
+   setTexturesDirectory: (value = { name: "textures", handle: null }) => set({texturesDirectory: value }),
 
-   audioDirectory: {name:"audio", handle: null,},
-   setAudioDirectory: (value = { name: "audio", handle: null, }) => set({audioDirectory: value }),
+   mediaDirectory: { name: "audio", handle: null },
+   setMediaDirectory: (value = { name: "audio", handle: null }) => set({audioDirectory: value }),
    
-   videoDirectory: {name:"video", handle: null,},
-   setVideoDirectory: (value = { name: "video", handle: null, }) => set({videoDirectory: value }),
+
+   imagesFiles: [],
+   setImagesFiles: (value = []) => set({imagesFiles:value}),
+
+   objectsFiles: [],
+   setObjectsFiles: (value = []) => set({ objectsFiles: value }),
+
+   terrainFiles: [],
+   setTerrainFiles: (value = []) => set({ terrainFiles: value }),
+
+   textureFiles: [],
+   setTextureFiles: (value = []) => set({ textureFiles: value }),
+
+   mediaFiles: [],
+   setMediaFiles: (value = []) => set({ mediaFiles: value }),
 
    localDirectory: { name: "", handle: null },
    setLocalDirectory: (value = { name: "", handle: null }) => set({ localDirectory: value }),
 
+ 
 
-
-
-   configFile:{value:"", name:"", handle:null},
-   setConfigFile:(value = {}) => set({configFile: value}),
+   configFile:{value:null, name:"", handle:null},
+   setConfigFile: (value = { value: null, name: "", handle: null }) => set({configFile: value}),
    systemMessages:[],
    setSystemMessages: (value = []) => set({systemMessages: value}),
    connected: false,

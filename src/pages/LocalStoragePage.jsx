@@ -7,14 +7,30 @@ import crc32 from 'crc/crc32';
 
 import { set } from 'idb-keyval';
 import produce from 'immer';
-import { NavLink, useLocation } from 'react-router-dom';
+import {  useLocation, useNavigate } from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
 
 
 
 export const LocalStoragePage = () => {
+    const terrainDirectory = useZust((state) => state.terrainDirectory);
+    const imagesDirectory = useZust((state) => state.imagesDirectory);
+    const objectsDirectory = useZust((state) => state.objectsDirectory);
+    const texturesDirectory = useZust((state) => state.texturesDirectory);
+    const mediaDirectory = useZust((state) => state.mediaDirectory);
+
+    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
+    const setImagesDirectory = useZust((state) => state.setImagesDirectory);
+    const setObjectsDirectory = useZust((state) => state.setObjectsDirectory);
+    const setTexturesDirectory = useZust((state) => state.setTexturesDirectory);
+    const setMediaDirectory = useZust((state) => state.setMediaDirectory);
+
+    
+
 
     const location = useLocation();
+
+    const navigate = useNavigate();
 
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
@@ -24,24 +40,15 @@ export const LocalStoragePage = () => {
         state.localDirectory = value;
     }));
 
-    const files = useZust((state) => state.files)
-    
-    const addFile = (value) => useZust.setState(produce((state)=>{
-        state.files.push(value)
-    }))
 
-    const clearFiles = () => useZust.setState(produce((state)=>{
-        state.files = [];
-    }))
-    const setFiles = (value) => useZust.setState(produce((state)=>{
-        state.files = value;
-    }))
-
+ 
     const configFile = useZust((state) => state.configFile)
 
     const setConfigFile = useZust((state) => state.setConfigFile)
 
     const [showIndex, setShowIndex] = useState(); 
+
+    const [directoryIndex, setDirectoryIndex] = useState(-1)
 
     const [fileList, setFileList] = useState([])
 
@@ -92,10 +99,23 @@ export const LocalStoragePage = () => {
     }
 
     
+    
+
     useEffect(()=>{
-        if(localDirectory.name != ""){
-            if(Array.isArray(files))
-            {
+        const currentLocation = location.pathname;
+
+        if (currentLocation == "/home/localstorage/init")
+        {
+            
+            setShowIndex(1)
+        }else{
+            setShowIndex(0)
+        }
+    },[location])
+/*
+    useEffect(() => {
+        if (localDirectory.name != "") {
+            if (Array.isArray(files)) {
                 if (files.length > 0) {
 
                     var tmp = []
@@ -118,37 +138,22 @@ export const LocalStoragePage = () => {
 
                     });
                     setFileList(tmp)
-                 
+
                 } else {
                     setFileList([])
 
                 }
-            }else{
+            } else {
                 setFileList([])
             }
-           
+
         }
-    },[files])
-
-    useEffect(()=>{
-        const currentLocation = location.pathname;
-
-        if (currentLocation == "/home/localstorage/init")
-        {
-            
-            setShowIndex(1)
-        }else{
-            setShowIndex(0)
-        }
-    },[location])
-
-
+    }, [files])*/
 
 
     async function pickAssetDirectory() {
         try{
             const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-            
             await handleFirst(dirHandle)
         }catch (error) {
             if(error == DOMException.ABORT_ERR) {
@@ -157,92 +162,89 @@ export const LocalStoragePage = () => {
         }
     }
 
-   
+    async function readFileJson(handle, callback){
+        try{
+            const file = await handle.getFile();
+
+            const txt = await file.text()
+            
+            const value = await JSON.parse(txt)
+
+            callback({success:true, value:await jsn})
+        }catch(error){
+            console.error(error)
+              callback({success:false})
+        }
+      
+    }
 
  
 
     async function handleFirst (dirHandle) {
+        turnOffLocalStorage()
         
- 
         setFileList([])
       
         const name = await dirHandle.name;
   
         setLocalDirectory({ name: name, handle: dirHandle })
+
         set("localDirectory" + user.userID, {name: name, handle: dirHandle})
         
-        await handleDirectoryEntry(dirHandle)
+        dirHandle.getFileHandle("arcturus.config.json").then((handle)=>{
+            console.log(handle)
+
+           readFileJson(handle, (json)=>{
+                if(json.success)
+                {
+                    const config = json.value;
+                    if("engineKey" in config)
+                    {
+                        setConfigFile({ value: json.value, handle: handle, name: name })
+                    }
+                    
+                }else{
+                    navigate("/home/localstorage/init")
+                }
+            })
+        }).catch((err)=>{
+            navigate("/home/localstorage/init")
+        })
     }
 
-   async function asyncAddFile(value) {
-        addFile(value)
-   }
 
-    async function handleDirectoryEntry (dirHandle) {
+
+
+
+    const turnOffLocalStorage = () =>{
         
-        for await (const entry of dirHandle.values()) {
-            
-            
-            
-            if (entry.kind === "file") {
-               
-                /*entry
-                fileSystemHandle
-                kind:
-                name:
-                isSameEntry()
-                queryPermission
-                requestPermission
-                */
-                
-              
-                /*
-                file
-                name:
-                lastModified: 
-                type:
-                size:
-                */
+        if(localDirectory.name != ""){
+            del("localDirectory" + user.userID)
+            setLocalDirectory();
+        }
 
-                getFileInfo(entry).then((res)=>
-                    { 
-                        const newFile = { crc: res.crc, name: entry.name, size: res.size, lastModified: res.lastModified, type: res.type, handle: entry }
-                        set(newFile.name, newFile)
-                        
-                        if(newFile.name == "arcturus.config.json")
-                        {
-                            setConfigFile(newFile)
-                        }else{
-                            addFile(newFile)
-                        }
-                        
-                    }
-                ).catch ((err)=>{
-                    console.log(err)
-                })
-
-                
-                
-               // out[file.name] = file;
-            }
-     /*       if (entry.kind === "directory") {
-                //const newOut = out[entry.name] = {};
-                await handleDirectoryEntry(entry);
-            }*/
+        if(configFile.name != "")
+        {
+            del(configFile.name + user.userID)
+            setConfigFile();
         }
         
-    }
+        if(terrainDirectory.name !=""){
+            setTerrainDirectory();
+        }
+        if (imagesDirectory.name != "" ){
+            setImagesDirectory();
+        }
+        if (objectsDirectory.name != "" ){
+            setObjectsDirectory();
+        }
+        if (texturesDirectory.name != ""){
+            setTexturesDirectory();
+        }
+        if (mediaDirectory.name != ""){
+            setMediaDirectory();
+        }
 
-    async function getFileInfo(entry){
-        const file = await entry.getFile();
-        
-        file.arrayBuffer().then((arrayBuffer)=>{
-            return new Promise(resolve => {
-                const crc = crc32(arrayBuffer).toString(16)
-                resolve({crc:crc, size:file.size, type:file.type, lastModified:file.lastModified})
-            });
-        })
-        
     }
 
     return (
@@ -285,17 +287,21 @@ export const LocalStoragePage = () => {
                     paddingLeft:"10px"
                     }}>
                     
-                    <NavLink to={localDirectory.name == "" ? "/home/localstorage" : "/home/localstorage/init"} about={"Start"} className={styles.tooltip__item}>
-                        <div style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
+                  
+                    <div onClick={(e)=>{
+                        turnOffLocalStorage()
+                    }} about={localDirectory.name == "" ? "Start" : "Turn off"} className={styles.tooltip__item} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
 
-                            <img src='/Images/icons/power-outline.svg' width={25} height={25} style={{ 
-                                filter: localDirectory.name == "" ? "Invert(25%)" : configFile.handle != null ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)" 
-                            }} />
+                        <img src='/Images/icons/power-outline.svg' width={25} height={25} style={{ 
+                            filter: localDirectory.name == "" ? "Invert(25%)" : configFile.handle != null ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)" 
+                        }} />
 
-                        </div>
-                    </NavLink>
+                    </div>
+                   
                     
-                    <div about={"Reload"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
+                    <div onClick={(e)=>{
+                        onReload()
+                    }} about={"Reload"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
                      
                         <img src='/Images/icons/reload-outline.svg' width={25} height={25} style={{ filter: localDirectory.name == "" ? "Invert(25%)" : "Invert(100%"}} />
                      
