@@ -135,7 +135,7 @@ export const InitStoragePage = () => {
 
            
 
-            localDirectory.handle.getFileHandle("acturus.config.json", { create: true }).then((fileHandle)=>{
+            localDirectory.handle.getFileHandle("arcturus.config.json", { create: true }).then((fileHandle)=>{
                 
                 fileHandle.createWritable().then((configFileStream)=>{
                    

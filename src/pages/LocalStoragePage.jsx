@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import useZust from '../hooks/useZust';
 import styles from './css/home.module.css';
 
-import crc32 from 'crc/crc32';
+
 
 
 import { set } from 'idb-keyval';
@@ -162,21 +162,7 @@ export const LocalStoragePage = () => {
         }
     }
 
-    async function readFileJson(handle, callback){
-        try{
-            const file = await handle.getFile();
-
-            const txt = await file.text()
-            
-            const value = await JSON.parse(txt)
-
-            callback({success:true, value:await jsn})
-        }catch(error){
-            console.error(error)
-              callback({success:false})
-        }
-      
-    }
+ 
 
  
 

@@ -13,7 +13,8 @@ import { SystemMessagesMenu } from "./SystemMessagesMenu";
 import { get } from "idb-keyval";
 
 
-
+import crc32 from 'crc/crc32';
+import { crc32FromArrayBuffer } from "./constants/utility";
 
 
 const HomeMenu = ({ props}) => {
@@ -190,15 +191,17 @@ const HomeMenu = ({ props}) => {
                                     if (json.success) {
                                         const config = json.value;
                                         if ("engineKey" in config) {
-                                            setConfigFile({ value: json.value, handle: handle, name: name })
+                                            setConfigFile({ value: json.value, handle: handle, name: handle.name })
                                         }
 
                                     } else {
-                                        navigate("/home/localstorage/init")
+                                        console.log(json)
+                                        addSystemMessage(initStorage)
                                     }
                                 })
                             }).catch((err) => {
-                                navigate("/home/localstorage/init")
+                                console.log(err)
+                                addSystemMessage(initStorage)
                             })
                            
                         }else{
@@ -221,7 +224,21 @@ const HomeMenu = ({ props}) => {
 
 
 
+    async function readFileJson(handle, callback) {
+        try {
+            const file = await handle.getFile();
 
+            const txt = await file.text()
+
+            const value = JSON.parse(txt)
+
+            callback({ success: true, value: value })
+        } catch (error) {
+            console.error(error)
+            callback({ success: false })
+        }
+
+    }
 
     
 
@@ -487,14 +504,17 @@ const HomeMenu = ({ props}) => {
     }
 
     async function getFileInfo(entry) {
-        const file = await entry.getFile();
 
-        file.arrayBuffer().then((arrayBuffer) => {
-            return new Promise(resolve => {
-                const crc = crc32(arrayBuffer).toString(16)
-                resolve({ crc: crc, size: file.size, type: file.type, lastModified: file.lastModified })
-            });
-        })
+        return new Promise(resolve => {
+            entry.getFile().then((file)=>{
+                file.arrayBuffer().then((arrayBuffer) => {
+                    
+                    crc32FromArrayBuffer(arrayBuffer, (crc) =>{
+                        resolve({ crc: crc, size: file.size, type: file.type, lastModified: file.lastModified })
+                    })
+                })
+            })
+        });
 
     }
 
