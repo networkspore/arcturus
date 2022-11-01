@@ -269,7 +269,7 @@ export const InitStoragePage = () => {
     function onGenerateClick(e = null) {
 
 
-        const code = MD5(formatedNow()).toString().slice(0,7)
+        const code = MD5(formatedNow()).toString()
         codeRef.current.value = code;
     }
 

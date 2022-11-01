@@ -14,6 +14,28 @@ export const ImageDiv = (props = {}) => {
     const [width, setWidth] = useState(110)
     const [height, setHeight] = useState(110)
 
+    const style = {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: width,
+        height: height,
+        backgroundColor: backgroundColor,
+        backgroundImage: backgroundImage,
+        overflow: "hidden",
+        borderRadius: "20px"
+    }
+    
+    if ("style" in props) {
+        let styleArray = Object.getOwnPropertyNames(props.style);
+
+        styleArray.forEach(element => {
+            style[element] = props.style[element];
+        });
+    }
+
+    const onClick = "onClick" in props ? props.onClick : null
+
     useEffect(() => {
         var w = width;
         var h = height
@@ -81,16 +103,7 @@ export const ImageDiv = (props = {}) => {
    
 
     return (
-        <div style={{ display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            width: width, 
-            height: height, 
-            backgroundColor: backgroundColor, 
-            backgroundImage: backgroundImage,
-            overflow: "hidden", 
-            borderRadius: "borderRadius" in props ? props.borderRadius :  "20px" 
-            }}>
+        <div onClick={onClick} style={style}>
             {img != "" ? <img src={img} style={{width:scaleImgWidth, height:scaleImgHeight, filter:filter}} /> : ""}
         </div>
     )

@@ -10,7 +10,7 @@ import produce from 'immer';
 import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
 
-
+import { ImageDiv } from './components/UI/ImageDiv';
 
 export const LocalStoragePage = () => {
     const terrainDirectory = useZust((state) => state.terrainDirectory);
@@ -302,7 +302,7 @@ export const LocalStoragePage = () => {
                                  
                                                             
                                 }}>
-                                    {localDirectory.name == "" ? "Select a local directory..." : "localStorage"}{subDirectory}
+                                    {localDirectory.name == "" ? "Select a local directory..." : "localstorage"}{subDirectory}
                                 </div>
                                 
                             </div>
@@ -320,16 +320,20 @@ export const LocalStoragePage = () => {
              
                
                 {configFile.handle == null &&
-                    <ImageDiv 
-                        width={"100%"}
-                        height={"100%"}
+                    <div style={{display:"flex",width:"100%", height:"100%", flexDirection:"column", alignItems:"center",justifyContent:"center", color:"white",}}>
+                            <ImageDiv onClick={(e) => { pickAssetDirectory() }}
+                            style={{cursor:"pointer"}}
+                        width={"80"}
+                        height={"80"}
                         netImage={{
-                            image: "/Images/icons/construct-outline.svg",
+                            image: "/Images/icons/server-outline.svg",
                             filter:"invert(100%)",
-                            width:200,
-                            height:200 
+                            width:40,
+                            height:40 
                         }}
-                    />            
+                    />  
+                            <div onClick={(e) => { pickAssetDirectory() }} style={{ cursor:"pointer", color: "white"}} > Select a local directory </div>
+                    </div>         
                 }
                 {configFile.handle != null && showIndex == 2 &&
                     
@@ -343,7 +347,7 @@ export const LocalStoragePage = () => {
                                 { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-
+                                configFile,
                         ]} />
                     </div>
                 }

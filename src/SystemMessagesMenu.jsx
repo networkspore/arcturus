@@ -6,6 +6,7 @@ import useZust from "./hooks/useZust";
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
 
 import styles from './pages/css/home.module.css'
+import produce from "immer";
 
 export const SystemMessagesMenu = (props = {}) => {
 
@@ -21,6 +22,30 @@ export const SystemMessagesMenu = (props = {}) => {
 
     const systemMessages = useZust((state) => state.systemMessages)
 
+    const removeSystemMessage = (id) => useZust.setState(produce((state) => {
+        const length = state.systemMessages.length;
+        if(length > 0)
+        {
+            if(length == 1){
+                if(state.systemMessages[0].id == id)
+                {
+                  
+                    state.systemMessages.pop()
+        
+                }
+            }else{
+                for(let i =0; i < state.systemMessages.length ; i++)
+                {
+                    if (state.systemMessages[i].id == id) {
+                        state.systemMessages.splice(i, 1)
+                        break;
+                    }
+                }
+            }
+        }
+       
+    }))
+
     useEffect(() => {
         if(systemMessages.length > 0)
         {
@@ -33,9 +58,11 @@ export const SystemMessagesMenu = (props = {}) => {
                 const messageText = message.text
                 const messageNetImage = message.netImage
                 tmpArray.push(
-                    <div onClick={(e)=>{
+                    <div key={messageID} onClick={(e)=>{
+                       
+                        removeSystemMessage(messageID)
                         navigate(messageNavigate)
-                    }} key={messageID} style={{display:"flex"}} className={styles.result}>
+                    }}  style={{display:"flex"}} className={styles.result}>
                         <div style={{paddingLeft:"2px"}}>
                             <ImageDiv width={18} height={18} netImage={messageNetImage} />
                         </div>
@@ -47,6 +74,8 @@ export const SystemMessagesMenu = (props = {}) => {
             });
 
             setMenuList(tmpArray)
+        }else{
+            setMenuList([])
         }
 
     }, [systemMessages])

@@ -97,6 +97,9 @@ export const HomePage = (props ={}) => {
                 case "/localstorage":
                     setshowIndex(2)
                 break;
+                case "/account":
+                    setshowIndex(4)
+                    break;
                 default:
                     setshowIndex(0)
             }
@@ -137,10 +140,9 @@ export const HomePage = (props ={}) => {
                 <div style={{ width: 260, paddingLeft:"15px" }}>
                     
                     {connected &&
+                        <NavLink to={subDirectory == "/account" ? "/home" : "/home/account"}>
                         <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
-                            onClick={(e) => {
-                                setshowIndex(4)
-                            }}
+                          
                         >
 
                             <div>
@@ -150,7 +152,7 @@ export const HomePage = (props ={}) => {
                                 Account Settings
                             </div>
                         </div>
-
+                        </NavLink>
                     }
 
                    
