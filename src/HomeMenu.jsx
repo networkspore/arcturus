@@ -132,6 +132,76 @@ const HomeMenu = ({ props}) => {
             }
         })
     }
+    const [directory, setDirectory] = useState("")
+
+    useEffect(() => {
+        let currentLocation = location.pathname;
+
+        const secondSlash = currentLocation.indexOf("/", 1)
+
+        currentLocation  = secondSlash == -1 ? currentLocation : currentLocation.slice(0,secondSlash)
+
+        setDirectory(currentLocation)
+
+        if (user.userID > 0) {
+            if (currentLocation == '/') {
+
+                if (connected) {
+                    navigate("/search")
+                } else {
+                    navigate('/home')
+                }
+            } else {
+                const secondSlash = currentLocation.indexOf("/", 1)
+
+                const rootDirectory = currentLocation.slice(0, secondSlash == -1 ? currentLocation.length : secondSlash)
+
+                //  const subDirectory = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
+
+
+
+
+                switch (rootDirectory) {
+                    case "/search":
+                        if (!showMenu) setShowMenu(true);
+                        setShowIndex(3)
+                      
+                        break;
+                    case "/home":
+                        if (!showMenu) setShowMenu(true);
+                        setShowIndex(4);
+                        break;
+                    default:
+                     
+                        navigate('/search')
+                
+                }
+
+            }
+
+        } else {
+            if (showMenu) setShowMenu(false)
+
+            switch (currentLocation) {
+                case '/':
+                case '/login':
+                    setShowIndex(1)
+                    break;
+                case '/welcome':
+                    setShowIndex(2)
+                    break;
+                case '/recoverpassword':
+                    setShowIndex(5)
+                    break;
+                default:
+                    navigate("/")
+                    break;
+            }
+        }
+
+
+
+    }, [location, user, socket, connected])
 
     useEffect(() => {
         if (user.userID > 0) {
@@ -243,76 +313,6 @@ const HomeMenu = ({ props}) => {
     
 
    
-    useEffect(() => {
-        const currentLocation = location.pathname;
-
-    
-        if (user.userID > 0) {
-            if (currentLocation == '/') {
-
-                if (connected) {
-                    navigate("/search")
-                } else {
-                    navigate('/home')
-                }
-            } else {
-                const secondSlash = currentLocation.indexOf("/",1)
-                
-                const rootDirectory = currentLocation.slice(0,secondSlash == -1 ? currentLocation.length : secondSlash)
-                
-              //  const subDirectory = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
-     
-    
-                
-                
-                switch (rootDirectory) {
-                    case "/search":
-                        
-                        if (connected) {
-                            if (!showMenu) setShowMenu(true);
-                            setShowIndex(3)
-                        } else {
-                            navigate('/home')
-                        }
-                        break;
-                    case "/home":
-                        if (!showMenu) setShowMenu(true);
-                        setShowIndex(4);
-                        break;
-                    default:
-                        if (connected) {
-                            if (!showMenu) setShowMenu(true);
-                            setShowIndex(4)
-                        } else {
-                            navigate('/home')
-                        }
-                }
-
-            }
-
-        } else {
-            if (showMenu) setShowMenu(false)
-
-            switch (currentLocation) {
-                case '/':
-                case '/login':
-                    setShowIndex(1)
-                    break;
-                case '/welcome':
-                    setShowIndex(2)
-                    break;
-                case '/recoverpassword':
-                    setShowIndex(5)
-                    break;
-                default:
-                    navigate("/")
-                    break;
-            }
-        }
-
-
-
-    }, [location, user, socket,connected])
 
     useEffect(() => {
        
@@ -433,8 +433,10 @@ const HomeMenu = ({ props}) => {
             }
             if (config.folders.media.default) {
                 localDirectory.handle.getDirectoryHandle("media", { create: true }).then((handle) => {
+
                     getDirectoryFiles(handle, config.folders.media.fileTypes).then((directoryFiles) => {
-                        setTexturesFiles(directoryFiles)
+                     
+                        setMediaFiles(directoryFiles)
                         setMediaDirectory({ name: handle.name, handle: handle });
                     })
                 })
@@ -482,11 +484,8 @@ const HomeMenu = ({ props}) => {
                 size:
                 */
 
-                getFileInfo(entry).then((res) => {
-                    const newFile = { crc: res.crc, name: entry.name, size: res.size, lastModified: res.lastModified, type: res.type, handle: entry }
-
+                getFileInfo(entry).then((newFile) => {
                     files.push(newFile)
-
                 }
                 ).catch((err) => {
                     console.log(err)
@@ -510,7 +509,7 @@ const HomeMenu = ({ props}) => {
                 file.arrayBuffer().then((arrayBuffer) => {
                     
                     crc32FromArrayBuffer(arrayBuffer, (crc) =>{
-                        resolve({ crc: crc, size: file.size, type: file.type, lastModified: file.lastModified })
+                        resolve({name:file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
                     })
                 })
             })
@@ -580,7 +579,7 @@ const HomeMenu = ({ props}) => {
 
                             {connected  &&
                                 <>
-                                    <NavLink className={location.pathname == "/search" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/search'}>
+                                    <NavLink className={directory == "/search" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/search'}>
                                         <img src="/Images/logo.png" width={50} height={50} />
                                     </NavLink>
 
@@ -600,14 +599,14 @@ const HomeMenu = ({ props}) => {
                         </div>
                         <div style={{ flex: 0.1 }}>
                             {connected &&
-                            <NavLink className={location.pathname == "/createRealm" ? styles.menuActive : styles.menu__item} about="Create Realm"
+                            <NavLink className={directory == "/createRealm" ? styles.menuActive : styles.menu__item} about="Create Realm"
                                 to={'/createRealm'}>
                                 <img src="/Images/realm.png" width={60} height={60} />
                             </NavLink>
                             }
 
 
-                            <NavLink className={location.pathname == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
+                            <NavLink className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
                                 <img src="/Images/icons/person.svg" style={{ filter: "invert(100%)" }} width={45} height={50} />
                             </NavLink>

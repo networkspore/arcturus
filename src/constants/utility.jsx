@@ -57,6 +57,6 @@ export const crc32FromArrayBuffer = (ab, callback) => {
         crc = (crc >>> 8) ^ table[(crc ^ dsArr[i]) & 0xFF];
     }
 
-    callback( (crc ^ (-1)) >>> 0)
+    callback( ((crc ^ (-1)) >>> 0).toString(16))
 
 }

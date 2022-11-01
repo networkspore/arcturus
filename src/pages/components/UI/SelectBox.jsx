@@ -10,7 +10,7 @@ const SelectBox = (props = {}, ref) => {
     const [list, setList] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(-1);
 
-    const id = "id" in props ? props.id : "";
+
     let optionsStyle = {  zIndex:"9999",textAlign:"left", color: "#cdd4da" ,position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)", maxHeight:60,   overflowY: "scroll" };
     const labelStyle = {margin:"0px 10px 10px 10px", display:"flex", alignItems:"center"}
     const textStyle = { backgroundColor: "rgba(0,0,0,0)", fontSize: "20px", fontFamily: "WebPapyrus", outline: 0, borderWidth: "0 0 2px", borderColor: "#ffe51c", color: "#D6BD00", textAlign: "left", width: "100%", cursor: "pointer" };
