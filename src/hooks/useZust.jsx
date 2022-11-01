@@ -21,8 +21,8 @@ const useZust = create((set) => ({
    texturesDirectory: { name: "textures", handle: null },
    setTexturesDirectory: (value = { name: "textures", handle: null }) => set({texturesDirectory: value }),
 
-   mediaDirectory: { name: "audio", handle: null },
-   setMediaDirectory: (value = { name: "audio", handle: null }) => set({audioDirectory: value }),
+   mediaDirectory: { name: "media", handle: null },
+   setMediaDirectory: (value = { name: "media", handle: null }) => set({mediaDirectory: value }),
    
 
    imagesFiles: [],

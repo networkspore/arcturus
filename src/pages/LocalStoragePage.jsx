@@ -3,11 +3,11 @@ import useZust from '../hooks/useZust';
 import styles from './css/home.module.css';
 
 
-
+import FileList from './components/UI/FileList';
 
 import { set } from 'idb-keyval';
 import produce from 'immer';
-import {  useLocation, useNavigate } from 'react-router-dom';
+import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
 
 
@@ -25,7 +25,11 @@ export const LocalStoragePage = () => {
     const setTexturesDirectory = useZust((state) => state.setTexturesDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
-    
+    const terrainFiles = useZust((state) => state.terrainFiles);
+    const imagesFiles = useZust((state) => state.imagesFiles);
+    const objectsFiles = useZust((state) => state.objectsFiles);
+    const texturesFiles = useZust((state) => state.textureFiles);
+    const mediaFiles = useZust((state) => state.mediaFiles);
 
 
     const location = useLocation();
@@ -46,6 +50,9 @@ export const LocalStoragePage = () => {
 
     const setConfigFile = useZust((state) => state.setConfigFile)
 
+    const [currentFolder, setCurrentFolder] = useState("")
+    const [currentFiles, setCurrentFiles] = useState()
+
     const [showIndex, setShowIndex] = useState(); 
 
     const [directoryIndex, setDirectoryIndex] = useState(-1)
@@ -59,96 +66,51 @@ export const LocalStoragePage = () => {
 
     }
 
-  
-    function formatBytes(bytes, decimals = 2) {
-        if (!+bytes) return '0 Bytes'
 
-        const k = 1024
-        const dm = decimals < 0 ? 0 : decimals
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-
-        const i = Math.floor(Math.log(bytes) / Math.log(k))
-
-        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
-    }
-
-    function formatedNow(now = new Date(), small = false) {
-
-        const year = now.getUTCFullYear();
-        const month = now.getUTCMonth()
-        const day = now.getUTCDate();
-        const hours = now.getUTCHours();
-        const minutes = now.getUTCMinutes();
-        const seconds = now.getUTCSeconds();
-        const miliseconds = now.getUTCMilliseconds();
-
-        const stringYear = year.toString();
-        const stringMonth = month < 10 ? "0" + month : String(month);
-        const stringDay = day < 10 ? "0" + day : String(day);
-        const stringHours = hours < 10 ? "0" + hours : String(hours);
-        const stringMinutes = minutes < 10 ? "0" + minutes : String(minutes);
-        const stringSeconds = seconds < 10 ? "0" + seconds : String(seconds);
-        const stringMiliseconds = miliseconds < 100 ? (miliseconds < 10 ? "00" + miliseconds : "0" + miliseconds) : String(miliseconds);
-
-
-        const stringNow = stringYear + "-" + stringMonth + "-" + stringDay + " " + stringHours + ":" + stringMinutes;
-
-
-
-        return small ? stringNow : stringNow + ":" + stringSeconds + ":" + stringMiliseconds;
-    }
-
-    
+    const [subDirectory, setSubDirectory] = useState("")
     
 
     useEffect(()=>{
         const currentLocation = location.pathname;
+        const directory = "/home/localstorage";
 
-        if (currentLocation == "/home/localstorage/init")
-        {
-            
-            setShowIndex(1)
-        }else{
-            setShowIndex(0)
+        const thirdSlash = currentLocation.indexOf("/",directory.length)
+
+        const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
+        setSubDirectory(l)
+
+        switch(l){
+            case "/init":
+                setCurrentFiles([])
+                setShowIndex(1)
+                break;
+            case "/images":
+                setCurrentFiles(imagesFiles)
+                setShowIndex(2)
+                break;
+            case "/objects":
+                setCurrentFiles(objectsFiles)
+                setShowIndex(2)
+                break;
+            case "/terrain":
+                setCurrentFiles(terrainFiles)
+                setShowIndex(2)
+                break;
+            case "/textures":
+                setCurrentFiles(texturesFiles)
+                setShowIndex(2)
+                break;
+            case "/media":
+                setCurrentFiles(mediaFiles)
+                setShowIndex(2)
+                break;
+            default:
+                setCurrentFiles([])
+                setShowIndex(0);
+                break;
         }
     },[location])
-/*
-    useEffect(() => {
-        if (localDirectory.name != "") {
-            if (Array.isArray(files)) {
-                if (files.length > 0) {
 
-                    var tmp = []
-                    files.forEach(item => {
-                        const iSize = formatBytes(item.size)
-                        const iModified = formatedNow(new Date(item.lastModified));
-
-                        const iType = item.type;
-
-
-
-                        tmp.push(
-                            <div style={{ display: "flex" }} className={styles.result}>
-                                <div style={{ width: 180, color: "#777777", }}>{iType}</div>
-                                <div style={{ flex: 1, color: "white", }}>{item.name}</div>
-                                <div style={{ width: 225, color: "#777777", }}>{iModified}</div>
-                                <div style={{ width: 150, color: "#777777", }}>{iSize}</div>
-                            </div>
-                        )
-
-                    });
-                    setFileList(tmp)
-
-                } else {
-                    setFileList([])
-
-                }
-            } else {
-                setFileList([])
-            }
-
-        }
-    }, [files])*/
 
 
     async function pickAssetDirectory() {
@@ -209,25 +171,25 @@ export const LocalStoragePage = () => {
             setLocalDirectory();
         }
 
-        if(configFile.name != "")
+        if (configFile.handle != null)
         {
             del(configFile.name + user.userID)
             setConfigFile();
         }
         
-        if(terrainDirectory.name !=""){
+        if(terrainDirectory.handle !=null){
             setTerrainDirectory();
         }
-        if (imagesDirectory.name != "" ){
+        if (imagesDirectory.handle != null ){
             setImagesDirectory();
         }
-        if (objectsDirectory.name != "" ){
+        if (objectsDirectory.handle != null ){
             setObjectsDirectory();
         }
-        if (texturesDirectory.name != ""){
+        if (texturesDirectory.handle != null){
             setTexturesDirectory();
         }
-        if (mediaDirectory.name != ""){
+        if (mediaDirectory.handle != null){
             setMediaDirectory();
         }
 
@@ -340,7 +302,7 @@ export const LocalStoragePage = () => {
                                  
                                                             
                                 }}>
-                                    {localDirectory.name == "" ? "Select a local directory..." : localDirectory.name}
+                                    {localDirectory.name == "" ? "Select a local directory..." : "localStorage"}{subDirectory}
                                 </div>
                                 
                             </div>
@@ -357,42 +319,34 @@ export const LocalStoragePage = () => {
 
              
                
-                <div style={{flex:1}}>
-
-                        <div style={{ display: "flex" }}>
-                            <div style={{width:10}}></div>
-                            <div style={{ width: 180, color: "#777777", }}>Type</div>
-                            <div style={{ flex: 1, color: "#777777", }}>Name</div>
-                            <div style={{ width: 225, color: "#777777", }}>Last Modified</div>
-                            <div style={{ width: 150, color: "#777777", }}>Size</div>
-                            <div style={{width:20}}></div>
-                        </div>
-
-                        <div style={{
-                            marginBottom:'2px',
-                            marginLeft: "10px",
-                            height: "1px",
-                            width: "100%",
-                            backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
-                        }}>&nbsp;</div>
-                        <div style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            height: pageSize.height - 175,
-                            flex: 1,
-                            backgroundColor: "#33333322",
-                            overflowY: "scroll",
-                            color: "#cdd4da"
+                {configFile.handle == null &&
+                    <ImageDiv 
+                        width={"100%"}
+                        height={"100%"}
+                        netImage={{
+                            image: "/Images/icons/construct-outline.svg",
+                            filter:"invert(100%)",
+                            width:200,
+                            height:200 
                         }}
-                        >
-                  
+                    />            
+                }
+                {configFile.handle != null && showIndex == 2 &&
+                    
+                   <FileList tableStyle={{maxHeight:pageSize.height - 400}} files={currentFiles}/>
+                }
+                {showIndex == 0 && configFile.handle != null &&
+                    <div style={{flex:1, display:"block"}}>
+                        <FileList tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
+                                { to: "/home/localstorage/images", name: "images", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
+                                { to: "/home/localstorage/objects", name: "objects", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
 
-                            {fileList}
-
-                        </div>
-                </div>
-               
-
+                        ]} />
+                    </div>
+                }
             </div>
         </div>
         {showIndex == 1 &&
