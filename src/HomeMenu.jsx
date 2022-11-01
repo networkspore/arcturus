@@ -6,7 +6,7 @@ import { ErgoDappConnector } from "ergo-dapp-connector";
 import produce from "immer";
 import LoginPage from "./pages/LoginPage"
 import WelcomePage from "./pages/WelcomePage";
-import { SearchPage } from "./pages/SearchPage";
+import { NetworkPage } from "./pages/NetworkPage";
 import { HomePage } from "./pages/HomePage";
 import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 import { SystemMessagesMenu } from "./SystemMessagesMenu";
@@ -15,6 +15,7 @@ import { get } from "idb-keyval";
 
 import crc32 from 'crc/crc32';
 import { crc32FromArrayBuffer } from "./constants/utility";
+import { ImageDiv } from "./pages/components/UI/ImageDiv";
 
 
 const HomeMenu = ({ props}) => {
@@ -147,7 +148,7 @@ const HomeMenu = ({ props}) => {
             if (currentLocation == '/') {
 
                 if (connected) {
-                    navigate("/search")
+                    navigate("/network")
                 } else {
                     navigate('/home')
                 }
@@ -162,7 +163,7 @@ const HomeMenu = ({ props}) => {
 
 
                 switch (rootDirectory) {
-                    case "/search":
+                    case "/network":
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(3)
                       
@@ -173,7 +174,7 @@ const HomeMenu = ({ props}) => {
                         break;
                     default:
                      
-                        navigate('/search')
+                        navigate('/network')
                 
                 }
 
@@ -563,7 +564,7 @@ const HomeMenu = ({ props}) => {
                 <WelcomePage />
         }
         {showIndex == 3 &&
-                <SearchPage  />
+                <NetworkPage  />
         }
         {showIndex == 4 &&
                 <HomePage  logOut={logout}  />
@@ -579,7 +580,7 @@ const HomeMenu = ({ props}) => {
 
                             {connected  &&
                                 <>
-                                    <NavLink className={directory == "/search" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/search'}>
+                                    <NavLink className={directory == "/network" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/network'}>
                                         <img src="/Images/logo.png" width={50} height={50} />
                                     </NavLink>
 
@@ -601,14 +602,15 @@ const HomeMenu = ({ props}) => {
                             {connected &&
                             <NavLink className={directory == "/createRealm" ? styles.menuActive : styles.menu__item} about="Create Realm"
                                 to={'/createRealm'}>
-                                <img src="/Images/realm.png" width={60} height={60} />
+                                    <ImageDiv width={60} height={60} netImage={{ image: "/Images/realm.png", filter: "invert(100%)", width: 45, height: 50 }} />
+                               
                             </NavLink>
                             }
 
 
                             <NavLink className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
-                                <img src="/Images/icons/person.svg" style={{ filter: "invert(100%)" }} width={45} height={50} />
+                                <ImageDiv width={60} height={60} netImage={{ image: "/Images/icons/person.svg", filter: "invert(100%)", width:45, height:50}} />
                             </NavLink>
 
                         </div>

@@ -198,7 +198,7 @@ export const LocalStoragePage = () => {
     return (
         
        <>
-            <div id='AssetsPage' style={{
+            <div  style={{
                 position: "fixed",
                 backgroundColor: "rgba(0,3,4,.95)",
                 width: pageSize.width - 385,

@@ -12,11 +12,26 @@ const SelectBox = (props = {}, ref) => {
 
 
     let optionsStyle = {  zIndex:"9999",textAlign:"left", color: "#cdd4da" ,position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)", maxHeight:60,   overflowY: "scroll" };
-    const labelStyle = {margin:"0px 10px 10px 10px", display:"flex", alignItems:"center"}
+    const labelStyle = {display:"flex", alignItems:"center"}
     const textStyle = { backgroundColor: "rgba(0,0,0,0)", fontSize: "20px", fontFamily: "WebPapyrus", outline: 0, borderWidth: "0 0 2px", borderColor: "#ffe51c", color: "#D6BD00", textAlign: "left", width: "100%", cursor: "pointer" };
     const editable = "editable" in props ? props.editable : false;
     const defaultValue = "defaultValue" in props ? props.defaultValue : null;
-    
+    const boxStyle = { display: "flex", flexDirection: "column" };
+
+    if ("boxStyle" in props) {
+        let optionsArray = Object.getOwnPropertyNames(props.boxStyle);
+
+        optionsArray.forEach(element => {
+            boxStyle[element] = props.boxStyle[element];
+        });
+    }
+    if ("labelStyle" in props) {
+        let optionsArray = Object.getOwnPropertyNames(props.labelStyle);
+
+        optionsArray.forEach(element => {
+            labelStyle[element] = props.labelStyle[element];
+        });
+    }
     if ("optionsStyle" in props){
         let optionsArray = Object.getOwnPropertyNames(props.optionsStyle);
 
@@ -55,7 +70,7 @@ const SelectBox = (props = {}, ref) => {
     useEffect(() => {
 
         var offsets = textBoxRef.current.getBoundingClientRect();
-        optionsStyle.width = offsets.width;
+       if(!("width" in optionsStyle)) optionsStyle.width = offsets.width;
 
         var array = [];
         if (options != null) {
@@ -79,11 +94,11 @@ const SelectBox = (props = {}, ref) => {
                 )
             });
         }
-        const box = <div style={optionsStyle}>
+     
             {array}
-        </div>
+       
 
-        setList(box)
+        setList(array)
     
     }, [showList, options,selectedValue])
 
@@ -195,7 +210,7 @@ const SelectBox = (props = {}, ref) => {
             if(!editable) e.preventDefault();
         }} type="text" onClick={(e) => onClicked(e)} onBlur={(e) => onBlurring(e)}/>
             {showList &&
-           <div style={{display:  "flex", flexDirection:"column" }}>
+           <div style={boxStyle}>
             {list}
             </div>
             }

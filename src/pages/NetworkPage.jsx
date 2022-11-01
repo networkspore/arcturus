@@ -1,24 +1,27 @@
 
 import React, { useState, useEffect, useRef } from "react";
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useZust from "../hooks/useZust";
-import SearchResults from "./components/UI/SearchResults";
+
 import produce from "immer";
 
 import styles from './css/home.module.css';
 import { ImageDiv } from "./components/UI/ImageDiv";
 
+import { MessagePage } from "./MessagePage";
+import SelectBox from "./components/UI/SelectBox";
 
 
 
 
-export const SearchPage = () => {
+
+export const NetworkPage = () => {
 
     
 
   //  const setFillMainOverlay = useZust((state) => state.setFillMainOverlay);
-    
+    const navigate = useNavigate()
    
     const setPage = useZust((state) => state.setPage)
 
@@ -40,7 +43,7 @@ export const SearchPage = () => {
 
     const [showListIndex, setShowListIndex] = useState(1)
 
-
+    const [showIndex, setShowIndex] = useState(0)
 
     const socket = useZust((state) => state.socket);
     const user = useZust((state) => state.user)
@@ -134,133 +137,231 @@ export const SearchPage = () => {
         }
     }
 
-useEffect(()=>{
-    setPage(3)
-},[])
+    useEffect(()=>{
+        setPage(3)
+    },[])
 
-
-
-const onContact = (contact) => {
-    console.log(contact)
-} 
-
-const onConfirmingContact = (contact) => {
-    console.log(contact)
-}
-
-useEffect(()=>{
-    if(contacts.length > 0)
-    {
-        let tmpList = [];
-        let confirmList = [];
-        contacts.forEach(contact => {
-            const name = contact.userName;
-            const status = contact.status;
-            
-            if (status.statusName != "confirming")
-            {
-                tmpList.push(
-                    <div key={contact.userID} onClick={(e) => { onContact(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent:"left", alignItems:"center", fontFamily: "WebPapyrus" }} className={styles.result}>
-
-                        <div style={{  textShadow:"2px 2px 2px black"}}>{name}</div>
-                        <div style={{ flex:1 }} />
-                        
-                    </div>
-                )
-            }else{
-                confirmList.push(
-                    <div key={contact.userID} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize:"13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
-
-                        <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
-                    </div>
-                )
-            }
-        });
-        setConfirmingList(confirmList)
-        setContactsList(tmpList)
-    }
-},[contacts])
-
-const onRequestAcknowledge = (contact) =>{
-    if(acknowledgeContact == contact){
-        setAcknowledgeContact(null)
-    }else{
-         setAcknowledgeContact(contact)
-    }
-}
-
-const onAcknowledgeContact = (response) => {
-    const contactID = acknowledgeContact.userID;
-
-    socket.emit("acknowledgeContact", response, contactID, (result)=>{
-        if(result.success){
-            console.log(result)
-        }else{
-            console.log(result)
-            alert("Unable to acknowledge contact. Try again later.")
-        }
-        
-    })
-    setAcknowledgeContact(null)
-} 
+    const location = useLocation();
+    const [subDirectory, setSubDirectory] = useState("")
 
     useEffect(() => {
-        if (contactRequests.length > 0) {
+        const currentLocation = location.pathname;
+
+        const secondSlash = currentLocation.indexOf("/", 1)
+
+        const subLocation = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
+
+
+        const thirdSlash = subLocation.indexOf("/", 1)
+
+        const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
+
+        setSubDirectory(sD)
+
+        switch(sD)
+        {
+            case "/message":
+                setShowIndex(1)
+            break;
+        }
+
+    },[location])
+
+    const [recipients, setRecipients] = useState([])
+
+    const addMessageRecipient = (r) => setRecipients(produce((state) =>{
+      
+  
+        const length = state.length
+            if (0 == length )
+            {   
+               state.push(r)
+            }else{
+
+                let found = false;
+                for(let i =0 ; i < state.length ; i++){
+              
+                 
+                    if(state[i].userID == r.userID){
+                     
+                        found = true;
+                    }
+                }
+                if(found != true){
+              
+                    
+                        state.push(r)
+                    
+                }
+            }
+            
+    }))
+
+    const onMailContact = (contact) => {
+
+    } 
+
+    /*  addMessageRecipient(contact);
+        if(subDirectory != "/message")
+        {
+            navigate("/network/message")
+        }*/
+
+    const onConfirmingContact = (contact) => {
+        console.log(contact)
+    }
+
+    useEffect(()=>{
+        if(contacts.length > 0)
+        {
             let tmpList = [];
-
-            contactRequests.forEach(contact => {
+            let confirmList = [];
+            contacts.forEach(contact => {
                 const name = contact.userName;
-           
+                const status = contact.status;
+                
 
-                tmpList.push(
-                    <div key={contact.userID} onClick={(e) => { onRequestAcknowledge(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                switch(status.statusName)
+                {
+                    case "confirming":
+                        confirmList.push(
+                            <div key={contact.userID} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
 
-                        <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
-             
-                    </div>
-                )
+                                <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
+                            </div>
+                        )
+                        break;
+                    case "accepted":
+                        tmpList.push(
+                            <>
+                            <div key={contact.userID} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+
+                                    <SelectBox
+
+                                        labelStyle={{ cursor: "pointer", display: "flex", fontFamily: "webrockwell", paddingTop: "5px", paddingBottom: "5px" }}
+                                        boxStyle={{ paddingLeft: "10px", 
+                                            paddingTop: "10px", 
+                                            paddingBottom: "10px", 
+                                            width: 235, 
+                                            position: "fixed", 
+                                            left: 125, 
+                                            transform: "translate(0,15px)", 
+                                            backgroundColor: "#222222E0", 
+                                        }}
+                                        textStyle={{ transform: "translate(-6px,-20px)", position: "fixed", border: 0, color: "#00000000", height: 25, width: 260 }}
+                                        options={[
+                                            { label: "Profile Page", value: "profile", onClick: () => { } },
+                                            { label: "Send  Mail", value: "mail", onClick: () => { } }
+                                        ]}
+                                    />
+                               
+
+                                <div style={{ textShadow: "2px 2px 2px black" }}>
+                                   
+                                    {name}
+                                    
+                                </div>
+                                <div style={{ flex: 1 }} />
+                                
+                            </div>
+                                
+                                
+                                
+                            </>
+                        )
+                        break;
+                    
+                }
 
             });
-
-            setRequestedList(tmpList)
+            setConfirmingList(confirmList)
+            setContactsList(tmpList)
         }
-    }, [contactRequests])
+    },[contacts])
 
-useEffect(()=>{
-    if (showListIndex == 2 && peopleFound.length > 0){
-       let tmpArray = [];
+    const onRequestAcknowledge = (contact) =>{
+        if(acknowledgeContact == contact){
+            setAcknowledgeContact(null)
+        }else{
+            setAcknowledgeContact(contact)
+        }
+    }
 
-       for(let i = 0; i < peopleFound.length ; i++){
+    const onAcknowledgeContact = (response) => {
+        const contactID = acknowledgeContact.userID;
 
-            const name =  peopleFound[i].userName;
-
-            tmpArray.push(
-                <div onClick={(e)=>{
-                    setRequestContact(peopleFound[i])
-                }} style={{ fontSize: "13px", display: "flex", fontFamily:"WebPapyrus" }} className={styles.result}>
-                    
-                    <div style={{ flex: 1}}>{name}</div>
+        socket.emit("acknowledgeContact", response, contactID, (result)=>{
+            if(result.success){
+                console.log(result)
+            }else{
+                console.log(result)
+                alert("Unable to acknowledge contact. Try again later.")
+            }
             
-                </div>
-            )
-       }
-       
-        setFoundList(tmpArray)
-    }
-    if(peopleFound.length < 1)
-    {
-        if(foundList.length != 0)
-        {
-            setFoundList([])
-        }
-    }
-},[peopleFound])
+        })
+        setAcknowledgeContact(null)
+    } 
 
-  
-const endSearch = () => {
-    searchInputRef.current.value = "";
-    setShowListIndex(1);
-}
+        useEffect(() => {
+            if (contactRequests.length > 0) {
+                let tmpList = [];
+
+                contactRequests.forEach(contact => {
+                    const name = contact.userName;
+            
+
+                    tmpList.push(
+                        <div key={contact.userID} onClick={(e) => { onRequestAcknowledge(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+
+                            <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
+                
+                        </div>
+                    )
+
+                });
+
+                setRequestedList(tmpList)
+            }
+        }, [contactRequests])
+
+    const onContactClick = (e, contact) =>{
+        console.log(e)
+    }
+
+    useEffect(()=>{
+        if (showListIndex == 2 && peopleFound.length > 0){
+        let tmpArray = [];
+
+        for(let i = 0; i < peopleFound.length ; i++){
+
+                const name =  peopleFound[i].userName;
+
+                tmpArray.push(
+                    <div onClick={(e)=>{
+                        onContactClick(e, peopleFound[i])
+                    }} style={{ fontSize: "13px", display: "flex", fontFamily:"WebPapyrus" }} className={styles.result}>
+                        
+                        <div style={{ flex: 1}}>{name}</div>
+                    </div>
+                )
+        }
+        
+            setFoundList(tmpArray)
+        }
+        if(peopleFound.length < 1)
+        {
+            if(foundList.length != 0)
+            {
+                setFoundList([])
+            }
+        }
+    },[peopleFound])
+
+    
+    const endSearch = () => {
+        searchInputRef.current.value = "";
+        setShowListIndex(1);
+    }
 
 
  //"inset 10px #boxShadow:"inset -5px 0 0 #776a05DD, inset 0 -5px 0 #776a05DD, inset 0px 0 0 #776a05, inset 0 0px 0 #776a05"776a05"
@@ -428,7 +529,7 @@ const endSearch = () => {
                                             backgroundColor:  "#000304DD",
 
                                         }}></div>
-                                        <div style={{margin:"15px"}}>
+                                        <div style={{marginTop:"5px", marginLeft:15, marginRight:10}}>
                                         {contactsList}
                                         </div>
                                     </div>
@@ -628,6 +729,11 @@ const endSearch = () => {
             </div>
         </div>
          
+         {
+            showIndex == 1 &&
+            <MessagePage recipients={recipients}/>
+         }
+
             { requestContact != null &&
                 
                 < div style={{
@@ -894,6 +1000,7 @@ const endSearch = () => {
                 </div>
                 </div>
             }
+            
         </>
     );
     
