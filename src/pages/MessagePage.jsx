@@ -81,7 +81,7 @@ export const MessagePage = (props = {}) => {
     return (
         
        <>
-<div id='MediaAssetsPage' style={{ position: "fixed", backgroundColor: "rgba(0,3,4,.95)", width: pageSize.width - 385 -10, height: pageSize.height, left: 405, top: "0px" }}>
+<div id='MessagePage' style={{ position: "fixed", backgroundColor: "rgba(0,3,4,.95)", width: pageSize.width - 385 -10, height: pageSize.height, left: 405, top: "0px" }}>
     <div style={{
         padding: "10px",
         textAlign: "center",

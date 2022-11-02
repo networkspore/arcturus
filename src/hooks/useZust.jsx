@@ -9,6 +9,9 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   peerOnline:false,
+   setPeerOnline:(value = false) => set({peerOnline:value}),
+
    terrainDirectory: { name: "terrain", handle: null },
    setTerrainDirectory: (value = { name: "terrain", handle: null }) => set({ terrainDirectory: value }),
 

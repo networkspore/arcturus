@@ -1,58 +1,42 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef} from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 
 
 
 const SelectBox = (props = {}, ref) => {
-    if(props == null) props = {};
+    if (props == null) props = {};
     const onChanged = "onChanged" in props ? props.onChanged : null;
+
 
     const [showList, setShowList] = useState(false);
     const [list, setList] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(-1);
 
-
-    let optionsStyle = {  zIndex:"9999",textAlign:"left", color: "#cdd4da" ,position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)", maxHeight:60,   overflowY: "scroll" };
-    const labelStyle = {display:"flex", alignItems:"center"}
+    const id = "id" in props ? props.id : "";
+    let optionsStyle = { zIndex: "9999", textAlign: "left", color: "#cdd4da", position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)", maxHeight: 100, overflowY: "scroll" };
+    const labelStyle = { margin: "0px 10px 10px 10px", display: "flex", alignItems: "center" }
     const textStyle = { backgroundColor: "rgba(0,0,0,0)", fontSize: "20px", fontFamily: "WebPapyrus", outline: 0, borderWidth: "0 0 2px", borderColor: "#ffe51c", color: "#D6BD00", textAlign: "left", width: "100%", cursor: "pointer" };
     const editable = "editable" in props ? props.editable : false;
-    const defaultValue = "defaultValue" in props ? props.defaultValue : null;
-    const boxStyle = { display: "flex", flexDirection: "column" };
 
-    if ("boxStyle" in props) {
-        let optionsArray = Object.getOwnPropertyNames(props.boxStyle);
-
-        optionsArray.forEach(element => {
-            boxStyle[element] = props.boxStyle[element];
-        });
-    }
-    if ("labelStyle" in props) {
-        let optionsArray = Object.getOwnPropertyNames(props.labelStyle);
-
-        optionsArray.forEach(element => {
-            labelStyle[element] = props.labelStyle[element];
-        });
-    }
-    if ("optionsStyle" in props){
+    if ("optionsStyle" in props) {
         let optionsArray = Object.getOwnPropertyNames(props.optionsStyle);
 
         optionsArray.forEach(element => {
             optionsStyle[element] = props.optionsStyle[element];
         });
     }
-    
+
 
     if ("textStyle" in props) {
         let optionsArray = Object.getOwnPropertyNames(props.textStyle);
 
         optionsArray.forEach(element => {
-            
             textStyle[element] = props.textStyle[element];
         });
     }
 
-    if(editable){
+    if (editable) {
         textStyle.caretColor = textStyle.color;
-    }else{
+    } else {
         textStyle.caretColor = "transparent"
     }
     const [selectedValue, setSelectedValue] = useState(null);
@@ -60,27 +44,29 @@ const SelectBox = (props = {}, ref) => {
     const textBoxRef = useRef();
 
     useEffect(() => {
-      
-       if("options" in props){
-          setOptions( props.options);
-          if(defaultValue != null) setSelectedValue(defaultValue)
-       } 
+
+        if ("options" in props) {
+            setOptions(props.options);
+            if("defaultValue" in props)
+            {
+                setSelectedValue(props.defaultValue)
+            }
+        }
     }, [props])
 
     useEffect(() => {
 
         var offsets = textBoxRef.current.getBoundingClientRect();
-       if(!("width" in optionsStyle)) optionsStyle.width = offsets.width;
+        optionsStyle.width = offsets.width;
 
         var array = [];
         if (options != null) {
             options.forEach((element, i) => {
                 array.push(
-                    <div key={element.value} style={labelStyle} tabIndex={i} onClick={(e) => {
-                       
-                        
+                    <div style={labelStyle} tabIndex={i} id={"SelectBox:" + i} onClick={(e) => {
+                        const index = e.target.id.split(":")[1];
                         setSelectedValue(element.value)
-                      //  setSelectedIndex(Number(index))
+                        //  setSelectedIndex(Number(index))
                     }}>
                         {"imageUrl" in element &&
                             <div>
@@ -94,23 +80,22 @@ const SelectBox = (props = {}, ref) => {
                 )
             });
         }
-     
+        const box = <div style={optionsStyle}>
             {array}
-       
+        </div>
 
-        setList(array)
-    
-    }, [showList, options,selectedValue])
+        setList(box)
 
-    useEffect(()=>{
-    
+    }, [showList, options, selectedValue])
+
+    useEffect(() => {
+
         const value = selectedValue;
-        if(value == -1 )
-        {
+        if (value == -1) {
             setSelectedIndex(-1);
-        }else if(value == null || value == undefined){
-        }else{
-            if(options != null || options !== undefined){
+        } else if (value == null || value == undefined) {
+        } else {
+            if (options != null || options !== undefined) {
                 if ("length" in options) {
                     options.forEach((element, i) => {
                         if (element.value == value) setSelectedIndex(i);
@@ -124,44 +109,43 @@ const SelectBox = (props = {}, ref) => {
         ref,
         () => ({
             getLabel: options == null ? "" : selectedIndex == -1 ? "" : options[selectedIndex] === undefined ? "" : options[selectedIndex].label,
-            getValue: options == null? -1 : selectedIndex == -1 ? -1 : options[selectedIndex] === undefined ? -1 : options[selectedIndex].value,
+            getValue: options == null ? -1 : selectedIndex == -1 ? -1 : options[selectedIndex] === undefined ? -1 : options[selectedIndex].value,
             setValue: (value) => {
-                
-           
-               setSelectedValue(value)
+
+
+                setSelectedValue(value)
             },
             setSelectedIndex: (value) => {
-                if(value == -1 || value == null || value === undefined)
-                {
+                if (value == -1 || value == null || value === undefined) {
                     setSelectedValue(-1)
-                }else if(value > -1){ 
-                    if(options != null)
-                    {
-                        if (options.length > 0){
-                           setSelectedValue(options[Number(value)].value)
+                } else if (value > -1) {
+                    if (options != null) {
+                        if (options.length > 0) {
+                            setSelectedValue(options[Number(value)].value)
                         }
                     }
                 }
             },
             selectedIndex: selectedIndex,
             selectedOption: options == null ? null : selectedIndex == -1 ? null : options[selectedIndex] === undefined ? null : options[selectedIndex],
-            setOptions: (value) => { 
-               
-                setOptions(value)},
-            getOptions: options, 
-        }),[selectedIndex,options]);
+            setOptions: (value) => {
 
-  
+                setOptions(value)
+            },
+            getOptions: options,
+        }), [selectedIndex, options]);
+
+
     const lastIndex = useRef({ index: -1 })
 
-    useEffect(()=>{
-       
-        if(selectedIndex > -1)
-        {
-            
-            if (options[selectedIndex] === undefined){ textBoxRef.current.value = ""}else{
-            textBoxRef.current.value = options[selectedIndex].label;}
-        }else{
+    useEffect(() => {
+
+        if (selectedIndex > -1) {
+
+            if (options[selectedIndex] === undefined) { textBoxRef.current.value = "" } else {
+                textBoxRef.current.value = options[selectedIndex].label;
+            }
+        } else {
             textBoxRef.current.value = "";
         }
         if (onChanged != null) {
@@ -171,51 +155,48 @@ const SelectBox = (props = {}, ref) => {
             }
         }
 
-    },[selectedIndex,options,selectedValue])
+    }, [selectedIndex, options, selectedValue])
 
-    
+
 
 
 
     const onClicked = (e) => {
-       
+
         e.prevent = false;
-        if(props.onClick){
+        if (props.onClick) {
             props.onClick(e);
         }
-        if(!e.prevent){
+        if (!e.prevent) {
             setShowList(!showList)
         }
     }
 
     const onBlurring = (e) => {
-       // alert(Object.getOwnPropertyNames(e))
-       if(e.relatedTarget == null ){
-           setShowList(false)
-       }else if(e.relatedTarget.id.split(":")[0] == "SelectBox")
-       {
-           const index = e.relatedTarget.id.split(":")[1];
-           setSelectedIndex(Number(index))
-           setShowList(false)
-       }else{
-           setShowList(false)
-       }
-    } 
+        // alert(Object.getOwnPropertyNames(e))
+        if (e.relatedTarget == null) {
+            setShowList(false)
+        } else if (e.relatedTarget.id.split(":")[0] == "SelectBox") {
+            const index = e.relatedTarget.id.split(":")[1];
+            setSelectedIndex(Number(index))
+            setShowList(false)
+        } else {
+            setShowList(false)
+        }
+    }
     return (
-       
-        <div style={{display:"flex", flexDirection:"column"}}>
-        <input onChange={(e)=>{
-              
-        }}  placeholder={props.placeholder} style={textStyle} ref={textBoxRef}  onKeyDown={(e)=>{
-            if(!editable) e.preventDefault();
-        }} type="text" onClick={(e) => onClicked(e)} onBlur={(e) => onBlurring(e)}/>
-            {showList &&
-           <div style={boxStyle}>
-            {list}
+
+        <div style={{ display: "block" }}>
+            <input onChange={(e) => {
+
+            }} placeholder={props.placeholder} style={textStyle} ref={textBoxRef} onKeyDown={(e) => {
+                if (!editable) e.preventDefault();
+            }} type="text" onClick={(e) => onClicked(e)} onBlur={(e) => onBlurring(e)} />
+            <div style={{ display: showList ? "block" : "none" }}>
+                {list}
             </div>
-            }
-            </div>
-       
+        </div>
+
     )
 }
 

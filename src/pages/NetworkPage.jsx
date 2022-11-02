@@ -10,7 +10,8 @@ import styles from './css/home.module.css';
 import { ImageDiv } from "./components/UI/ImageDiv";
 
 import { MessagePage } from "./MessagePage";
-import SelectBox from "./components/UI/SelectBox";
+
+import { OptionsMenu } from "./components/UI/OptionsMenu";
 
 
 
@@ -66,6 +67,7 @@ export const NetworkPage = () => {
         }))
 
     const messageRef = useRef();
+    const [userMenu, setUserMenu] = useState({userID:-1})
 
     const onSearch = (e = new Event("search")) => {
         const {value} = e.target;
@@ -125,9 +127,9 @@ export const NetworkPage = () => {
                     addContact(contact)
                     removePerson(contact.userID)
                     setRequestContact(null)
-                    alert(msg)
+                    
                 }else{
-                    alert(msg)
+              
                     setRequestContact(null)
                 }
                 messageRef.current.value = "";
@@ -210,6 +212,18 @@ export const NetworkPage = () => {
     const onConfirmingContact = (contact) => {
         console.log(contact)
     }
+    const onContactClick = (contact) => {
+        const prevUserID = userMenu.userID;
+     
+
+        if (prevUserID == contact.userID) {
+            setUserMenu({userID:-1})
+        } else {
+            setUserMenu(contact)
+        }
+
+
+    }
 
     useEffect(()=>{
         if(contacts.length > 0)
@@ -219,13 +233,13 @@ export const NetworkPage = () => {
             contacts.forEach(contact => {
                 const name = contact.userName;
                 const status = contact.status;
-                
-
+                const userID = contact.userID
+                const c = contact;
                 switch(status.statusName)
                 {
                     case "confirming":
                         confirmList.push(
-                            <div key={contact.userID} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                            <div key={userID} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
 
                                 <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
                             </div>
@@ -234,40 +248,25 @@ export const NetworkPage = () => {
                     case "accepted":
                         tmpList.push(
                             <>
-                            <div key={contact.userID} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
-
-                                    <SelectBox
-
-                                        labelStyle={{ cursor: "pointer", display: "flex", fontFamily: "webrockwell", paddingTop: "5px", paddingBottom: "5px" }}
-                                        boxStyle={{ paddingLeft: "10px", 
-                                            paddingTop: "10px", 
-                                            paddingBottom: "10px", 
-                                            width: 235, 
-                                            position: "fixed", 
-                                            left: 125, 
-                                            transform: "translate(0,15px)", 
-                                            backgroundColor: "#222222E0", 
-                                        }}
-                                        textStyle={{ transform: "translate(-6px,-20px)", position: "fixed", border: 0, color: "#00000000", height: 25, width: 260 }}
-                                        options={[
-                                            { label: "Profile Page", value: "profile", onClick: () => { } },
-                                            { label: "Send  Mail", value: "mail", onClick: () => { } }
-                                        ]}
-                                    />
-                               
-
+                            <div key={userID} 
+                            style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} 
+                            className={styles.result} onClick={(e) =>{
+                                e.stopPropagation()
+                                onContactClick(c)
+                            }}>
+                                
                                 <div style={{ textShadow: "2px 2px 2px black" }}>
                                    
                                     {name}
                                     
                                 </div>
                                 <div style={{ flex: 1 }} />
-                                
+
                             </div>
-                                
-                                
-                                
-                            </>
+                                {userMenu.userID == c.userID &&
+                                    <OptionsMenu user={userMenu}  />
+                                }
+                           </>
                         )
                         break;
                     
@@ -277,7 +276,7 @@ export const NetworkPage = () => {
             setConfirmingList(confirmList)
             setContactsList(tmpList)
         }
-    },[contacts])
+    },[contacts, userMenu])
 
     const onRequestAcknowledge = (contact) =>{
         if(acknowledgeContact == contact){
@@ -311,7 +310,7 @@ export const NetworkPage = () => {
             
 
                     tmpList.push(
-                        <div key={contact.userID} onClick={(e) => { onRequestAcknowledge(contact) }} style={{ fontSize: "13px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                        <div key={contact.userID} onClick={(e) => { onRequestAcknowledge(contact) }} style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
 
                             <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
                 
@@ -324,22 +323,19 @@ export const NetworkPage = () => {
             }
         }, [contactRequests])
 
-    const onContactClick = (e, contact) =>{
-        console.log(e)
-    }
+
+
 
     useEffect(()=>{
         if (showListIndex == 2 && peopleFound.length > 0){
         let tmpArray = [];
 
         for(let i = 0; i < peopleFound.length ; i++){
-
+            const userID = peopleFound[i].userID;
                 const name =  peopleFound[i].userName;
 
                 tmpArray.push(
-                    <div onClick={(e)=>{
-                        onContactClick(e, peopleFound[i])
-                    }} style={{ fontSize: "13px", display: "flex", fontFamily:"WebPapyrus" }} className={styles.result}>
+                    <div key={userID} style={{ fontSize: "14px", display: "flex", fontFamily:"WebPapyrus" }} className={styles.result}>
                         
                         <div style={{ flex: 1}}>{name}</div>
                     </div>
@@ -369,7 +365,9 @@ export const NetworkPage = () => {
     return (
         <>
 
-            <div style={{
+            <div onClick={(e)=>{
+                setUserMenu({ userID: -1 })
+            }} style={{
                 width: 300, height: pageSize.height, 
                 backgroundImage:"linear-gradient(to bottom, #00000088,#10131488)", 
                 position: "fixed", 
@@ -1000,6 +998,7 @@ export const NetworkPage = () => {
                 </div>
                 </div>
             }
+           
             
         </>
     );

@@ -84,7 +84,7 @@ const FileList = (props = {}, ref) => {
                 const iTo = "to" in file ? file.to : null
                 console.log(iImage)
                 array.push(
-                    <div key={file.crc} style={{width:"100%", display:"flex", paddingLeft:0}} className={styles.result} tabIndex={i} onClick={(e) => {
+                    <div key={i} style={{width:"100%", display:"flex", paddingLeft:0}} className={styles.result} tabIndex={i} onClick={(e) => {
 
                         if(iTo == null){
                             setSelectedCrc(file.crc)

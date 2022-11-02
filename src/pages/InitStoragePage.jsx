@@ -14,6 +14,7 @@ import { set } from "idb-keyval";
 
 export const InitStoragePage = () => {
     
+    const P2PRef = useRef();
     const codeRef = useRef();
     const sharingPermissionsRef = useRef();
 
@@ -142,6 +143,7 @@ export const InitStoragePage = () => {
                     const config = {
                         engineKey: codeRef.current.value,
                         defaultFileSharing: sharingPermissionsRef.current.getValue,
+                        peer2peer: P2PRef.current.getValue,
                         folders:{
                             images: { name: !imagesDefault ? customFolders.images : imagesDirectory.name, 
                                 default: imagesDefault, 
@@ -403,6 +405,36 @@ export const InitStoragePage = () => {
                                         <div onClick={onGenerateClick} style={{ paddingTop: 5, height: 10, fontSize: 14, width: 100 }} className={styles.OKButton} > Generate </div>
                                     </div>
 
+                                        <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                            <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                                Peer to Peer Network:
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+
+                                                <SelectBox
+                                                    ref={P2PRef}
+                                                    textStyle={{
+                                                        color: "#ffffff",
+                                                        fontFamily: "Webrockwell",
+                                                        border: 0,
+                                                        fontSize: 14,
+                                                    }}
+                                                    optionsStyle={{
+
+                                                        backgroundColor: "#333333C0",
+                                                        paddingTop: 5,
+                                                        fontSize: 14,
+                                                        fontFamily: "webrockwell"
+                                                    }}
+
+                                                    defaultValue={true} placeholder="" options={[
+                                                        { value: true, label: "Enabled" },
+                                                        { value: false, label: "Disabled" }
+                                                    ]} />
+                                            </div>
+                                            <div style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
+                                        </div>
+
                                     <div style={{ display: "flex", paddingTop: 15, width:"100%"}} >
                                         <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14,  display: "flex", color: "#ffffff80" }}>
                                             Default File Sharing:
@@ -425,9 +457,9 @@ export const InitStoragePage = () => {
                                                     fontFamily:"webrockwell"
                                                 }}
                                             
-                                                defaultValue={"NULL:NULL"}   placeholder="Class" options={[
+                                                defaultValue={"ALL:CONTACTS"}   placeholder="Class" options={[
                                                     { value: "ALL:ALL", label: "Everyone" },
-                                                    { value: "NULL:NULL", label: "(disabled)" } 
+                                                    { value: "ALL:CONTACTS", label: "Contacts" } 
                                             ]} />
                                          </div>
                                         <div  style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>

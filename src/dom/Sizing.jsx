@@ -66,7 +66,7 @@ const Sizing = () => {
     
     useEffect(() => {
          //   document.onfullscreenchange = (doc,event) => { alert("test")}
-            window.addEventListener("scroll", onScroll)
+           // window.addEventListener("scroll", onScroll)
             window.addEventListener("resize", onSizeChange);
             setOnce = false;
             onSizeChange();

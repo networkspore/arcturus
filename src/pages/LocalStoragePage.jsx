@@ -5,7 +5,7 @@ import styles from './css/home.module.css';
 
 import FileList from './components/UI/FileList';
 
-import { set } from 'idb-keyval';
+import { set, del } from 'idb-keyval';
 import produce from 'immer';
 import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
@@ -13,6 +13,7 @@ import { InitStoragePage } from './InitStoragePage';
 import { ImageDiv } from './components/UI/ImageDiv';
 
 export const LocalStoragePage = () => {
+
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const objectsDirectory = useZust((state) => state.objectsDirectory);
@@ -161,38 +162,32 @@ export const LocalStoragePage = () => {
     }
 
 
-
+    
 
 
     const turnOffLocalStorage = () =>{
+       
         
-        if(localDirectory.name != ""){
-            del("localDirectory" + user.userID)
-            setLocalDirectory();
-        }
-
-        if (configFile.handle != null)
-        {
-            del(configFile.name + user.userID)
-            setConfigFile();
-        }
         
-        if(terrainDirectory.handle !=null){
-            setTerrainDirectory();
-        }
-        if (imagesDirectory.handle != null ){
-            setImagesDirectory();
-        }
-        if (objectsDirectory.handle != null ){
-            setObjectsDirectory();
-        }
-        if (texturesDirectory.handle != null){
-            setTexturesDirectory();
-        }
-        if (mediaDirectory.handle != null){
-            setMediaDirectory();
-        }
+        del("localDirectory" + user.userID)
+        setLocalDirectory({name:"", handel:null});
 
+        del(configFile.name + user.userID)
+       
+        setConfigFile({ value: null, name: "", handle: null });
+
+        setTerrainDirectory();
+
+        setImagesDirectory();
+
+        setObjectsDirectory();
+
+        setTexturesDirectory();
+
+
+        setMediaDirectory();
+
+        
     }
 
     return (

@@ -12,16 +12,18 @@ import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 import { SystemMessagesMenu } from "./SystemMessagesMenu";
 import { get } from "idb-keyval";
 
+import Peer from 'peerjs'
 
 import crc32 from 'crc/crc32';
 import { crc32FromArrayBuffer } from "./constants/utility";
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
+import { PeerNetworkPage } from "./pages/PeerNetworkPage";
 
 
 const HomeMenu = ({ props}) => {
    
     const location = useLocation()
-
+    const peerOnline = useZust((state) => state.peerOnline)
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const objectsDirectory = useZust((state) => state.objectsDirectory);
@@ -52,6 +54,9 @@ const HomeMenu = ({ props}) => {
 
     const user = useZust((state) => state.user);
     const socket = useZust((state) => state.socket);
+
+
+
 
     const addSystemMessage = (msg) => useZust.setState(produce((state) => {
         let found = false;
@@ -527,6 +532,7 @@ const HomeMenu = ({ props}) => {
             if("engineKey" in config)
             {
                 setFolderDefaults(config)
+             
             }
         }
 
@@ -628,8 +634,13 @@ const HomeMenu = ({ props}) => {
                         <div onClick={(e) => {
                             toNav("/")
                         }}>
-                            <img src={connected ? "/Images/logo.png" : "/Images/logout.png"} width={30} height={30} />
+                            <ImageDiv width={30} height={30} netImage={{ image: connected ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
+                                filter:peerOnline ? " drop-shadow(0px 0px 2px orange) drop-shadow(0px 0px 1px yellow)" : "" }} />
                         </div>
+                        
+                        <PeerNetworkPage />
+                       
+                      
                         <div onClick={onProfileClick} style={{
                             fontFamily: "WebPapyrus",
                             color: "#c7cfda",
@@ -643,7 +654,7 @@ const HomeMenu = ({ props}) => {
                 </div>
                     
                     <SystemMessagesMenu />
-                
+                    
             </div>
         </>
     )
