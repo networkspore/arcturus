@@ -11,6 +11,7 @@ import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
 
 import { ImageDiv } from './components/UI/ImageDiv';
+import { getPermission } from '../constants/utility';
 
 export const LocalStoragePage = () => {
 
@@ -72,43 +73,50 @@ export const LocalStoragePage = () => {
     
 
     useEffect(()=>{
-        const currentLocation = location.pathname;
-        const directory = "/home/localstorage";
+        if(localDirectory.handle != null)
+        {
+            getPermission(localDirectory.handle, (verified)=>{
 
-        const thirdSlash = currentLocation.indexOf("/",directory.length)
+                
+                const currentLocation = location.pathname;
+                const directory = "/home/localstorage";
 
-        const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
-        setSubDirectory(l)
+                const thirdSlash = currentLocation.indexOf("/",directory.length)
 
-        switch(l){
-            case "/init":
-                setCurrentFiles([])
-                setShowIndex(1)
-                break;
-            case "/images":
-                setCurrentFiles(imagesFiles)
-                setShowIndex(2)
-                break;
-            case "/objects":
-                setCurrentFiles(objectsFiles)
-                setShowIndex(2)
-                break;
-            case "/terrain":
-                setCurrentFiles(terrainFiles)
-                setShowIndex(2)
-                break;
-            case "/textures":
-                setCurrentFiles(texturesFiles)
-                setShowIndex(2)
-                break;
-            case "/media":
-                setCurrentFiles(mediaFiles)
-                setShowIndex(2)
-                break;
-            default:
-                setCurrentFiles([])
-                setShowIndex(0);
-                break;
+                const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
+                setSubDirectory(l)
+
+                switch(l){
+                    case "/init":
+                        setCurrentFiles([])
+                        setShowIndex(1)
+                        break;
+                    case "/images":
+                        setCurrentFiles(imagesFiles)
+                        setShowIndex(2)
+                        break;
+                    case "/objects":
+                        setCurrentFiles(objectsFiles)
+                        setShowIndex(2)
+                        break;
+                    case "/terrain":
+                        setCurrentFiles(terrainFiles)
+                        setShowIndex(2)
+                        break;
+                    case "/textures":
+                        setCurrentFiles(texturesFiles)
+                        setShowIndex(2)
+                        break;
+                    case "/media":
+                        setCurrentFiles(mediaFiles)
+                        setShowIndex(2)
+                        break;
+                    default:
+                        setCurrentFiles([])
+                        setShowIndex(0);
+                        break;
+                }
+            })
         }
     },[location])
 
@@ -287,6 +295,7 @@ export const LocalStoragePage = () => {
                             }
                             <div style={{flex:1}}>
                                 <div style={{
+                                    paddingTop: "2px",
                                     paddingLeft:"2px",
                                     width: "100%",
                                     height: "18px",
@@ -314,7 +323,7 @@ export const LocalStoragePage = () => {
 
              
                
-                {configFile.handle == null &&
+                    {configFile.handle == null && showIndex != 1  &&
                     <div style={{display:"flex",width:"100%", height:"100%", flexDirection:"column", alignItems:"center",justifyContent:"center", color:"white",}}>
                             <ImageDiv onClick={(e) => { pickAssetDirectory() }}
                             style={{cursor:"pointer"}}
@@ -337,20 +346,23 @@ export const LocalStoragePage = () => {
                 {showIndex == 0 && configFile.handle != null &&
                     <div style={{flex:1, display:"block"}}>
                         <FileList tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
-                                { to: "/home/localstorage/images", name: "images", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
-                                { to: "/home/localstorage/objects", name: "objects", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/images", name: "images", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
+                                { to: "/home/localstorage/objects", name: "objects", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/init", name: configFile.name, type: "Config", crc: configFile.crc, lastModified: configFile.lastModified, size: configFile.size, netImage: { backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)"  }},
                         ]} />
                     </div>
                 }
+                {showIndex == 1 &&
+                    <InitStoragePage close={()=>{
+                        setShowIndex(0)
+                    }} />
+                }
             </div>
         </div>
-        {showIndex == 1 &&
-            <InitStoragePage />
-        }
+       
 
 
 

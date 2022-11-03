@@ -1,3 +1,11 @@
+import  SHA512  from "crypto-js/sha512";
+import MD5 from "crypto-js/md5";
+import WordArray from "crypto-js/lib-typedarrays";
+import Utf8 from "crypto-js/enc-utf8";
+
+import { randInt } from "three/src/math/MathUtils";
+
+
 export const crc32FromArrayBuffer = (ab, callback) => {
 
     var table = new Uint32Array([
@@ -59,4 +67,104 @@ export const crc32FromArrayBuffer = (ab, callback) => {
 
     callback( ((crc ^ (-1)) >>> 0).toString(16))
 
+}
+
+export async function readFileJson(handle, callback) {
+    try {
+        const file = await handle.getFile();
+
+        const txt = await file.text()
+
+        const value = JSON.parse(txt)
+
+        callback({ success: true, value: value })
+    } catch (error) {
+        console.error(error)
+        callback({ success: false })
+    }
+
+}
+
+export function formatedNow(now = new Date(), small = false) {
+
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth()
+    const day = now.getUTCDate();
+    const hours = now.getUTCHours();
+    const minutes = now.getUTCMinutes();
+    const seconds = now.getUTCSeconds();
+    const miliseconds = now.getUTCMilliseconds();
+
+    const stringYear = year.toString();
+    const stringMonth = month < 10 ? "0" + month : String(month);
+    const stringDay = day < 10 ? "0" + day : String(day);
+    const stringHours = hours < 10 ? "0" + hours : String(hours);
+    const stringMinutes = minutes < 10 ? "0" + minutes : String(minutes);
+    const stringSeconds = seconds < 10 ? "0" + seconds : String(seconds);
+    const stringMiliseconds = miliseconds < 100 ? (miliseconds < 10 ? "00" + miliseconds : "0" + miliseconds) : String(miliseconds);
+
+
+    const stringNow = stringYear + "-" + stringMonth + "-" + stringDay + " " + stringHours + ":" + stringMinutes;
+
+
+
+    return small ? stringNow : stringNow + ":" + stringSeconds + ":" + stringMiliseconds;
+}
+
+export async function getFileInfo(entry) {
+
+    return new Promise(resolve => {
+        entry.getFile().then((file) => {
+            file.arrayBuffer().then((arrayBuffer) => {
+                
+                crc32FromArrayBuffer(arrayBuffer, (crc) => {
+                    resolve({ name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                })
+            })
+        })
+    });
+
+}
+
+export const generateCode = (words) =>{
+     return new Promise(resolve =>{
+        
+        let word = WordArray.random(randInt(20, 30)).toString()
+
+        console.log(word)
+        if(Array.isArray(words))
+        {
+            words.forEach(element => {
+                word += element;
+            });
+        }else{
+            word += words.toString()
+        }
+
+        
+        const salt = SHA512(word).toString().slice(randInt(0, 10), randInt(15, 30));
+
+        const time = formatedNow(new Date(), true).slice(randInt(0, 10))
+        const string = time + salt;
+        const md5 = MD5(string)
+        resolve(md5.toString())
+    })
+}
+
+export const getPermission = (handle, callback) => {
+    const opts = { mode: 'readwrite' };
+
+    handle.queryPermission(opts).then((verified) => {
+        if (verified === 'granted') {
+            callback(true);
+        } else {
+            handle.requestPermission(opts).then((verified) => {
+                if (verified === 'granted') {
+                    callback(true)
+                } else {
+                    callback(false)
+                }
+            })
+        }
+    })
 }

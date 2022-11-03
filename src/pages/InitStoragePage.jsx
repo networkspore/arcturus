@@ -6,21 +6,15 @@ import useZust from "../hooks/useZust";
 
 import styles from './css/home.module.css';
 import { ImageDiv } from "./components/UI/ImageDiv";
-
-import { crc32FromArrayBuffer } from "../constants/utility";
-
-
-import MD5 from "crypto-js/md5";
-
+import produce from "immer";
 import SelectBox from "./components/UI/SelectBox"
 import { set } from "idb-keyval";
-import { randInt } from "three/src/math/MathUtils";
-import  SHA512  from "crypto-js/sha512";
+import { generateCode, getFileInfo } from "../constants/utility";
 
-export const InitStoragePage = () => {
+export const InitStoragePage = (props = {}) => {
     
     const P2PRef = useRef();
-    
+    const ergoRef = useRef();
     const sharingPermissionsRef = useRef();
 
     const localDirectory = useZust((state) => state.localDirectory)
@@ -70,48 +64,28 @@ export const InitStoragePage = () => {
     }, [])
 
 
- 
+    const removeSystemMessage = (id) => useZust.setState(produce((state) => {
+        const length = state.systemMessages.length;
+        if (length > 0) {
+            if (length == 1) {
+                if (state.systemMessages[0].id == id) {
 
-    function formatedNow(now = new Date(), small = false) {
+                    state.systemMessages.pop()
 
-        const year = now.getUTCFullYear();
-        const month = now.getUTCMonth()
-        const day = now.getUTCDate();
-        const hours = now.getUTCHours();
-        const minutes = now.getUTCMinutes();
-        const seconds = now.getUTCSeconds();
-        const miliseconds = now.getUTCMilliseconds();
+                }
+            } else {
+                for (let i = 0; i < state.systemMessages.length; i++) {
+                    if (state.systemMessages[i].id == id) {
+                        state.systemMessages.splice(i, 1)
+                        break;
+                    }
+                }
+            }
+        }
 
-        const stringYear = year.toString();
-        const stringMonth = month < 10 ? "0" + month : String(month);
-        const stringDay = day < 10 ? "0" + day : String(day);
-        const stringHours = hours < 10 ? "0" + hours : String(hours);
-        const stringMinutes = minutes < 10 ? "0" + minutes : String(minutes);
-        const stringSeconds = seconds < 10 ? "0" + seconds : String(seconds);
-        const stringMiliseconds = miliseconds < 100 ? (miliseconds < 10 ? "00" + miliseconds : "0" + miliseconds) : String(miliseconds);
+    }))
 
-
-        const stringNow = stringYear + "-" + stringMonth + "-" + stringDay + " " + stringHours + ":" + stringMinutes;
-
-
-
-        return small ? stringNow : stringNow + ":" + stringSeconds + ":" + stringMiliseconds;
-    }
-
-    async function getFileInfo(entry) {
-
-        return new Promise(resolve => {
-            entry.getFile().then((file) => {
-                file.arrayBuffer().then((arrayBuffer) => {
-
-                    crc32FromArrayBuffer(arrayBuffer, (crc) => {
-                        resolve({ name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                    })
-                })
-            })
-        });
-
-    }
+   
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -161,7 +135,6 @@ export const InitStoragePage = () => {
                    
                     const config = {
                         engineKey: engineKey,
-                        defaultFileSharing: sharingPermissionsRef.current.getValue,
                         peer2peer: P2PRef.current.getValue,
                         folders:{
                             images: { name: !imagesDefault ? customFolders.images : imagesDirectory.name, 
@@ -191,6 +164,7 @@ export const InitStoragePage = () => {
                     configFileStream.write(JSON.stringify(config)).then((value)=>{
                         configFileStream.close().then((closed)=>{
                             localDirectory.handle.getFileHandle("arcturus.config.json").then((newHandle) => {
+                                
                                 getFileInfo(newHandle).then((fileInfo) => {
 
                                     const configFile = fileInfo;
@@ -218,11 +192,14 @@ export const InitStoragePage = () => {
                                         set("media" + engineKey, customFolders.media)
                                     }
 
-                                    socket.emit("createUserStorage", fileInfo.crc, configFile.value.engineKey, configFile.value.peer2peer, (created) => {
+                                    socket.emit("createUserStorage", fileInfo.crc, configFile.value.engineKey, (created) => {
                                         if (created.success) {
                                             setConfigFile(configFile)
 
                                             callback(true)
+                                           
+                                        }else{
+                                            callback(false)
                                         }
                                     })
 
@@ -259,24 +236,19 @@ export const InitStoragePage = () => {
         if(valid)
         {
             
-            switch(showIndex)
-            {
-                case 0:
-                    setValid(false)
-                    setupConfigFile(result=>{
-                        setValid(true);
-                        if(result)
-                        {
-                            setShowIndex(prev => prev += 1);
-                        }
-                    })
-                    
-
-                    break;
-                case 1:
-                    break;
-            }
-                
+    
+            setValid(false)
+            setupConfigFile(result=>{
+                setValid(true);
+                if(result)
+                {
+                    removeSystemMessage(0)
+                    removeSystemMessage(1)
+                    removeSystemMessage(2)
+                    navigate("/home/localstorage")
+                }
+            })
+    
        }
 
 
@@ -301,17 +273,12 @@ export const InitStoragePage = () => {
         const userName = user.userName;
         const userID = user.userID;
         const userEmail = user.userEmail;
+      
+        generateCode([userName, userID, userEmail]).then((code)=>{
+            setEngineKey("ARC" + code)
+        })
 
-        const salt = MD5(userName + userID + userEmail).toString().slice(randInt(4,7),randInt(8,20));
-
-        const time = formatedNow().slice(randInt(0, 5), randInt(6, 20))
-        const string = time + salt;
-       
-        const sha = MD5(string)
-   
-        const code = "ARC" + sha;
-
-        setEngineKey(code)
+        
     }
 
     const onGenerateClick =(e) =>{
@@ -326,93 +293,58 @@ export const InitStoragePage = () => {
     const [customFolders, setCustomFolders] = useState({images:null, objects:null,terrain:null,texture:null,media:null})
 
     useEffect(()=>{
-        switch(showIndex)
-        {
-            case 0:
-                
-                
-                generateEngineKey() 
+      
+            generateEngineKey()
 
-                break;
-        }
-    }, [showIndex])
+    }, [])
 
     return (
-        <>
-            
-            <div id='Profile' style={{
-                position: "fixed",
-                backgroundColor: "rgba(0,3,4,.95)",
-                width: 800,
-                transform:"translate(-50%,-50%)",
-                left: (pageSize.width / 2),
-                top: (pageSize.height / 2),
-                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+           
+        <div  style={{
+            position: "fixed",
+            backgroundColor: "rgba(0,3,4,.95)",
+         
+            left: (pageSize.width / 2),
+            top: (pageSize.height / 2),
+            transform:"translate(-50%,-50%)",
+            boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+        }}>
+            <div style={{
+                paddingBottom: 10,
+                textAlign: "center",
+                width: "100%",
+                paddingTop: "10px",
+                fontFamily: "WebRockwell",
+                fontSize: "18px",
+                fontWeight: "bolder",
+                color: "#cdd4da",
+                textShadow: "2px 2px 2px #101314",
+                backgroundImage: "linear-gradient(#131514, #000304EE )",
+
+
             }}>
-                <div style={{
-                    paddingBottom: 10,
-                    textAlign: "center",
-                    width: "100%",
-                    paddingTop: "10px",
-                    fontFamily: "WebRockwell",
-                    fontSize: "18px",
-                    fontWeight: "bolder",
-                    color: "#cdd4da",
-                    textShadow: "2px 2px 2px #101314",
-                    backgroundImage: "linear-gradient(#131514, #000304EE )",
+                Setup
+            </div>
 
-
-                }}>
-                   Setup
-                </div>
-                <div style={{ paddingLeft: "15px", display: "flex", }}>
-
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 190, padding: "10px" }}>
-                    
-                        <div onClick={(e) => { setShowIndex(0) }} style={{ 
-                            paddingTop: 10, paddingBottom: 8, paddingLeft: 10, 
-                            width: "100%", 
-                            color: showIndex == 0 ? "#ffffff90" : "#88888860" , 
-                            backgroundImage: (showIndex == 0) ? "linear-gradient(to bottom, #44444450,#44444480,#44444450)" : "linear-gradient(to bottom, #22222250,#44444420)", 
-                            fontFamily: "WebRockwell" }}>
-
-                        1. Start Engine
-
-                    </div>
-
-                        <div 
-                        style={{ 
-                            paddingTop: 10, paddingBottom: 10, paddingLeft: 10, 
-                            width: "100%", 
-                            color: showIndex == 1 ? "#ffffff90" : "#88888860" , 
-                            backgroundImage: (showIndex == 1) ? "linear-gradient(to bottom, #44444450,#44444480,#44444450)" : "linear-gradient(to bottom, #22222250,#44444420)", 
-                            fontFamily:"Webrockwell"}}>
-
-                        2. Profile Information
-
-                    </div>
-
-
-                    </div>
-                    <div style={{marginLeft:10, width: 2, minHeight:200, height:"100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
-                    <div style={{ display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", width: 530 }}>
-
-                        <div style={{ width: "100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
-                            {showIndex == 0 &&
+            <div style={{  width: "100%", height:"100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
+                        {showIndex == 0 &&
                             <div style={{
-                                flex:1,
-                                width:"490px",
-                                padding:"20px",
+                       
+                      
+                                flex: 1,
+                                minWidth:800,
+                            
+                                padding: "20px",
                                 fontFamily: "WebRockwell",
                                 color: "#cdd4da",
                                 fontSize: "18px",
-                                display: "flex",  flexDirection:"column",
-                                alignItems: "center",  
+                                display: "flex", flexDirection: "column",
+                                alignItems: "center",
                             }}>
-                               
-                               
+
+
                                 <div style={{
-                                    fontSize:"13px"
+                                    fontSize: "13px"
                                 }}>
 
                                     arcturus.config.json
@@ -424,163 +356,153 @@ export const InitStoragePage = () => {
                                     height: "1px",
                                     width: "100%",
                                     backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
-                                }}/>
+                                }} />
 
-                                <div style={{ paddingLeft: 15, paddingTop:5, width:"100%",backgroundColor:"#33333320"}}>
+                                <div style={{ height:"100%", paddingLeft: 15, paddingTop: 5, width: "100%", backgroundColor: "#33333330" }}>
 
 
-                                    <div style={{ display: "flex", paddingTop: 15, width:"100%" }} >
-                                        <div style={{ marginRight: 10, alignItems: "flex-end", width: 190,  fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                        <div style={{ marginRight: 0,  width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                             Engine Key:
                                         </div>
-                                        <div> <div style={{
-
-                                                width: 250,
-                                                fontSize: 14,
-                                                marginTop: 5,
-                                                textAlign: "left",
-                                                border: "0px",
-                                                outline: 0,
-                                                color: "white",
-                                                backgroundColor: "#00000000",
-                                                fontFamily: "webrockwell"
-                                            }} /> <div style={{fontSize:"12px"}}> {engineKey} </div></div>
+                                        <div style={{ flex:1}}>  {engineKey} </div>
+                                       
                                         <div onClick={onGenerateClick} style={{ paddingTop: 5, height: 10, fontSize: 14, width: 100 }} className={styles.OKButton} > Generate </div>
                                     </div>
 
-                                        <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                            <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                P2P Networking:
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-
-                                                <SelectBox
-                                                    ref={P2PRef}
-                                                    textStyle={{
-                                                        color: "#ffffff",
-                                                        fontFamily: "Webrockwell",
-                                                        border: 0,
-                                                        fontSize: 14,
-                                                    }}
-                                                    optionsStyle={{
-
-                                                        backgroundColor: "#333333C0",
-                                                        paddingTop: 5,
-                                                        fontSize: 14,
-                                                        fontFamily: "webrockwell"
-                                                    }}
-
-                                                    defaultValue={true} placeholder="" options={[
-                                                        { value: true, label: "Enabled" },
-                                                        { value: false, label: "Disabled" }
-                                                    ]} />
-                                            </div>
-                                            <div style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
+                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                        <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                            Peer Network:
                                         </div>
+                                        <div style={{ flex: 1 }}>
 
-                                        <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                            <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                Ergo (Crypto) Network:
-                                            </div>
-                                            <div style={{ flex: 1 }}>
-
-                                                <SelectBox
-                                                    ref={P2PRef}
-                                                    textStyle={{
-                                                        color: "#ffffff",
-                                                        fontFamily: "Webrockwell",
-                                                        border: 0,
-                                                        fontSize: 14,
-                                                    }}
-                                                    optionsStyle={{
-
-                                                        backgroundColor: "#333333C0",
-                                                        paddingTop: 5,
-                                                        fontSize: 14,
-                                                        fontFamily: "webrockwell"
-                                                    }}
-
-                                                    defaultValue={true} placeholder="" options={[
-                                                        { value: true, label: "Enabled" },
-                                                        { value: false, label: "Disabled" }
-                                                    ]} />
-                                            </div>
-                                            <div style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
-                                        </div>
-
-                                    <div style={{ display: "flex", paddingTop: 15, width:"100%"}} >
-                                        <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14,  display: "flex", color: "#ffffff80" }}>
-                                            Share files:
-                                        </div>
-                                        <div style={{ flex:1} }> 
-                                            
-                                            <SelectBox 
-                                                ref={sharingPermissionsRef}
+                                            <SelectBox
+                                                ref={P2PRef}
                                                 textStyle={{
-                                                    color:"#ffffff",
-                                                    fontFamily:"Webrockwell",
-                                                    border:0,
+                                                    color: "#ffffff",
+                                                    fontFamily: "Webrockwell",
+                                                    border: 0,
                                                     fontSize: 14,
                                                 }}
                                                 optionsStyle={{
-                                                    
-                                                    backgroundColor:"#333333C0",
-                                                    paddingTop:5,
-                                                    fontSize:14,
-                                                    fontFamily:"webrockwell"
+
+                                                    backgroundColor: "#333333C0",
+                                                    paddingTop: 5,
+                                                    fontSize: 14,
+                                                    fontFamily: "webrockwell"
                                                 }}
-                                            
-                                                defaultValue={"r:CONTACTS"}   placeholder="File Sharing" options={[
-                                                    { value: "r:ALL", label: "Anyone" },
-                                                    { value: "r:CONTACTS", label: "Contacts Only" },
-                                                    { value: "addGroup", label: "Select a group..."}
-                                            ]} />
-                                         </div>
-                                        <div  style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
-                                    </div>
-                                        <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                            <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                Custom Folders:
-                                            </div>
-                                            <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos} onClick={(e) => { setDefaultFolders(prev => !prev) }} >
-                                                <div className={!defaultFolders ? styles.check : styles.checked} />
-                                            </div>
+
+                                                defaultValue={true} placeholder="" options={[
+                                                    { value: true, label: "Enabled" },
+                                                    { value: false, label: "Disabled" }
+                                                ]} />
                                         </div>
+                                        <div style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
+                                    </div>
 
-                                   
-                                
+                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                        <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                            Ergo Network:
+                                        </div>
+                                        <div style={{ flex: 1 }}>
 
-                             
+                                            <SelectBox
+                                                ref={ergoRef}
+                                                textStyle={{
+                                                    color: "#ffffff",
+                                                    fontFamily: "Webrockwell",
+                                                    border: 0,
+                                                    fontSize: 14,
+                                                }}
+                                                optionsStyle={{
 
-                                    
-                                
-                              
+                                                    backgroundColor: "#333333C0",
+                                                    paddingTop: 5,
+                                                    fontSize: 14,
+                                                    fontFamily: "webrockwell"
+                                                }}
+
+                                                defaultValue={true} placeholder="" options={[
+                                                    { value: true, label: "Enabled" },
+                                                    { value: false, label: "Disabled" }
+                                                ]} />
+                                        </div>
+                                        <div style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
+                                    </div>
+
+                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                        <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                            File Sharing:
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+
+                                            <SelectBox
+                                                ref={sharingPermissionsRef}
+                                                textStyle={{
+                                                    color: "#ffffff",
+                                                    fontFamily: "Webrockwell",
+                                                    border: 0,
+                                                    fontSize: 14,
+                                                }}
+                                                optionsStyle={{
+
+                                                    backgroundColor: "#333333C0",
+                                                    paddingTop: 5,
+                                                    fontSize: 14,
+                                                    fontFamily: "webrockwell"
+                                                }}
+
+                                                defaultValue={"published"} placeholder="File Sharing" options={[
+                                                    { value: "published", label: "Published Files" },
+                                                    { value: "disabled", label: "Disabled" },
+
+                                                ]} />
+                                        </div>
+                                        <div style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
+                                    </div>
+                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                        <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                            Custom Folders:
+                                        </div>
+                                        <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos} onClick={(e) => { setDefaultFolders(prev => !prev) }} >
+                                            <div className={!defaultFolders ? styles.check : styles.checked} />
+                                        </div>
+                                    </div>
+
+
+
+
+
+
+
+
+
                                     {defaultFolders &&
                                         <>
-                                       
 
-                                            <div style={{ display: "flex", paddingTop:10,  width: "100%" }} >
+
+                                            <div style={{ display: "flex", paddingTop: 10, width: "100%"  }} >
                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                     Images Folder:
                                                 </div>
                                                 <div style={{ flex: 1 }}>
-                                                    <div onClick={async function (e){
+                                                    <div onClick={async function (e) {
                                                         try {
                                                             const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
                                                             const name = await dirHandle.name;
-                                                          
-                                                            
+
+
                                                             setCustomFolders(
-                                                                produce((state)=>{
-                                                                    state.images = {name:name, handle:dirHandle};
+                                                                produce((state) => {
+                                                                    state.images = { name: name, handle: dirHandle };
                                                                 })
                                                             )
 
                                                             setImagesDefault(false)
                                                         } catch (error) {
                                                             if (error == DOMException.ABORT_ERR) {
-                                                                
+
                                                             }
                                                             setImagesDefault(true)
                                                         }
@@ -594,20 +516,20 @@ export const InitStoragePage = () => {
                                                             textAlign: "left",
                                                             border: "0px",
                                                             outline: 0,
-                                                            color: imagesDefault ? "#ffffff80" : "white",  
+                                                            color: imagesDefault ? "#ffffff80" : "white",
                                                             fontFamily: "webrockwell"
                                                         }} >
                                                         {imagesDirectory.name}
                                                     </div>
                                                 </div>
-                                            <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setImagesDefault(prev => !prev) }} >
-                                                <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    default:
+                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setImagesDefault(prev => !prev) }} >
+                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                                        default:
+                                                    </div>
+                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
+                                                        <div className={imagesDefault ? styles.checked : styles.check} />
+                                                    </div>
                                                 </div>
-                                                <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                    <div className={imagesDefault ? styles.checked : styles.check} />
-                                                </div>
-                                            </div>
                                             </div>
                                             <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
@@ -615,26 +537,26 @@ export const InitStoragePage = () => {
                                                 </div>
                                                 <div style={{ flex: 1 }}>
 
-                                                <div onClick={async function (e) {
-                                                    try {
-                                                        const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+                                                    <div onClick={async function (e) {
+                                                        try {
+                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
-                                                        const name = await dirHandle.name;
-                                                       
-                                                        setCustomFolders(
-                                                            produce((state) => {
-                                                                state.objects = { name: name, handle: dirHandle };
-                                                            })
-                                                        )
+                                                            const name = await dirHandle.name;
 
-                                                        setObjectsDefault(false)
-                                                    } catch (error) {
-                                                        if (error == DOMException.ABORT_ERR) {
+                                                            setCustomFolders(
+                                                                produce((state) => {
+                                                                    state.objects = { name: name, handle: dirHandle };
+                                                                })
+                                                            )
 
+                                                            setObjectsDefault(false)
+                                                        } catch (error) {
+                                                            if (error == DOMException.ABORT_ERR) {
+
+                                                            }
+                                                            setObjectsDefault(true)
                                                         }
-                                                        setObjectsDefault(true)
-                                                    }
-                                                }}
+                                                    }}
 
                                                         style={{
                                                             cursor: "pointer",
@@ -644,23 +566,23 @@ export const InitStoragePage = () => {
                                                             textAlign: "left",
                                                             border: "0px",
                                                             outline: 0,
-                                                            color: objectsDefault ? "#ffffff80" : "white",  
+                                                            color: objectsDefault ? "#ffffff80" : "white",
                                                             fontFamily: "webrockwell"
                                                         }} >
                                                         {objectsDirectory.name}
                                                     </div>
 
                                                 </div>
-                                           
-                                            <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setObjectsDefault(prev => !prev) }} >
+
+                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setObjectsDefault(prev => !prev) }} >
                                                     <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                         default:
                                                     </div>
                                                     <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                    <div className={objectsDefault ? styles.checked : styles.check} />
+                                                        <div className={objectsDefault ? styles.checked : styles.check} />
                                                     </div>
                                                 </div>
-                                          
+
                                             </div>
                                             <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
@@ -668,25 +590,25 @@ export const InitStoragePage = () => {
                                                 </div>
                                                 <div style={{ flex: 1 }}>
 
-                                                <div onClick={async function (e) {
-                                                    try {
-                                                        const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+                                                    <div onClick={async function (e) {
+                                                        try {
+                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
-                                                        const name = await dirHandle.name;
-                                                        setCustomFolders(
-                                                            produce((state) => {
-                                                                state.textures = { name: name, handle: dirHandle };
-                                                            })
-                                                        )
+                                                            const name = await dirHandle.name;
+                                                            setCustomFolders(
+                                                                produce((state) => {
+                                                                    state.textures = { name: name, handle: dirHandle };
+                                                                })
+                                                            )
 
-                                                        setTexturesDefault(false)
-                                                    } catch (error) {
-                                                        if (error == DOMException.ABORT_ERR) {
+                                                            setTexturesDefault(false)
+                                                        } catch (error) {
+                                                            if (error == DOMException.ABORT_ERR) {
 
+                                                            }
+                                                            setTexturesDefault(true)
                                                         }
-                                                        setTexturesDefault(true)
-                                                    }
-                                                }}
+                                                    }}
 
                                                         style={{
                                                             cursor: "pointer",
@@ -696,14 +618,14 @@ export const InitStoragePage = () => {
                                                             textAlign: "left",
                                                             border: "0px",
                                                             outline: 0,
-                                                            color: texturesDefault ? "#ffffff80" : "white",  
+                                                            color: texturesDefault ? "#ffffff80" : "white",
                                                             fontFamily: "webrockwell"
                                                         }} >
                                                         {texturesDirectory.name}
                                                     </div>
 
                                                 </div>
-                                            <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setTexturesDefault(prev => !prev) }} >
+                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setTexturesDefault(prev => !prev) }} >
                                                     <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                         default:
                                                     </div>
@@ -719,25 +641,25 @@ export const InitStoragePage = () => {
                                                 </div>
                                                 <div style={{ flex: 1 }}>
 
-                                                <div onClick={async function (e) {
-                                                    try {
-                                                        const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+                                                    <div onClick={async function (e) {
+                                                        try {
+                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
-                                                        const name = await dirHandle.name;
-                                                        setCustomFolders(
-                                                            produce((state) => {
-                                                                state.terrain = { name: name, handle: dirHandle };
-                                                            })
-                                                        )
+                                                            const name = await dirHandle.name;
+                                                            setCustomFolders(
+                                                                produce((state) => {
+                                                                    state.terrain = { name: name, handle: dirHandle };
+                                                                })
+                                                            )
 
-                                                        setTerrainDefault(false)
-                                                    } catch (error) {
-                                                        if (error == DOMException.ABORT_ERR) {
+                                                            setTerrainDefault(false)
+                                                        } catch (error) {
+                                                            if (error == DOMException.ABORT_ERR) {
 
+                                                            }
+                                                            setTerrainDefault(true)
                                                         }
-                                                        setTerrainDefault(true)
-                                                    }
-                                                }}
+                                                    }}
 
                                                         style={{
                                                             cursor: "pointer",
@@ -754,7 +676,7 @@ export const InitStoragePage = () => {
                                                     </div>
 
                                                 </div>
-                                            <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setTexturesDefault(prev => !prev) }} >
+                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setTexturesDefault(prev => !prev) }} >
                                                     <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                         default:
                                                     </div>
@@ -764,30 +686,30 @@ export const InitStoragePage = () => {
                                                 </div>
                                             </div>
                                             <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                                <div style={{ marginRight: 10, alignItems: "flex-end", width:190, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                     Media Folder:
                                                 </div>
                                                 <div style={{ flex: 1 }}>
 
-                                                <div onClick={async function (e) {
-                                                    try {
-                                                        const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+                                                    <div onClick={async function (e) {
+                                                        try {
+                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
 
-                                                        const name = await dirHandle.name;
-                                                        setCustomFolders(
-                                                            produce((state) => {
-                                                                state.media = { name: name, handle: dirHandle };
-                                                            })
-                                                        )
+                                                            const name = await dirHandle.name;
+                                                            setCustomFolders(
+                                                                produce((state) => {
+                                                                    state.media = { name: name, handle: dirHandle };
+                                                                })
+                                                            )
 
-                                                        setMediaDefault(false)
-                                                    } catch (error) {
-                                                        if (error == DOMException.ABORT_ERR) {
+                                                            setMediaDefault(false)
+                                                        } catch (error) {
+                                                            if (error == DOMException.ABORT_ERR) {
 
+                                                            }
+                                                            setMediaDefault(true)
                                                         }
-                                                        setMediaDefault(true)
-                                                    }
-                                                }}
+                                                    }}
 
                                                         style={{
                                                             cursor: "pointer",
@@ -804,56 +726,50 @@ export const InitStoragePage = () => {
                                                     </div>
 
                                                 </div>
-                                            <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setMediaDefault(prev => !prev) }} >
-                                                <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    default:
+                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setMediaDefault(prev => !prev) }} >
+                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                                        default:
+                                                    </div>
+                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
+                                                        <div className={mediaDefault ? styles.checked : styles.check} />
+                                                    </div>
                                                 </div>
-                                                <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                    <div className={mediaDefault ? styles.checked : styles.check} />
-                                                </div>
-                                            </div>
                                             </div>
 
-                                            
-                             
+
+
 
                                         </>
                                     }
-                                    <div style={{height:15}}></div>
-                                    </div>
+                                    <div style={{ height: 15 }}></div>
+                                </div>
+                        <div style={{
+                            justifyContent: "center",
+
+                            paddingTop: "10px",
+                            display: "flex",
+                            alignItems: "center",
+                            width: "100%"
+                        }}>
+                            <div style={{ paddingLeft: 10, paddingRight: 10, width: 40 }} className={styles.CancelButton} onClick={onCancelClick}>Back</div>
+
+                            <div style={{
+
+                                marginLeft: "30px", marginRight: "30px",
+                                height: "50px",
+                                width: "1px",
+                                backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                            }}>
+
                             </div>
-                            }
-                          
+                            <div className={styles.OKButton} onClick={onOKclick} >OK</div>
                         </div>
-                       
+                            </div>
+                        }
+               
                     </div>
-                    
-                </div>
-                
-                <div style={{
-                    justifyContent: "center",
-
-                    paddingTop: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    width: "100%"
-                }}><div style={{ width: 190 }}></div>
-                    <div style={{ paddingLeft: 10, paddingRight: 10, width: 40 }} className={styles.CancelButton} onClick={onCancelClick}>Back</div>
-
-                    <div style={{
-
-                        marginLeft: "30px", marginRight: "30px",
-                        height: "50px",
-                        width: "1px",
-                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                    }}>
-
                     </div>
-                    <div className={styles.OKButton} onClick={onOKclick} >Next</div>
-                </div>
-            </div>
-       
-        </>     
+        
     )
 }
 

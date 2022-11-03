@@ -75,8 +75,8 @@ const FileList = (props = {}, ref) => {
         if (files != null) {
             files.forEach((file, i) => {
 
-                const iSize = formatBytes(file.size)
-                const iModified = formatedNow(new Date(file.lastModified));
+                const iSize = file.size == null ? "" : formatBytes(file.size)
+                const iModified = file.lastModified == null ? "" : formatedNow(new Date(file.lastModified));
                 const iName = file.name;
                 const iType = file.type;
                 const iCrc = file.crc;

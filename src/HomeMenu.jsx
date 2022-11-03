@@ -2,7 +2,7 @@ import useZust from "./hooks/useZust";
 import React, { useEffect, useState } from "react";
 import styles from './pages/css/ContentMenu.module.css';
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { ErgoDappConnector } from "ergo-dapp-connector";
+
 import produce from "immer";
 import LoginPage from "./pages/LoginPage"
 import WelcomePage from "./pages/WelcomePage";
@@ -12,12 +12,10 @@ import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 import { SystemMessagesMenu } from "./SystemMessagesMenu";
 import { get } from "idb-keyval";
 
-import Peer from 'peerjs'
-
-import crc32 from 'crc/crc32';
-import { crc32FromArrayBuffer } from "./constants/utility";
+import { crc32FromArrayBuffer, getPermission, readFileJson } from "./constants/utility";
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
-import { PeerNetworkPage } from "./pages/PeerNetworkPage";
+import { PeerNetworkHandler } from "./pages/PeerNetworkHandler";
+import { ErgoNetworkHandler } from "./pages/ErgoNetworkHandler";
 
 
 const HomeMenu = ({ props}) => {
@@ -121,23 +119,7 @@ const HomeMenu = ({ props}) => {
         state.files = value;
     }))
 
-    const getPermission = (handle, callback) => {
-        const opts = { mode: 'readwrite' };
-
-        handle.queryPermission(opts).then((verified) => {
-            if (verified === 'granted') {
-                callback(true);
-            } else {
-                handle.requestPermission(opts).then((verified) => {
-                    if (verified === 'granted') {
-                        callback(true)
-                    }else{
-                        callback(false)
-                    }
-                })
-            }
-        })
-    }
+    
     const [directory, setDirectory] = useState("")
 
     useEffect(() => {
@@ -243,7 +225,7 @@ const HomeMenu = ({ props}) => {
             }
 
             const firstSetup = {
-                id: 1,
+                id: 0,
                 text: "Welcome! Find more options on your home page.",
                 navigate: "/home",
                 netImage: { image: "/Images/icons/megaphone-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
@@ -254,7 +236,7 @@ const HomeMenu = ({ props}) => {
 
 
                 if (value != undefined) {
-
+                    
                     getPermission(value.handle, (verified) =>{
 
                         if(verified){
@@ -313,27 +295,14 @@ const HomeMenu = ({ props}) => {
                 console.error(reason)
                 addSystemMessage(initDirectory)
             })
+            
         }
     }, [user])
 
 
 
 
-    async function readFileJson(handle, callback) {
-        try {
-            const file = await handle.getFile();
 
-            const txt = await file.text()
-
-            const value = JSON.parse(txt)
-
-            callback({ success: true, value: value })
-        } catch (error) {
-            console.error(error)
-            callback({ success: false })
-        }
-
-    }
 
     
 
@@ -654,12 +623,12 @@ const HomeMenu = ({ props}) => {
                             toNav("/")
                         }}>
                             <ImageDiv width={30} height={30} netImage={{ image: connected ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
-                                filter:peerOnline ? " drop-shadow(0px 0px 2px orange) drop-shadow(0px 0px 1px yellow)" : "" }} />
+                                filter: peerOnline ? "drop-shadow(0px 0px 2px #faa014A0)" : "" }} />
                         </div>
                         
-                        <PeerNetworkPage />
+                        <PeerNetworkHandler />
                        
-                      
+                        <ErgoNetworkHandler />
                         <div onClick={onProfileClick} style={{
                             fontFamily: "WebPapyrus",
                             color: "#c7cfda",

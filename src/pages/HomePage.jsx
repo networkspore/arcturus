@@ -10,6 +10,7 @@ import { ProfilePage } from './ProfilePage';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { LocalStoragePage } from './LocalStoragePage';
 import { AccountSettingsPage } from './AccountSettingsPage';
+import { PeerNetworkPage } from './PeerNetworkPage';
 
 
 
@@ -97,6 +98,9 @@ export const HomePage = (props ={}) => {
                 case "/localstorage":
                     setshowIndex(2)
                 break;
+                case "/peernetwork":
+                    setshowIndex(3)
+                    break;
                 case "/account":
                     setshowIndex(4)
                     break;
@@ -233,13 +237,24 @@ export const HomePage = (props ={}) => {
 
                     </div>
                     }
+                    <NavLink to={"/home/peernetwork"}>
+                        <div className={styles.result} style={{ color: subDirectory == "/peernetwork" ? "white" : "#777171", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+
+                            <div>
+                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/cloud-outline.svg" width={20} height={20} />
+                            </div>
+                            <div style={{ paddingLeft: "10px" }} >
+                                Peer Network
+                            </div>
+                        </div>
+                    </NavLink>
                 </div>
                
 
             </div>
        
             <div style={{ 
-                backgroundImage: "linear-gradient(to right,#00000010 5%, #10131470 10%, #80808000 100%)",
+                
                 position: "fixed", 
                 width:60, 
                 left: 335, 
@@ -262,11 +277,11 @@ export const HomePage = (props ={}) => {
         
 
             {showIndex == 2 &&
-               <LocalStoragePage />
+                <LocalStoragePage cancel={() => { setshowIndex(0) }} />
             }
             
             {showIndex == 3 &&
-                <ContactsPage />
+                <PeerNetworkPage cancel={() => { setshowIndex(0) }} />
             }
             {showIndex == 4 &&
                 <AccountSettingsPage cancel={() => { setshowIndex(0) }}  />
