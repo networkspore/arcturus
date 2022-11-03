@@ -93,7 +93,7 @@ const FileList = (props = {}, ref) => {
                         }
                         //  setSelectedIndex(Number(index))
                     }}>
-                        <div style={{ flex: 0.2 }}>
+                        <div style={{ flex: 0.1 }}>
                         {iImage != null &&
                             
                             <ImageDiv width={20} height={20} netImage={iImage} />
@@ -228,7 +228,7 @@ const FileList = (props = {}, ref) => {
 
                         <div style={{ display: "flex", flex:1 }}>
                
-                            <div style={{ flex: 0.2, color: "#777777", }}>Image</div>
+                            <div style={{ flex: 0.1, color: "#777777", }}>&nbsp;</div>
                             <div style={{ flex: 0.2, color: "#777777", }}>Type</div>
                             <div style={{ flex: 0.2, color: "#777777", }} >CRC </div>
                           

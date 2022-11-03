@@ -7,15 +7,20 @@ import useZust from "../hooks/useZust";
 import styles from './css/home.module.css';
 import { ImageDiv } from "./components/UI/ImageDiv";
 
+import { crc32FromArrayBuffer } from "../constants/utility";
+
+
 import MD5 from "crypto-js/md5";
 
 import SelectBox from "./components/UI/SelectBox"
 import { set } from "idb-keyval";
+import { randInt } from "three/src/math/MathUtils";
+import  SHA512  from "crypto-js/sha512";
 
 export const InitStoragePage = () => {
     
     const P2PRef = useRef();
-    const codeRef = useRef();
+    
     const sharingPermissionsRef = useRef();
 
     const localDirectory = useZust((state) => state.localDirectory)
@@ -28,7 +33,7 @@ export const InitStoragePage = () => {
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
 
-
+    const [engineKey, setEngineKey] = useState("Generate a key")
 
     const [terrainDefault, setTerrainDefault] = useState(true);
     const [imagesDefault, setImagesDefault] = useState(true);
@@ -93,6 +98,20 @@ export const InitStoragePage = () => {
         return small ? stringNow : stringNow + ":" + stringSeconds + ":" + stringMiliseconds;
     }
 
+    async function getFileInfo(entry) {
+
+        return new Promise(resolve => {
+            entry.getFile().then((file) => {
+                file.arrayBuffer().then((arrayBuffer) => {
+
+                    crc32FromArrayBuffer(arrayBuffer, (crc) => {
+                        resolve({ name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                    })
+                })
+            })
+        });
+
+    }
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -141,7 +160,7 @@ export const InitStoragePage = () => {
                 fileHandle.createWritable().then((configFileStream)=>{
                    
                     const config = {
-                        engineKey: codeRef.current.value,
+                        engineKey: engineKey,
                         defaultFileSharing: sharingPermissionsRef.current.getValue,
                         peer2peer: P2PRef.current.getValue,
                         folders:{
@@ -170,48 +189,58 @@ export const InitStoragePage = () => {
                     }
 
                     configFileStream.write(JSON.stringify(config)).then((value)=>{
-                        configFileStream.close();
+                        configFileStream.close().then((closed)=>{
+                            localDirectory.handle.getFileHandle("arcturus.config.json").then((newHandle) => {
+                                getFileInfo(newHandle).then((fileInfo) => {
 
-                        const configFile = { value: config, name: fileHandle.name, handle: fileHandle }
+                                    const configFile = fileInfo;
 
-                        const engineKey = config.engineKey;
+                                    configFile.value = config
+
+                                    const engineKey = config.engineKey;
+
+
+
+
+                                    if (!imagesDefault) {
+                                        set("images" + engineKey, customFolders.images)
+                                    }
+                                    if (!objectsDefault) {
+                                        set("objects" + engineKey, customFolders.objects)
+                                    }
+                                    if (!texturesDefault) {
+                                        set("textures" + engineKey, customFolders.texture)
+                                    }
+                                    if (!terrainDefault) {
+                                        set("terrain" + engineKey, customFolders.terrain)
+                                    }
+                                    if (!mediaDefault) {
+                                        set("media" + engineKey, customFolders.media)
+                                    }
+
+                                    socket.emit("createUserStorage", fileInfo.crc, configFile.value.engineKey, configFile.value.peer2peer, (created) => {
+                                        if (created.success) {
+                                            setConfigFile(configFile)
+
+                                            callback(true)
+                                        }
+                                    })
+
+
+                                }).catch((err) => {
+                                    console.log(err)
+                                    callback(false)
+                                })
+
+                            }).catch((err) => {
+                                console.log(err)
+                                callback(false)
+                            })
+                        });
 
                         
-                        
-
-                        if(!imagesDefault)
-                        {
-                            set("images" + engineKey, customFolders.images)
-                        }
-                        if(!objectsDefault)
-                        {
-                            set("objects" + engineKey, customFolders.objects)
-                        }
-                        if(!texturesDefault)
-                        {
-                            set("textures" + engineKey, customFolders.texture)
-                        }
-                        if(!terrainDefault)
-                        {
-                            set("terrain" + engineKey, customFolders.terrain)
-                        }
-                        if(!mediaDefault)
-                        {
-                            set("media" + engineKey, customFolders.media)
-                        }
-                        
-
-                        setConfigFile(configFile)
-                        
-
-
-                        callback(true)
-                    }).catch((err) => {
-                        callback(false)
                     })
-                    
                 })
-                
             }).catch((err)=>{
                 console.error(err)
                 callback(false)
@@ -267,13 +296,28 @@ export const InitStoragePage = () => {
      
         handleSubmit()
     }
- 
-    function onGenerateClick(e = null) {
 
+    const generateEngineKey =() =>{
+        const userName = user.userName;
+        const userID = user.userID;
+        const userEmail = user.userEmail;
 
-        const code = MD5(formatedNow()).toString()
-        codeRef.current.value = code;
+        const salt = MD5(userName + userID + userEmail).toString().slice(randInt(4,7),randInt(8,20));
+
+        const time = formatedNow().slice(randInt(0, 5), randInt(6, 20))
+        const string = time + salt;
+       
+        const sha = MD5(string)
+   
+        const code = "ARC" + sha;
+
+        setEngineKey(code)
     }
+
+    const onGenerateClick =(e) =>{
+        generateEngineKey()           
+    }
+
 
     const onFolder = (value) =>{
 
@@ -285,7 +329,10 @@ export const InitStoragePage = () => {
         switch(showIndex)
         {
             case 0:
-                onGenerateClick();
+                
+                
+                generateEngineKey() 
+
                 break;
         }
     }, [showIndex])
@@ -386,12 +433,8 @@ export const InitStoragePage = () => {
                                         <div style={{ marginRight: 10, alignItems: "flex-end", width: 190,  fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                             Engine Key:
                                         </div>
-                                        <div> <input
-                                            ref={codeRef}
-                                            placeholder="(generate)"
-                                            autoFocus
-                                            type={"text"}
-                                            style={{
+                                        <div> <div style={{
+
                                                 width: 250,
                                                 fontSize: 14,
                                                 marginTop: 5,
@@ -401,13 +444,43 @@ export const InitStoragePage = () => {
                                                 color: "white",
                                                 backgroundColor: "#00000000",
                                                 fontFamily: "webrockwell"
-                                            }} /> </div>
+                                            }} /> <div style={{fontSize:"12px"}}> {engineKey} </div></div>
                                         <div onClick={onGenerateClick} style={{ paddingTop: 5, height: 10, fontSize: 14, width: 100 }} className={styles.OKButton} > Generate </div>
                                     </div>
 
                                         <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                             <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                Peer to Peer Network:
+                                                P2P Networking:
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+
+                                                <SelectBox
+                                                    ref={P2PRef}
+                                                    textStyle={{
+                                                        color: "#ffffff",
+                                                        fontFamily: "Webrockwell",
+                                                        border: 0,
+                                                        fontSize: 14,
+                                                    }}
+                                                    optionsStyle={{
+
+                                                        backgroundColor: "#333333C0",
+                                                        paddingTop: 5,
+                                                        fontSize: 14,
+                                                        fontFamily: "webrockwell"
+                                                    }}
+
+                                                    defaultValue={true} placeholder="" options={[
+                                                        { value: true, label: "Enabled" },
+                                                        { value: false, label: "Disabled" }
+                                                    ]} />
+                                            </div>
+                                            <div style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
+                                        </div>
+
+                                        <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                            <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
+                                                Ergo (Crypto) Network:
                                             </div>
                                             <div style={{ flex: 1 }}>
 
@@ -437,7 +510,7 @@ export const InitStoragePage = () => {
 
                                     <div style={{ display: "flex", paddingTop: 15, width:"100%"}} >
                                         <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14,  display: "flex", color: "#ffffff80" }}>
-                                            Default File Sharing:
+                                            Share files:
                                         </div>
                                         <div style={{ flex:1} }> 
                                             
@@ -457,9 +530,10 @@ export const InitStoragePage = () => {
                                                     fontFamily:"webrockwell"
                                                 }}
                                             
-                                                defaultValue={"ALL:CONTACTS"}   placeholder="Class" options={[
-                                                    { value: "ALL:ALL", label: "Everyone" },
-                                                    { value: "ALL:CONTACTS", label: "Contacts" } 
+                                                defaultValue={"r:CONTACTS"}   placeholder="File Sharing" options={[
+                                                    { value: "r:ALL", label: "Anyone" },
+                                                    { value: "r:CONTACTS", label: "Contacts Only" },
+                                                    { value: "addGroup", label: "Select a group..."}
                                             ]} />
                                          </div>
                                         <div  style={{ paddingTop: 5, height: 10, fontSize: 14, width: 150 }} > </div>
@@ -476,11 +550,11 @@ export const InitStoragePage = () => {
                                    
                                 
 
-                                <div style={{ height: "20px" }}></div>
+                             
 
                                     
                                 
-                                </div>
+                              
                                     {defaultFolders &&
                                         <>
                                        
@@ -745,6 +819,8 @@ export const InitStoragePage = () => {
 
                                         </>
                                     }
+                                    <div style={{height:15}}></div>
+                                    </div>
                             </div>
                             }
                           

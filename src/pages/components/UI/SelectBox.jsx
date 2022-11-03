@@ -63,7 +63,7 @@ const SelectBox = (props = {}, ref) => {
         if (options != null) {
             options.forEach((element, i) => {
                 array.push(
-                    <div style={labelStyle} tabIndex={i} id={"SelectBox:" + i} onClick={(e) => {
+                    <div key={i} style={labelStyle} tabIndex={i} id={"SelectBox:" + i} onClick={(e) => {
                         const index = e.target.id.split(":")[1];
                         setSelectedValue(element.value)
                         //  setSelectedIndex(Number(index))

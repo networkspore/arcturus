@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fleet-sdk/core": "^0.1.0-alpha.6",
     "@react-three/drei": "^9.2.0",
     "@react-three/fiber": "^8.0.10",
     "@react-three/postprocessing": "^2.3.2",

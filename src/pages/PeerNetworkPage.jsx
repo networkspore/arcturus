@@ -5,6 +5,7 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 import { useEffect } from "react";
 import Peer from "peerjs";
 import { useNavigate } from "react-router-dom";
+import { status } from "../constants/constants";
 
 
 export const PeerNetworkPage = (props ={}) => {
@@ -18,9 +19,11 @@ export const PeerNetworkPage = (props ={}) => {
     
     const peerConnection = useZust((state) => state.peerConnection);
     const setPeerConnection = useZust((state) => state.setPeerConnection);
+
+    const socket = useZust((state) => state.socket)
     
     const openPeerConnection = (key, onOpen, onCall, onClose, onDisconnect) => useZust.setState(produce((state) => {
-        state.peerConnection = new Peer("Arcturus_" + key)
+        state.peerConnection = new Peer(key)
         state.peerConnection.on("open", onOpen)
         state.peerConnection.on("call", onCall)
         state.peerConnection.on("close", onClose)
@@ -29,6 +32,10 @@ export const PeerNetworkPage = (props ={}) => {
 
     const onPeerOpen = (id) =>{
         setPeerOnline(true)
+        
+        socket.emit("PeerStatus",(status.Online, configFile.value.engineKey, (callback)=>{
+
+        }))
     }
 
     const onPeerCall = (call) =>{
@@ -38,22 +45,43 @@ export const PeerNetworkPage = (props ={}) => {
     const onPeerClose = () =>{
         setPeerConnection(null)
         setPeerOnline(false)
+        if(connected){
+            socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
+
+            }))
+        }
     }
 
     const onPeerDisconnect = () =>{
+        setPeerOnline(false)
+        
         if(connected){
-            peerReconnect
+            
+            socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
+
+            }))
+
+            if(configFile.value != null){
+                
+                peerReconnect()
+            }
         }
     }
 
     const peerReconnect = () =>{
         setTimeout(() => {
-            if (peerConnection.disonnected) {
-                console.log("reconnecting...")
-                peerConnection.reconnect()
-                peerReconnect()
+            if(peerConnection != null){
+                if (configFile.value != null) {
+                    if (configFile.value.peer2peer){
+                        if (peerConnection.disonnected) {
+                            console.log("reconnecting...")
+                            peerConnection.reconnect()
+                            peerReconnect()
+                        }
+                    }
+                }
             }
-        }, 10000)
+        }, 4000)
     }
 
     useEffect(()=>{

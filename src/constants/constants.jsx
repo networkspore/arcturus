@@ -1,6 +1,14 @@
 //Monsters
 import React from "react";
-
+export const status = Object.freeze({
+    valid: 1,
+    invalid: 2,
+    confirming: 3,
+    Offline: 4,
+    Online: 5,
+    rejected: 6,
+    accepted: 7
+})
 export const constants = Object.freeze({
     SMALL_SCENE: 1,
     MEDIUM_SCENE: 2,

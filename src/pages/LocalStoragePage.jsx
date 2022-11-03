@@ -342,7 +342,7 @@ export const LocalStoragePage = () => {
                                 { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: new Date(), size: "", netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                configFile,
+                                { to: "/home/localstorage/init", name: configFile.name, type: "Config", crc: configFile.crc, lastModified: configFile.lastModified, size: configFile.size, netImage: { backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)"  }},
                         ]} />
                     </div>
                 }

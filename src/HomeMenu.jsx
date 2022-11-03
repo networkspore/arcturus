@@ -262,19 +262,38 @@ const HomeMenu = ({ props}) => {
 
                             value.handle.getFileHandle("arcturus.config.json").then((handle) => {
                                
+                                getFileInfo(handle).then((file)=>{
+                                            console.log(file)
+                                            readFileJson(handle, (json) => {
+                                                if (json.success) {
+                                                    const config = json.value;
+                                                    if ("engineKey" in config) {
+                                                        socket.emit("checkStorageCRC", file.crc, config.engineKey, (callback) => {
+                                                            if (callback.valid) {
+                                                                file.value = config;
 
-                                readFileJson(handle, (json) => {
-                                    if (json.success) {
-                                        const config = json.value;
-                                        if ("engineKey" in config) {
-                                            setConfigFile({ value: json.value, handle: handle, name: handle.name })
+                                                                setConfigFile(file)
+                                                            } else {
+                                                                console.log(file)
+                                                                addSystemMessage(initStorage)
+                                                            }
+                                                        })
+                                                    } else {
+                                                        console.log(json)
+                                                        addSystemMessage(initStorage)
+                                                    }
+                                                
+                                        }else{
+                                            console.log(err)
+                                            addSystemMessage(initStorage)
                                         }
-
-                                    } else {
-                                        console.log(json)
-                                        addSystemMessage(initStorage)
-                                    }
+                                    })
+                                    
+                                }).catch((err) => {
+                                    console.log(err)
+                                    addSystemMessage(initStorage)
                                 })
+                               
                             }).catch((err) => {
                                 console.log(err)
                                 addSystemMessage(initStorage)
