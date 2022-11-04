@@ -8,6 +8,7 @@ import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 
 
 import { ImageDiv } from './components/UI/ImageDiv';
+import { getFileInfo } from '../constants/utility';
 
 
 export const PeerNetworkPage = () => {
@@ -18,7 +19,7 @@ export const PeerNetworkPage = () => {
 
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
-
+    const socket = useZust((state) => state.socket)
     const localDirectory = useZust((state) => state.localDirectory)
 
     const peerConnection = useZust((state)=> state.peerConnection)
@@ -41,7 +42,7 @@ export const PeerNetworkPage = () => {
 
     useEffect(()=>{
 
-                          
+
         const currentLocation = location.pathname;
         const directory = "/home/peernetwork";
 
@@ -64,13 +65,13 @@ export const PeerNetworkPage = () => {
 
     },[location])
 
+    const disable = useRef({value:false})
 
-    const turnOffPeerNetwork = () =>{
-       
 
-        
+    const turnOffPeerNetwork = () => {
+        navigate("/home/localstorage/init")
     }
-
+  
     const onReload = () =>{
 
     }
@@ -173,7 +174,7 @@ export const PeerNetworkPage = () => {
                             <div style={{flex:1}}>
                                 <div style={{
                                     paddingTop:"2px",
-                                    paddingLeft:"5px",
+                                    paddingLeft:"2px",
                                     width: "100%",
                                     height: "18px",
                                     textAlign: "left",

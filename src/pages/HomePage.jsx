@@ -144,7 +144,7 @@ export const HomePage = (props ={}) => {
                 <div style={{ width: 260, paddingLeft:"15px" }}>
                     
                     {connected &&
-                        <NavLink to={subDirectory == "/account" ? "/home" : "/home/account"}>
+                        <NavLink to={ "/home/account"}>
                         <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
                           
                         >
@@ -160,7 +160,7 @@ export const HomePage = (props ={}) => {
                     }
 
                    
-                    <NavLink to={subDirectory == "/localstorage" ? "/home" : "/home/localstorage"}>
+                    <NavLink to={"/home/localstorage"}>
                         <div className={styles.result} style={{ color: subDirectory == "/localstorage" ? "white" : "#777171", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
                             <div>

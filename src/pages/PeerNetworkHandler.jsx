@@ -22,13 +22,19 @@ export const PeerNetworkHandler = (props ={}) => {
 
     const socket = useZust((state) => state.socket)
     
-    const openPeerConnection = (key, onOpen, onCall, onClose, onDisconnect) => useZust.setState(produce((state) => {
+    const openPeerConnection = (key, onOpen, onCall, onClose, onDisconnect, onError) => useZust.setState(produce((state) => {
         state.peerConnection = new Peer(key)
         state.peerConnection.on("open", onOpen)
         state.peerConnection.on("call", onCall)
         state.peerConnection.on("close", onClose)
         state.peerConnection.on("disconnected", onDisconnect)
+        state.peerConnection.on('error', onError);
     }))
+
+    const onPeerError = (error) =>{
+        console.log("Peer network error:")
+        console.log(error)
+    }
 
     const onPeerOpen = (id) =>{
         setPeerOnline(true)
@@ -43,13 +49,16 @@ export const PeerNetworkHandler = (props ={}) => {
     }
 
     const onPeerClose = () =>{
+        console.log("peer connection closing")
         setPeerConnection(null)
         setPeerOnline(false)
+
         if(connected){
             socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
 
             }))
         }
+
     }
 
     const onPeerDisconnect = () =>{
@@ -85,21 +94,38 @@ export const PeerNetworkHandler = (props ={}) => {
     }
 
     useEffect(()=>{
+        console.log(configFile)
+        console.log(peerConnection)
         if(configFile.value != null){
             if (configFile.value.peer2peer){
-                
-                openPeerConnection(configFile.value.engineKey, onPeerOpen, onPeerCall, onPeerClose, onPeerDisconnect)
-
+                if(peerConnection == null){
+                    openPeerConnection(configFile.value.engineKey, onPeerOpen, onPeerCall, onPeerClose, onPeerDisconnect,onPeerError)
+                }else{
+                    if(peerConnection.disonnected){
+                        peerReconnect()
+                    }else{
+                        setPeerOnline(true)
+                    }
+                }
+            }else{
+                console.log("peer2peer false")
+                if(peerConnection != null)
+                {
+                    console.log("destroying")
+                    peerConnection.destroy();
+                }
             }
         }else{
-            if(peerConnection != null){ 
+            if (peerConnection != null) {
+                console.log("destroying")
                 peerConnection.destroy();
             }
+            
         }
     },[configFile])
 
     useEffect(() => {
-        console.log("peerConnection")
+      
         console.log(peerConnection)
 
     }, [peerConnection])

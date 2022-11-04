@@ -148,7 +148,7 @@ export const LocalStoragePage = () => {
 
         set("localDirectory" + user.userID, {name: name, handle: dirHandle})
         
-        dirHandle.getFileHandle("arcturus.config.json").then((handle)=>{
+        dirHandle.getFileHandle("arcturus.config").then((handle)=>{
             console.log(handle)
 
            readFileJson(handle, (json)=>{
@@ -203,10 +203,10 @@ export const LocalStoragePage = () => {
        <>
             <div  style={{
                 position: "fixed",
-                backgroundColor: "rgba(0,3,4,.95)",
-                width: pageSize.width - 385,
+                backgroundColor: "rgba(0,3,4,.9)",
+                width: pageSize.width - 410,
                 height: pageSize.height,
-                left: 385,
+                left: 410,
                 top: 0,
                 display: "flex",
                 flexDirection: "column",
@@ -345,7 +345,7 @@ export const LocalStoragePage = () => {
                 }
                 {showIndex == 0 && configFile.handle != null &&
                     <div style={{flex:1, display:"block"}}>
-                        <FileList tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
+                        <FileList fileView={"medium-icons"} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
                                 { to: "/home/localstorage/images", name: "images", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
                                 { to: "/home/localstorage/objects", name: "objects", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },

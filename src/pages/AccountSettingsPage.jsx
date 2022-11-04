@@ -80,18 +80,18 @@ export const AccountSettingsPage = (props = {}) => {
                                     
                                     <div style={{ height: "20px" }}></div>
                                     <div style={{ display: "flex", paddingTop: "20px" }} >
-                                        <div> <input value={'Click to change...'} type={"text"} style={{ cursor: "pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
+                                        <div> <input readOnly value={'Click to change...'} type={"text"} style={{ cursor: "pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
                                         <div style={{ paddingLeft: "20px" }} > Password </div>
                                     </div>
                                     <div style={{ height: "20px" }}></div>
                                     <div style={{ display: "flex", paddingTop: "20px" }} >
-                                        <div> <input type={"text"} value={"Click to verify..."} style={{ cursor: "pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
+                                        <div> <input readOnly type={"text"} value={"Click to verify..."} style={{ cursor: "pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
                                         <div style={{ paddingLeft: "20px" }} > Email</div>
                                     </div>
                                     <div style={{ height: "20px" }}></div>
 
                                     <div style={{ display: "flex", paddingTop: "20px" }} >
-                                        <div> <input type={"text"} style={{ width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
+                                        <div> <input readOnly type={"text"} style={{ width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
                                         <div style={{ paddingLeft: "20px", color: " #777777" }} > Modified </div>
                                     </div>
                                     <div style={{ height: "20px" }}></div>

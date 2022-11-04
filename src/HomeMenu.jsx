@@ -242,7 +242,7 @@ const HomeMenu = ({ props}) => {
                         if(verified){
                             setLocalDirectory(value)
 
-                            value.handle.getFileHandle("arcturus.config.json").then((handle) => {
+                            value.handle.getFileHandle("arcturus.config").then((handle) => {
                                
                                 getFileInfo(handle).then((file)=>{
                                             console.log(file)
@@ -477,7 +477,7 @@ const HomeMenu = ({ props}) => {
                 type:
                 size:
                 */
-
+                getPermission(entry,(valid)=>{
                 getFileInfo(entry).then((newFile) => {
                     files.push(newFile)
                 }
@@ -485,7 +485,7 @@ const HomeMenu = ({ props}) => {
                     console.log(err)
                 })
 
-
+                })
 
                 // out[file.name] = file;
             }
@@ -623,7 +623,7 @@ const HomeMenu = ({ props}) => {
                             toNav("/")
                         }}>
                             <ImageDiv width={30} height={30} netImage={{ image: connected ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
-                                filter: peerOnline ? "drop-shadow(0px 0px 2px #faa014A0)" : "" }} />
+                                filter: peerOnline ? "drop-shadow(0px 0px 3px #faa014)" : "" }} />
                         </div>
                         
                         <PeerNetworkHandler />

@@ -17,6 +17,7 @@ const SelectBox = (props = {}, ref) => {
     const textStyle = { backgroundColor: "rgba(0,0,0,0)", fontSize: "20px", fontFamily: "WebPapyrus", outline: 0, borderWidth: "0 0 2px", borderColor: "#ffe51c", color: "#D6BD00", textAlign: "left", width: "100%", cursor: "pointer" };
     const editable = "editable" in props ? props.editable : false;
 
+    
     if ("optionsStyle" in props) {
         let optionsArray = Object.getOwnPropertyNames(props.optionsStyle);
 
@@ -47,10 +48,6 @@ const SelectBox = (props = {}, ref) => {
 
         if ("options" in props) {
             setOptions(props.options);
-            if("defaultValue" in props)
-            {
-                setSelectedValue(props.defaultValue)
-            }
         }
     }, [props])
 
@@ -112,7 +109,7 @@ const SelectBox = (props = {}, ref) => {
             getValue: options == null ? -1 : selectedIndex == -1 ? -1 : options[selectedIndex] === undefined ? -1 : options[selectedIndex].value,
             setValue: (value) => {
 
-
+             
                 setSelectedValue(value)
             },
             setSelectedIndex: (value) => {
@@ -137,17 +134,22 @@ const SelectBox = (props = {}, ref) => {
 
 
     const lastIndex = useRef({ index: -1 })
-
+    
     useEffect(() => {
+        
 
         if (selectedIndex > -1) {
 
             if (options[selectedIndex] === undefined) { textBoxRef.current.value = "" } else {
+         
                 textBoxRef.current.value = options[selectedIndex].label;
             }
         } else {
+         
             textBoxRef.current.value = "";
+          
         }
+
         if (onChanged != null) {
             if (selectedIndex != lastIndex.current.index) {
                 lastIndex.current.index = selectedIndex;
