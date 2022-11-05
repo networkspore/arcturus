@@ -17,12 +17,14 @@ import { ImageDiv } from "./pages/components/UI/ImageDiv";
 import { PeerNetworkHandler } from "./pages/PeerNetworkHandler";
 import { ErgoNetworkHandler } from "./pages/ErgoNetworkHandler";
 import { CreateRealmPage } from "./pages/CreateRealmPage";
-
+import { getFileInfo } from "./constants/utility";
 
 const HomeMenu = ({ props}) => {
    
     const location = useLocation()
     const peerOnline = useZust((state) => state.peerOnline)
+    const setPeerOnline = useZust((state) => state.setPeerOnline)
+    const setUser = useZust((state) => state.setUser)
 
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
@@ -75,8 +77,8 @@ const HomeMenu = ({ props}) => {
     const [showIndex, setShowIndex] = useState(false);
 
     
-    const connected = useZust((state)=>state.connected)
-    const setConnected = useZust((state) => state.setConnected)
+    //const connected = useZust((state)=>state.connected)
+    //const setConnected = useZust((state) => state.setConnected)
 
     const localDirectory = useZust((state) => state.localDirectory)
 
@@ -87,29 +89,29 @@ const HomeMenu = ({ props}) => {
     }))
 
     const socketOn = (value, listener) => useZust.setState(produce((state) => {
-        state.socket.off(value, listener)
+        state.socket.on(value, listener)
     }))
 
     const disconnectSocket = () => useZust.setState(produce((state) => {
         if(state.socket!= null){
             state.socket.disconnect();
-            state.socket = null;
         }
     }))
 
     const logout = () => {
         setAutoLogin(false);
         setUser();
-        disconnectSocket();
-
+        setConfigFile();
+        setSocket(null)
+        setPeerOnline(false)
+        setShowMenu(false)
     }
-    const setLocalDirectory = (value) => useZust.setState(produce((state) => {
-        state.localDirectory = value;
-    }))
+    const setLocalDirectory = useZust((state) => state.setLocalDirectory)
     const setFiles = (value) => useZust.setState(produce((state) => {
         state.files = value;
     }))
 
+    const setSocket = useZust((state) => state.setSocket)
     
     const [directory, setDirectory] = useState("")
 
@@ -125,11 +127,8 @@ const HomeMenu = ({ props}) => {
         if (user.userID > 0) {
             if (currentLocation == '/') {
 
-                if (connected) {
-                    navigate("/network")
-                } else {
-                    navigate('/home')
-                }
+                navigate("/network")
+                
             } else {
                 const secondSlash = currentLocation.indexOf("/", 1)
 
@@ -164,7 +163,7 @@ const HomeMenu = ({ props}) => {
             }
 
         } else {
-            if (showMenu) setShowMenu(false)
+         
 
             switch (currentLocation) {
                 case '/':
@@ -185,7 +184,7 @@ const HomeMenu = ({ props}) => {
 
 
 
-    }, [location, user, socket, connected])
+    }, [location, user, socket])
 
     useEffect(() => {
         if (user.userID > 0) {
@@ -194,17 +193,15 @@ const HomeMenu = ({ props}) => {
             socketOn("disconnect", (res) => {
                 switch (res) {
                     case "io server disconnect":
+                        setSocket(null)
                         break;
 
                 }
-
-                setConnected(false)
-
             })
-            socketOff("connect")
-            socketOn("connect", (res) => {
-                setConnected(true)
-            })
+           // socketOff("connect")
+         //   socketOn("connect", (res) => {
+                
+        //    })
 
             const initDirectory = {
                 id: 1,
@@ -474,13 +471,14 @@ const HomeMenu = ({ props}) => {
                 size:
                 */
                 getPermission(entry,(valid)=>{
-                getFileInfo(entry).then((newFile) => {
-                    files.push(newFile)
-                }
-                ).catch((err) => {
-                    console.log(err)
-                })
-
+                    if(valid){
+                        getFileInfo(entry).then((newFile) => {
+                            files.push(newFile)
+                        }
+                        ).catch((err) => {
+                            console.log(err)
+                        })
+                    }
                 })
 
                 // out[file.name] = file;
@@ -492,20 +490,6 @@ const HomeMenu = ({ props}) => {
 
     }
 
-    async function getFileInfo(entry) {
-
-        return new Promise(resolve => {
-            entry.getFile().then((file)=>{
-                file.arrayBuffer().then((arrayBuffer) => {
-                    
-                    crc32FromArrayBuffer(arrayBuffer, (crc) =>{
-                        resolve({name:file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                    })
-                })
-            })
-        });
-
-    }
 
     useEffect(()=>{
         
@@ -534,11 +518,9 @@ const HomeMenu = ({ props}) => {
 
     function onProfileClick(e){
       
-        if(connected){
-            toNav("/home")
-        }else{
-            toNav("/")
-        }
+        
+        toNav("/home")
+      
     }
 
     return (
@@ -571,7 +553,7 @@ const HomeMenu = ({ props}) => {
                     <div style={{ display: "flex", flexDirection: "column", height: pageSize.height, fontFamily: "WebPapyrus" }}>
                         <div style={{ flex: 1 }}>
 
-                            {connected  &&
+                            {socket != null  &&
                                 <>
                                     <NavLink className={directory == "/network" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/network'}>
                                         <img src="/Images/logo.png" width={50} height={50} />
@@ -592,13 +574,13 @@ const HomeMenu = ({ props}) => {
 
                         </div>
                         <div style={{ flex: 0.1 }}>
-                            {connected &&
+                            
                             <NavLink className={location.pathname == "/createRealm"  ? styles.menuActive : styles.menu__item} about="Create Realm"
                                 to={'/createRealm'}>
                                     <ImageDiv width={60} height={60} netImage={{ image: "/Images/realm.png", filter: "invert(100%)", width: 45, height: 50 }} />
                                
                             </NavLink>
-                            }
+                         
 
 
                             <NavLink className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
@@ -621,13 +603,16 @@ const HomeMenu = ({ props}) => {
                         <div onClick={(e) => {
                             toNav("/")
                         }}>
-                            <ImageDiv width={30} height={30} netImage={{ image: connected ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
+                            <ImageDiv width={30} height={30} netImage={{ image: socket != null ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
                                 filter: peerOnline ? "drop-shadow(0px 0px 3px #faa014)" : "" }} />
                         </div>
+                        {user.userID > 0 &&
+                            <>
+                                <PeerNetworkHandler />
                         
-                        <PeerNetworkHandler />
-                       
-                        <ErgoNetworkHandler />
+                                <ErgoNetworkHandler />
+                            </>
+                        }
                         <div onClick={onProfileClick} style={{
                             fontFamily: "WebPapyrus",
                             color: "#c7cfda",
@@ -635,7 +620,7 @@ const HomeMenu = ({ props}) => {
                             paddingTop: "5px",
                             paddingLeft: "10px",
                             paddingRight: "10px"
-                        }}> {connected ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
+                        }}> {socket != null ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
                     </div>
 
                 </div>

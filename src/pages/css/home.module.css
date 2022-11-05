@@ -301,10 +301,15 @@
 	visibility: visible;
 }
 
+
+
+
 .CancelButton:hover {
 	color: white;
 	background-color: #FFFFFF20;
 }
+
+
 
 .OKButton {
 	text-align: center;
@@ -538,4 +543,70 @@
   background-position: center;
  border: 1px dotted #70787a;
    cursor:"pointer"
+}
+
+
+
+.icon__item {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+
+}
+
+.icon__item:hover {
+
+	background: #dddddd33;
+}
+
+/* create tooltip after each menu item  */
+.icon__item::after {
+	position: absolute;
+	display: flex;
+	/* ::before, ::after are inline as default
+  
+  /*  makes tooltip vertically center within each one of menu items  */
+	top: 80%;
+
+	transform: translate(-50%,0%);
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: 50%;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+	
+
+	/* makes words in same line   */
+	white-space: nowrap;
+
+	padding: 5px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: white;
+
+	/*  invisible (can't see it but can click on it)  */
+	opacity: 0;
+	/* can't click  */
+	visibility: hidden;
+	transition: opacity 1s;
+}
+
+/* show tooltip if hover on menu item */
+.icon__item:hover::after {
+	opacity: 1;
+	visibility: visible;
 }

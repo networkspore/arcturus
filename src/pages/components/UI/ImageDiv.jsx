@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 
 
+
 export const ImageDiv = (props = {}) => {
 
 
@@ -49,17 +50,10 @@ export const ImageDiv = (props = {}) => {
         }
 
         if ("netImage" in props) {
-            var info = { width: 0, height: 0, image: "" , filter:"", backgroundImage: "", backgroundColor:"#000000"};
-            const tmp = props.netImage;
-            if ("image" in tmp) {
-                info.image = tmp.image;
-            }
-            if ("width" in tmp) {
-                info.width = tmp.width;
-            }
-            if ("height" in tmp) {
-                info.height = tmp.height;
-            }
+            var info = { scale:0.75, image: "" , filter:"", backgroundImage: "", backgroundColor:"#000000"};
+            const tmp = props.netImage != null ? props.netImage : info;
+            info.image = ("image" in tmp) ? tmp.image : "";
+            
             if ("filter" in tmp) {
                 info.filter = tmp.filter;
             }
@@ -69,32 +63,23 @@ export const ImageDiv = (props = {}) => {
             if ("backgroundColor" in tmp) {
                 info.backgroundColor = tmp.backgroundColor;
             }
-         
-            if (info.width > w || info.height > h) {
-
-
-                if (info.width > info.height) {
-                    setScaleWidth("100%")
-                    const ratio = (350 / info.width) * info.height;
-                    setScaleHeight(ratio + "px");
-                } else {
-                    setScaleHeight("100%");
-                    const ratio = (300 / info.height) * info.width;
-
-                    setScaleWidth(ratio + "px")
-                }
-
-
-
-            } else {
-               
-                setScaleWidth(info.width + "px")
-                setScaleHeight(info.height + "px");
-            }
-            setFilter(info.filter);
+            info.scale = ("scale" in tmp) ? tmp.scale : .75
+                 
             setImg(info.image);
+            
+
+            const percent = (info.scale * 100) +"%"
+           
+            setScaleHeight(percent);
+            setScaleWidth(percent);
+
+            
+            setFilter(info.filter);
+            
             setBackgroundImage(info.backgroundImage)
             setBackgroundColor(info.backgroundColor)
+
+            
         }
 
 
@@ -104,7 +89,7 @@ export const ImageDiv = (props = {}) => {
 
     return (
         <div onClick={onClick} style={style}>
-            {img != "" ? <img src={img} style={{width:scaleImgWidth, height:scaleImgHeight, filter:filter}} /> : ""}
+            {img != null ? <img src={img} style={{width:scaleImgWidth, height:scaleImgHeight, filter:filter}} /> : ""}
         </div>
     )
 }

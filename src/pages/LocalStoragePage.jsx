@@ -340,8 +340,14 @@ export const LocalStoragePage = () => {
                     </div>         
                 }
                 {configFile.handle != null && showIndex == 2 &&
-                    
-                   <FileList tableStyle={{maxHeight:pageSize.height - 400}} files={currentFiles}/>
+                    <div style={{
+                        overflowX:"hidden",
+                        overflowY:"scroll",
+                        maxHeight:"95%",
+                        width:"100%"
+                    }}>
+                        <FileList  files={currentFiles}/>
+                    </div>
                 }
                 {showIndex == 0 && configFile.handle != null &&
                     

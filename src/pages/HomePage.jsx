@@ -31,7 +31,7 @@ export const HomePage = (props ={}) => {
     const nav = useNavigate();
     const setUser = useZust((state) => state.setUser)
 
-    const connected =  useZust((state) => state.connected)
+
 
     const location = useLocation();
 
@@ -143,7 +143,7 @@ export const HomePage = (props ={}) => {
                         
                 <div style={{ width: 260, paddingLeft:"15px" }}>
                     
-                    {connected &&
+                    
                         <NavLink to={ "/home/account"}>
                         <div className={styles.result} style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
                           
@@ -157,11 +157,11 @@ export const HomePage = (props ={}) => {
                             </div>
                         </div>
                         </NavLink>
-                    }
+                
 
                    
                     <NavLink to={"/home/localstorage"}>
-                        <div className={styles.result} style={{ color: subDirectory == "/localstorage" ? "white" : "#777171", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                        <div className={styles.result} style={{ color: subDirectory == "/localstorage" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
                             <div>
                                 <img style={{ filter: "invert(100%)" }} src="/Images/icons/server-outline.svg" width={20} height={20} />
@@ -238,7 +238,7 @@ export const HomePage = (props ={}) => {
                     </div>
                     }
                     <NavLink to={"/home/peernetwork"}>
-                        <div className={styles.result} style={{ color: subDirectory == "/peernetwork" ? "white" : "#777171", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                        <div className={styles.result} style={{ color: subDirectory == "/peernetwork" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
                             <div>
                                 <img style={{ filter: "invert(100%)" }} src="/Images/icons/cloud-outline.svg" width={20} height={20} />
@@ -256,23 +256,20 @@ export const HomePage = (props ={}) => {
             <div style={{ 
                 
                 position: "fixed", 
-                width:60, 
+                width:60, height: "70px",
                 left: 335, 
                 bottom: "0px", 
                 fontFamily:"Webpapyrus",
-                display: "flex", justifyContent:"center"
-                 }}>
-                
-
-                    <NavLink style={{width:"100%"}} to={"/"}  className={styles.menu__item} about={"Log-out"} onClick={onLogoutClick}>
-                            <div style={{height:"70px",display:"flex", justifyItems:"center", alignItems:"center"}}>
-                                <div>
-                            <ImageDiv netImage={{ backgroundColor:"", image: "/Images/icons/lock-open-outline.svg", width: 25, height: 25, filter: "invert(100%)"}} width={40} height={40}  />
-                                </div>
-                               
-                            </div>
-                    </NavLink>
-
+                display: "flex", justifyContent:"center",alignItems: "center",
+                 
+                 }}
+                className={styles.menu__item} 
+                about={"Log-out"} 
+                onClick={onLogoutClick}
+            >
+               
+                <ImageDiv width={40} height={40} style={{borderRadius: 10,}}  netImage={{backgroundColor: "", image: "/Images/icons/lock-open-outline.svg", filter: "invert(100%)"}} />
+                  
             </div>
         
 

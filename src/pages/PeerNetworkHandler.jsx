@@ -10,7 +10,7 @@ import { status } from "../constants/constants";
 
 export const PeerNetworkHandler = (props ={}) => {
     const navigate = useNavigate()
-    const connected = useZust((state) => state.connected)
+
 
     const configFile = useZust((state) => state.configFile)
 
@@ -53,7 +53,7 @@ export const PeerNetworkHandler = (props ={}) => {
         setPeerConnection(null)
         setPeerOnline(false)
 
-        if(connected){
+        if(!socket.disconnected){
             socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
 
             }))
@@ -64,7 +64,7 @@ export const PeerNetworkHandler = (props ={}) => {
     const onPeerDisconnect = () =>{
         setPeerOnline(false)
         
-        if(connected){
+        if(!socket.disconnected){
             
             socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
 
@@ -92,10 +92,14 @@ export const PeerNetworkHandler = (props ={}) => {
             }
         }, 4000)
     }
+    useEffect(()=>{
+        return ()=>{
+            onPeerClose()
+        }
+    },[])
 
     useEffect(()=>{
-        console.log(configFile)
-        console.log(peerConnection)
+
         if(configFile.value != null){
             if (configFile.value.peer2peer){
                 if(peerConnection == null){
@@ -104,21 +108,16 @@ export const PeerNetworkHandler = (props ={}) => {
                     if(peerConnection.disonnected){
                         peerReconnect()
                     }else{
-                        setPeerOnline(true)
+                        
                     }
                 }
             }else{
-                console.log("peer2peer false")
-                if(peerConnection != null)
-                {
-                    console.log("destroying")
-                    peerConnection.destroy();
-                }
+                
+                onPeerClose()
             }
         }else{
-            if (peerConnection != null) {
-                console.log("destroying")
-                peerConnection.destroy();
+            if (peerConnection != null || peerOnline) {
+                onPeerClose()
             }
             
         }
@@ -133,7 +132,7 @@ export const PeerNetworkHandler = (props ={}) => {
     return (
         <>
           {
-            ! peerOnline && connected &&
+            ! peerOnline && 
                 <ImageDiv onClick={(e)=>{
                     navigate("/home/peernetwork")
                 }} width={30} height={30} netImage={{ image: "/Images/icons/cloud-offline-outline.svg", width:15, height:15, filter:"invert(100%)" }} /> 

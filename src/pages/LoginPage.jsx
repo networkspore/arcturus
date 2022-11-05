@@ -61,11 +61,12 @@ import { get } from "idb-keyval";
         }));
 
     }
-    
-
+  
+    const socket = useZust((state) => state.socket)
     useEffect(()=>{
       
         let isLogin = false;
+  
     
         if(autoLogin){
             if ("login" in cookie){
