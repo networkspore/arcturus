@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } f
 import { ImageDiv } from "./ImageDiv";
 import styles from "../../css/home.module.css"
 import { useNavigate } from "react-router-dom";
+import produce from "immer";
 
 
 const FileList = (props = {}, ref) => {
@@ -14,7 +15,7 @@ const FileList = (props = {}, ref) => {
 
     const filesStyle = { zIndex: "9999", textAlign: "left", color: "#cdd4da", position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)",  };
     const rowStyle = { margin: "0px 10px 10px 10px", display: "flex", alignItems: "center", flex:1, }
-    const textStyle = { backgroundColor: "rgba(0,0,0,0)", fontSize: "20px", fontFamily: "WebPapyrus", outline: 0, borderWidth: "0 0 2px", borderColor: "#ffe51c", color: "#D6BD00", textAlign: "left", width: "100%", cursor: "pointer" };
+    const textStyle = { color: "white", paddingTop: 10, fontFamily: "webrockwell", display: "flex", alignItems: "center", justifyContent: "center" } ;
     const tableStyle = {
         display: "flex",
         flexDirection: "column",
@@ -59,68 +60,125 @@ const FileList = (props = {}, ref) => {
 
     const [selectedCrc, setSelectedCrc] = useState(null);
     const [files, setFiles] = useState([]);
-    const [fileView, setFileView] = useState("list")
+    const [fileView, setFileView] = useState({type:"list",direction:"row", iconSize:{width:100,height:100}})
 
     useEffect(() => {
 
         if ("files" in props) {
             setFiles(props.files);
-          
         }
-        if("fileView" in props)
-        {
-            setFileView(props.fileView)
+        
+    }, [props.files])
+
+    useEffect(()=>{
+        if ("fileView" in props) {
+            
+            setFileView(produce((state)=>{
+                let optionsArray = Object.getOwnPropertyNames(props.fileView);
+
+                optionsArray.forEach(element => {
+                    state[element] = props.fileView[element]
+                })
+            }))
         }
-    }, [props.files, props.fileView])
+    },[props.fileView])
 
     useEffect(() => {
   
         var array = [];
-        if (files != null) {
-            const bounds = divRef.current.getBoundingClientRect()
-            switch(fileView)
+        if (files != null && divRef.current) {
+            const superBounds = divRef.current.getBoundingClientRect()
+            
+            const bounds = {width: superBounds.height < fileView.iconSize.width +20 ? fileView.iconSize.width + 20: superBounds.width,
+                height: superBounds.height < fileView.iconSize.height +20 ? fileView.iconSize.height + 20 : superBounds.height }
+            console.log(bounds)
+            if(bounds.width != 0 && bounds.height != 0){
+            switch(fileView.type)
             {
-                case "medium-icons":
-                    const iconSize = { width: 100, height: 100 }
+                case "icons":
+                    const iconSize = "iconSize" in fileView ? fileView.iconSize : { width: 75, height: 75 }
+                    if(fileView.direction != "column" ){
+                        const columns = Math.floor(bounds.width / (iconSize.width +20))
+                        const length = files.length;
+                        let i = 0;
 
-                    const columns = Math.floor(bounds.width / (iconSize.width +20))
-                    const length = files.length;
-                    let i = 0;
-
-                    while(i < length)
-                    {
-                        let j = 0;
-                        let innerRow = []
-                        while(j < columns && i < length)
+                        while(i < length)
                         {
-                            const iType = files[i].type;
-                            const iImage = "netImage" in files[i] ? files[i].netImage : { image: iType == "folder" ? "/Images/icons/folder-outline.svg" : "/Images/icons/document-outline.svg",  filter: "invert(100%)" };
-                            iImage.width = iconSize.width;
-                            iImage.height = iconSize.height;
-                            const iTo = "to" in files[i] ? files[i].to : null
+                            let j = 0;
+                            let innerRow = []
+                            while(j < columns && i < length)
+                            {
+                                const iType = files[i].type;
+                                const iImage = "netImage" in files[i] ? files[i].netImage : { image: iType == "folder" ? "/Images/icons/folder-outline.svg" : "/Images/icons/document-outline.svg",  filter: "invert(100%)" };
+                                iImage.width = iconSize.width;
+                                iImage.height = iconSize.height;
+                                const iTo = "to" in files[i] ? files[i].to : null
 
-                            const iName = files[i].name;
-                            innerRow.push( 
-                                <div key={i} style={{ paddingLeft:5,paddingRight:5, marginBottom:5, marginTop:5, display: "flex", flexDirection: "column" }} className={styles.result} tabIndex={i} onClick={(e) => {
+                                const iName = files[i].name;
+                                innerRow.push( 
+                                    <div key={i} style={{ paddingLeft: 5, paddingRight: 5, marginBottom: 5, marginTop: 5, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }} className={styles.result} tabIndex={i} onClick={(e) => {
 
-                                    if (iTo == null) {
-                                        setSelectedCrc(file.crc)
-                                    } else {
-                                        navigate(iTo)
-                                    }
-                                    //  setSelectedIndex(Number(index))
-                                }}> 
-                                    <ImageDiv width={iconSize.width} height={iconSize.height} netImage={iImage} />
-                                    <div style={{color:"white", fontFamily:"webrockwell", display:"flex", alignItems:"center", justifyContent:"center"}}>{iName}</div>
-                                </div>
-                            )
-                            i++;
-                            j++;
+                                        if (iTo == null) {
+                                            setSelectedCrc(files[i].crc)
+                                        } else {
+                                            navigate(iTo)
+                                        }
+                                        //  setSelectedIndex(Number(index))
+                                    }}> 
+                                        <ImageDiv width={iconSize.width } height={iconSize.height} netImage={iImage} />
+                                        <div style={textStyle}>{iName}</div>
+                                    </div>
+                                )
+                                i++;
+                                j++;
+                            }
+                            const row = <div key={"row"+j} style={{ width: "100%", display: "flex", paddingLeft: 0 }} > {innerRow}</div>
+                            array.push(row)
                         }
-                        const row = <div style={{ width: "100%", display: "flex", paddingLeft: 0 }} > {innerRow}</div>
-                        array.push(row)
-                    }
+                    }else{
+                        if(bounds.height > 0)
+                        {
+                            const rows = Math.floor(bounds.height / (iconSize.height + 50))
+                        
+                            const length = files.length;
+                            let i = 0;  
+                            
 
+                            while (i < length) {
+                                let j = 0;
+                                let innerColumn = []
+                                while (j < rows && i < length) {
+                                    const iType = files[i].type;
+                                    const iImage = "netImage" in files[i] ? files[i].netImage : { image: iType == "folder" ? "/Images/icons/folder-outline.svg" : "/Images/icons/document-outline.svg", filter: "invert(100%)" };
+                                    iImage.width= iconSize.width - 30;
+                                    iImage.height = iconSize.height
+                                    const iTo = "to" in files[i] ? files[i].to : null
+
+                                    const iName = selectedCrc == files[i].crc ? files[i].name : files[i].name.length > 9 ? files[i].name.slice(0,8) + "..." : files[i].name;
+                                    innerColumn.push(
+                                        <div key={i} style={{paddingLeft: 10, paddingRight: 10, marginBottom: 5, marginTop: 5, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }} className={styles.result} tabIndex={i} onClick={(e) => {
+
+                                            if (iTo == null) {
+                                                setSelectedCrc(files[i].crc)
+                                            } else {
+                                                navigate(iTo)
+                                            }
+                                            //  setSelectedIndex(Number(index))
+                                        }}>
+                                            <ImageDiv width={iconSize.width} height={iconSize.height} netImage={iImage} />
+                                            <div style={{ paddingTop: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>{iName}</div>
+                                        </div>
+                                    )
+                                    i++;
+                                    j++;
+                                }
+                             
+                                const column = <div key={"column" + j} style={{ width: iconSize.width, height:"100%", display: "flex", flexDirection:"column", paddingLeft: 0 }} > {innerColumn}</div>
+                                array.push(column)
+                            }
+                        }
+                    }
+                    
                     break;
                 default:
                     files.forEach((file, i) => {
@@ -159,12 +217,12 @@ const FileList = (props = {}, ref) => {
                             )
                         
                     });
-                }
+                }}
         }
 
         setList(array)
 
-    }, [files, selectedCrc])
+    }, [files, selectedCrc, fileView])
 
     useEffect(() => {
 
@@ -273,33 +331,36 @@ const FileList = (props = {}, ref) => {
 
 
     return (
-          <div style={{display:"block", width:"100%"}}>
-                        {fileView == "list" &&
-                        <div style={{ display: "flex", flex:1 }}>
-               
-                            <div style={{ flex: 0.1, color: "#777777", }}>&nbsp;</div>
-                            <div style={{ flex: 0.2, color: "#777777", }}>Type</div>
-                            <div style={{ flex: 0.2, color: "#777777", }} >CRC </div>
-                          
-                            <div style={{ flex: 1, color: "#777777", }}>Name</div>
-                            <div style={{ flex: 0.3, color: "#777777", }}>Last Modified</div>
-                            <div style={{ flex: 0.3, color: "#777777", }}>Size</div>
-       
-                        </div>
-                        }
-                        <div style={{
-                            marginBottom:'2px',
-                            marginLeft: "10px",
-                            height: "1px",
-                            width: "100%",
-                            backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
-                        }}>&nbsp;</div>
-                      
-                        <div ref={divRef} style={{width:"100%"}}>
-                             {list}
-                        </div>
+        <div style={{display:"flex", flexDirection:"column", width:"100%", height:"100%", marginLeft:30, marginRight:30}}>
+            {fileView.type == "list" &&
+                <div style={{ display: "flex", flex: 1, flexDirection:"column" }}>
+                    <div style={{ display: "flex", flex:1 }}>
+        
+                        <div style={{ flex: 0.1, color: "#777777", }}>&nbsp;</div>
+                        <div style={{ flex: 0.2, color: "#777777", }}>Type</div>
+                        <div style={{ flex: 0.2, color: "#777777", }} >CRC </div>
+                    
+                        <div style={{ flex: 1, color: "#777777", }}>Name</div>
+                        <div style={{ flex: 0.3, color: "#777777", }}>Last Modified</div>
+                        <div style={{ flex: 0.3, color: "#777777", }}>Size</div>
 
+                    </div>
+                    <div style={{
+                        marginBottom:'2px',
+                        marginLeft: "10px",
+                        height: "1px",
+                        width: "100%",
+                        backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
+                    }}>&nbsp;</div>
                 </div>
+            }
+            
+                      
+            <div ref={divRef} style={{display:"flex", width:"100%", height:"100%", flexDirection:fileView.direction == "row" ? "column" : "row"}}>
+                    {list}
+            </div>
+
+        </div>
       
     )
 }

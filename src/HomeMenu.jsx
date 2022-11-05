@@ -16,18 +16,13 @@ import { crc32FromArrayBuffer, getPermission, readFileJson } from "./constants/u
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
 import { PeerNetworkHandler } from "./pages/PeerNetworkHandler";
 import { ErgoNetworkHandler } from "./pages/ErgoNetworkHandler";
+import { CreateRealmPage } from "./pages/CreateRealmPage";
 
 
 const HomeMenu = ({ props}) => {
    
     const location = useLocation()
     const peerOnline = useZust((state) => state.peerOnline)
-    const terrainDirectory = useZust((state) => state.terrainDirectory);
-    const imagesDirectory = useZust((state) => state.imagesDirectory);
-    const objectsDirectory = useZust((state) => state.objectsDirectory);
-    const texturesDirectory = useZust((state) => state.texturesDirectory);
-    const mediaDirectory = useZust((state) => state.mediaDirectory);
-
 
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
@@ -35,16 +30,12 @@ const HomeMenu = ({ props}) => {
     const setTexturesDirectory = useZust((state) => state.setTexturesDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
-
-
     const setImagesFiles = useZust((state) => state.setImagesFiles)
     const setObjectsFiles = useZust((state) => state.setObjectsFiles)
     const setTexturesFiles = useZust((state) => state.setTextureFiles)
     const setTerrainFiles = useZust((state) => state.setTerrainFiles)
     const setMediaFiles = useZust((state) => state.setMediaFiles)
 
-    const goToEditor = useZust((state) => state.torilActive);
-    const setTorilActive =useZust((state) => state.setTorilActive);
     const [showMenu, setShowMenu] = useState(false) 
  
     const navigate = useNavigate();
@@ -159,6 +150,11 @@ const HomeMenu = ({ props}) => {
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(4);
                         break;
+                    case "/createRealm":
+                        if (!showMenu) setShowMenu(true);
+                        setShowIndex(6);
+                        break;
+
                     default:
                      
                         navigate('/network')
@@ -566,9 +562,12 @@ const HomeMenu = ({ props}) => {
         {showIndex == 5 &&
                 <RecoverPasswordPage  />
         }
-  
-            {(showMenu) &&
-                <div style={{ position: "fixed", top: 0, left: 0, height: pageSize.height, width: 85, backgroundImage: "linear-gradient(to bottom, #00000088,#20232588)" }}>
+        {showIndex == 6 &&
+            <CreateRealmPage />
+        }
+
+       {(showMenu) &&
+                <div style={{ position: "fixed", top: 0, left: 0, height: pageSize.height, width: 85, backgroundImage: "linear-gradient(to bottom, #000000,#20232588)" }}>
                     <div style={{ display: "flex", flexDirection: "column", height: pageSize.height, fontFamily: "WebPapyrus" }}>
                         <div style={{ flex: 1 }}>
 
@@ -594,7 +593,7 @@ const HomeMenu = ({ props}) => {
                         </div>
                         <div style={{ flex: 0.1 }}>
                             {connected &&
-                            <NavLink className={directory == "/createRealm" ? styles.menuActive : styles.menu__item} about="Create Realm"
+                            <NavLink className={location.pathname == "/createRealm"  ? styles.menuActive : styles.menu__item} about="Create Realm"
                                 to={'/createRealm'}>
                                     <ImageDiv width={60} height={60} netImage={{ image: "/Images/realm.png", filter: "invert(100%)", width: 45, height: 50 }} />
                                
@@ -613,8 +612,8 @@ const HomeMenu = ({ props}) => {
 
             }
             <div style={{
-                position: "fixed", top: 0, right: 0, height: 30, width:200,
-                backgroundImage: "linear-gradient(to bottom, #00000088,#10131488)"
+                position: "fixed", top: 0, right: 0, height: 35, width:200,
+                backgroundColor: "black"
             }}>
                 <div style={{ display: "flex" }}>
 

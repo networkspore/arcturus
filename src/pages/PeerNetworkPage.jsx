@@ -9,6 +9,7 @@ import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 
 import { ImageDiv } from './components/UI/ImageDiv';
 import { getFileInfo } from '../constants/utility';
+import { PeerNetworkMenu } from './PeerNetworkMenu';
 
 
 export const PeerNetworkPage = () => {
@@ -220,9 +221,7 @@ export const PeerNetworkPage = () => {
                 }
                
                     {showIndex == 0 && peerOnline &&
-                        <div style={{flex:1, display:"block", color:"white"}}>
-                            online
-                        </div>
+                        <PeerNetworkMenu />
                     }
                     {showIndex == 1 &&
                         <div style={{ flex: 1, display: "block", color: "white" }}>

@@ -162,8 +162,10 @@ export const NetworkPage = () => {
 
         switch(sD)
         {
-            case "/message":
+            case "/mail":
                 setShowIndex(1)
+            break;
+             
             break;
         }
 
@@ -230,7 +232,7 @@ export const NetworkPage = () => {
         {
             let tmpList = [];
             let confirmList = [];
-            contacts.forEach(contact => {
+            contacts.forEach((contact, i) => {
                 const name = contact.userName;
                 const status = contact.status;
                 const userID = contact.userID
@@ -239,7 +241,7 @@ export const NetworkPage = () => {
                 {
                     case "confirming":
                         confirmList.push(
-                            <div key={userID} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                            <div key={i} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
 
                                 <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
                             </div>
@@ -248,7 +250,7 @@ export const NetworkPage = () => {
                     case "accepted":
                         tmpList.push(
                             <>
-                            <div key={userID} 
+                            <div key={i} 
                             style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} 
                             className={styles.result} onClick={(e) =>{
                                 e.stopPropagation()
@@ -364,7 +366,7 @@ export const NetworkPage = () => {
  //boxShadow:"inset -5px 0 0 #776a05DD, inset 0 -5px 0 #776a05DD, inset 0px 0 0 #776a05, inset 0 0px 0 #776a05"
     return (
         <>
-
+           
             <div onClick={(e)=>{
                 setUserMenu({ userID: -1 })
             }} style={{
@@ -381,7 +383,7 @@ export const NetworkPage = () => {
                 }}></div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center",  padding: "10px" }}>
                     <ImageDiv netImage={{
-                        image: "Images/logo.png",
+                        image: "/Images/logo.png",
                         width: 130,
                         height: 130,
                     }} />
@@ -727,11 +729,11 @@ export const NetworkPage = () => {
             </div>
         </div>
          
-         {
-            showIndex == 1 &&
-            <MessagePage recipients={recipients}/>
-         }
-
+            {
+                showIndex == 1 &&
+                <MessagePage recipients={recipients} />
+            }
+            
             { requestContact != null &&
                 
                 < div style={{

@@ -49,7 +49,7 @@ export const ProfilePage = (props = {}) =>{
                         boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                     }}>
                     <div style={{
-                            paddingBottom: 10,
+                        paddingBottom: 10,
                         textAlign: "center",
                         width: "100%",
                         paddingTop: "10px",
@@ -58,9 +58,7 @@ export const ProfilePage = (props = {}) =>{
                         fontWeight: "bolder",
                         color: "#cdd4da",
                         textShadow: "2px 2px 2px #101314",
-                            backgroundImage: "linear-gradient(#131514, #000304EE )",
-                         
-                          
+                        backgroundImage: "linear-gradient(#131514, #000304EE )", 
                     }}>
                         Profile
                     </div>

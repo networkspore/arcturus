@@ -344,8 +344,8 @@ export const LocalStoragePage = () => {
                    <FileList tableStyle={{maxHeight:pageSize.height - 400}} files={currentFiles}/>
                 }
                 {showIndex == 0 && configFile.handle != null &&
-                    <div style={{flex:1, display:"block"}}>
-                        <FileList fileView={"medium-icons"} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
+                    
+                        <FileList fileView={{type:"icons",direction:"column", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
                                 { to: "/home/localstorage/images", name: "images", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
                                 { to: "/home/localstorage/objects", name: "objects", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
@@ -353,7 +353,7 @@ export const LocalStoragePage = () => {
                                 { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/init", name: configFile.name, type: "Config", crc: configFile.crc, lastModified: configFile.lastModified, size: configFile.size, netImage: { backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)"  }},
                         ]} />
-                    </div>
+                  
                 }
                 {showIndex == 1 &&
                     <InitStoragePage close={()=>{

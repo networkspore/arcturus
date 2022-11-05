@@ -22,7 +22,7 @@ export const OptionsMenu = (props = {}) =>{
 
     return (
         
-        <div key={"menu"} className={styles.result} style={{ flex: 1, marginLeft:15, fontFamily:"webpapyrus", fontSize:14, outline:0 }} tabIndex={-1} ref={divRef} >
+        <div key={contact.userID} className={styles.result} style={{ flex: 1, marginLeft:15, fontFamily:"webpapyrus", fontSize:14, outline:0 }} tabIndex={-1} ref={divRef} >
             <div>Profile</div>
         </div>
       
