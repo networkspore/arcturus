@@ -46,7 +46,7 @@ export const LocalStoragePage = () => {
         state.localDirectory = value;
     }));
 
-
+    const [currentDirectories, setCurrentDirectories] = useState([])
  
     const configFile = useZust((state) => state.configFile)
 
@@ -64,8 +64,9 @@ export const LocalStoragePage = () => {
     const [showInitPage, setShowInitPage] = useState(false)
     
 
-    function refreshOnClick(e) {
-
+    function onReload() {
+       
+       
     }
 
 
@@ -92,7 +93,9 @@ export const LocalStoragePage = () => {
                         setShowIndex(1)
                         break;
                     case "/images":
+                        setCurrentDirectories(imagesDirectory.directories)
                         setCurrentFiles(imagesFiles)
+                       
                         setShowIndex(2)
                         break;
                     case "/objects":
@@ -149,7 +152,7 @@ export const LocalStoragePage = () => {
         set("localDirectory" + user.userID, {name: name, handle: dirHandle})
         
         dirHandle.getFileHandle("arcturus.config").then((handle)=>{
-            console.log(handle)
+            
 
            readFileJson(handle, (json)=>{
                 if(json.success)
@@ -346,7 +349,7 @@ export const LocalStoragePage = () => {
                         maxHeight:"95%",
                         width:"100%"
                     }}>
-                        <FileList  files={currentFiles}/>
+                        <FileList directories={currentDirectories}  files={currentFiles}/>
                     </div>
                 }
                 {showIndex == 0 && configFile.handle != null &&

@@ -1,10 +1,11 @@
 import  SHA512  from "crypto-js/sha512";
 import MD5 from "crypto-js/md5";
 import WordArray from "crypto-js/lib-typedarrays";
-import Utf8 from "crypto-js/enc-utf8";
+
 
 
 import { randInt } from "three/src/math/MathUtils";
+
 
 
 export const crc32FromArrayBuffer = (ab, callback) => {
@@ -112,7 +113,7 @@ export function formatedNow(now = new Date(), small = false) {
     return small ? stringNow : stringNow + ":" + stringSeconds + ":" + stringMiliseconds;
 }
 
-export async function getFileInfo(entry) {
+export async function getFileInfo(entry, dirHandle) {
 
     return new Promise(resolve => {
         entry.getFile().then((file) => {
@@ -126,12 +127,12 @@ export async function getFileInfo(entry) {
 
                     if(mimeType == "image"){
                         getThumnailFile(file).then((dataURL)=>{
-                            resolve({ icon: dataURL, mimeType: mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                            resolve({directory:dirHandle, icon: dataURL, mimeType: mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
                         }).catch((err)=>{
-                            resolve({ icon: null, mimeType: mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                            resolve({ directory: dirHandle, icon: null, mimeType: mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
                         })
                     }else{
-                        resolve({icon:null, mimeType:mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                        resolve({ directory: dirHandle, icon:null, mimeType:mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
                     }
                 })
             })
@@ -202,6 +203,15 @@ export const generateCode = (words) =>{
     })
 }
 
+export async function getPermissionAsync(handle){
+    const opts = { mode: 'readwrite' };
+    const verified = await handle.queryPermission(opts);
+
+    const getVerified = verified == 'granted' ? verified : await handle.requestPermission(opts);
+
+    return getVerified;
+}
+
 export const getPermission = (handle, callback) => {
     const opts = { mode: 'readwrite' };
 
@@ -226,11 +236,48 @@ export function checkVisible(elm) {
     return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
 }
 
+export async function getFirstDirectoryFiles(dirHandle, fileTypes = {}) {
+    let files = []
+    let directories = []
+ 
+
+    await getDirectoryFiles(dirHandle, fileTypes, (file) =>{
+        files.push(file)
+    }, (d) =>{
+        directories.push(d)
+    })
+
+    return {files:files, directories:directories}
+
+}
+export async function getDirectoryFiles(dirHandle, fileTypes = {}, pushFile, pushDirectory) {
+
+    const push = pushFile;
+    
+    for await (const entry of dirHandle.values()) {
+
+        if (entry.kind === "file") {
 
 
-/*
-   
-*/
+            getPermission(entry, (valid) => {
+                if (valid) {
+                    getFileInfo(entry, dirHandle).then((newFile) => {
+                        push(newFile)
+                    }).catch((err)=>{
+                        console.log(err)
+                    })
+                }
+            })
+        } else if (entry.kind == 'directory') {
+            pushDirectory(entry)
+            getDirectoryFiles(entry,{},push, pushDirectory).then((result)=>{
+
+            })
+        }
+
+    }
+ 
+}
 
 export const resample = (canvas, scale) => {
 

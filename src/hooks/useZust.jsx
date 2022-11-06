@@ -15,8 +15,8 @@ const useZust = create((set) => ({
    terrainDirectory: { name: "terrain", handle: null },
    setTerrainDirectory: (value = { name: "terrain", handle: null }) => set({ terrainDirectory: value }),
 
-   imagesDirectory: { name: "images", handle: null },
-   setImagesDirectory: (value = { name: "images", handle: null }) => set({imagesDirectory: value}),
+   imagesDirectory: { name: "images", handle: null, directories:[] },
+   setImagesDirectory: (value = { name: "images", handle: null, directories:[] }) => set({imagesDirectory: value}),
 
    objectsDirectory: { name: "objects", handle: null },
    setObjectsDirectory: (value = { name: "objects", handle: null }) => set({objectsDirectory: value }),

@@ -22,8 +22,8 @@ export const PeerNetworkHandler = (props ={}) => {
 
     const socket = useZust((state) => state.socket)
     
-    const openPeerConnection = (key, onOpen, onCall, onClose, onDisconnect, onError) => useZust.setState(produce((state) => {
-        state.peerConnection = new Peer(key)
+    const openPeerConnection = (onOpen, onCall, onClose, onDisconnect, onError) => useZust.setState(produce((state) => {
+        state.peerConnection = new Peer()
         state.peerConnection.on("open", onOpen)
         state.peerConnection.on("call", onCall)
         state.peerConnection.on("close", onClose)
@@ -38,8 +38,8 @@ export const PeerNetworkHandler = (props ={}) => {
 
     const onPeerOpen = (id) =>{
         setPeerOnline(true)
-        
-        socket.emit("PeerStatus",(status.Online, configFile.value.engineKey, (callback)=>{
+        console.log(id)
+        socket.emit("PeerStatus",(status.Online, id, (callback)=>{
 
         }))
     }
@@ -54,9 +54,11 @@ export const PeerNetworkHandler = (props ={}) => {
         setPeerOnline(false)
 
         if(!socket.disconnected){
-            socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
+            if(socket!= null && configFile.value != null){
+                socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
 
-            }))
+                }))
+            }
         }
 
     }
@@ -103,7 +105,7 @@ export const PeerNetworkHandler = (props ={}) => {
         if(configFile.value != null){
             if (configFile.value.peer2peer){
                 if(peerConnection == null){
-                    openPeerConnection(configFile.value.engineKey, onPeerOpen, onPeerCall, onPeerClose, onPeerDisconnect,onPeerError)
+                    openPeerConnection(onPeerOpen, onPeerCall, onPeerClose, onPeerDisconnect,onPeerError)
                 }else{
                     if(peerConnection.disonnected){
                         peerReconnect()

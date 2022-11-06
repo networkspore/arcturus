@@ -12,12 +12,37 @@ import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 import { SystemMessagesMenu } from "./SystemMessagesMenu";
 import { get } from "idb-keyval";
 
-import { crc32FromArrayBuffer, getPermission, readFileJson } from "./constants/utility";
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
 import { PeerNetworkHandler } from "./pages/PeerNetworkHandler";
 import { ErgoNetworkHandler } from "./pages/ErgoNetworkHandler";
 import { CreateRealmPage } from "./pages/CreateRealmPage";
-import { getFileInfo } from "./constants/utility";
+
+import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
+
+import { getFileInfo, getDirectoryFiles, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
+
+const createWorker = createWorkerFactory(() => import('./constants/utility'));
+import loadingStyles from './pages/css/loading.module.css';
+
+const Loader = ()=>{
+    
+
+
+    return(
+        <>  <div className={loadingStyles.loading}  >
+            <div >
+            <div className={loadingStyles.logo}></div>
+            <div className={loadingStyles.loadingText}>
+                Loading
+
+            </div>
+
+            </div>
+
+            </div>
+        </>
+    )
+}
 
 const HomeMenu = ({ props}) => {
    
@@ -47,7 +72,7 @@ const HomeMenu = ({ props}) => {
     const socket = useZust((state) => state.socket);
 
 
-
+    const [loading, setLoading] = useState(false)
 
     const addSystemMessage = (msg) => useZust.setState(produce((state) => {
         let found = false;
@@ -115,35 +140,36 @@ const HomeMenu = ({ props}) => {
     
     const [directory, setDirectory] = useState("")
 
+    const setPage = useZust((state) => state.setPage)
+
     useEffect(() => {
         let currentLocation = location.pathname;
 
         const secondSlash = currentLocation.indexOf("/", 1)
 
-        currentLocation  = secondSlash == -1 ? currentLocation : currentLocation.slice(0,secondSlash)
+        currentLocation = secondSlash == -1 ? currentLocation : currentLocation.slice(0, secondSlash)
 
         setDirectory(currentLocation)
 
+
         if (user.userID > 0) {
+           
             if (currentLocation == '/') {
 
-                navigate("/network")
+                if (!showMenu) setShowMenu(true);
                 
             } else {
-                const secondSlash = currentLocation.indexOf("/", 1)
 
                 const rootDirectory = currentLocation.slice(0, secondSlash == -1 ? currentLocation.length : secondSlash)
 
-                //  const subDirectory = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
-
-
-
-
                 switch (rootDirectory) {
+                    case "/login":
+                        navigate("/loading")
+                        break;
                     case "/network":
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(3)
-                      
+
                         break;
                     case "/home":
                         if (!showMenu) setShowMenu(true);
@@ -153,11 +179,17 @@ const HomeMenu = ({ props}) => {
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(6);
                         break;
+                    case "/loading":
+                        setPage(null)
+                        setShowMenu(false)
+                        setShowIndex(-1)
+
+                        break;
 
                     default:
-                     
+
                         navigate('/network')
-                
+
                 }
 
             }
@@ -166,7 +198,6 @@ const HomeMenu = ({ props}) => {
          
 
             switch (currentLocation) {
-                case '/':
                 case '/login':
                     setShowIndex(1)
                     break;
@@ -177,7 +208,7 @@ const HomeMenu = ({ props}) => {
                     setShowIndex(5)
                     break;
                 default:
-                    navigate("/")
+                    navigate("/login")
                     break;
             }
         }
@@ -188,7 +219,7 @@ const HomeMenu = ({ props}) => {
 
     useEffect(() => {
         if (user.userID > 0) {
-
+           
             socketOff("disconnect")
             socketOn("disconnect", (res) => {
                 switch (res) {
@@ -251,42 +282,50 @@ const HomeMenu = ({ props}) => {
                                                             } else {
                                                                 console.log(file)
                                                                 addSystemMessage(initStorage)
+                                                                navigate("/network")
                                                             }
                                                         })
                                                     } else {
                                                         console.log(json)
                                                         addSystemMessage(initStorage)
+                                                        navigate("/network")
                                                     }
                                                 
                                         }else{
                                             console.log(err)
                                             addSystemMessage(initStorage)
+                                            navigate("/network")
                                         }
                                     })
                                     
                                 }).catch((err) => {
                                     console.log(err)
                                     addSystemMessage(initStorage)
+                                    navigate("/network")
                                 })
                                
                             }).catch((err) => {
                                 console.log(err)
                                 addSystemMessage(initStorage)
+                                navigate("/network")
                             })
                            
                         }else{
                             addSystemMessage(initDirectory)
+                            navigate("/network")
                         }
                     })
                     
                 } else {
             
                     addSystemMessage(firstSetup)
+                    navigate("/network")
                 }
 
             }).catch((reason) => {
                 console.error(reason)
                 addSystemMessage(initDirectory)
+                navigate("/network")
             })
             
         }
@@ -322,173 +361,94 @@ const HomeMenu = ({ props}) => {
        
     },[campaigns,currentCampaign])
 
+    const worker = useWorker(createWorker)
+    
 
-    const setFolderDefaults = (config) => {
+    const addImageFile = (file) => useZust.setState(produce((state)=>{
+        state.imagesFiles.push(file)
+    }))
+
+
+
+    async function setFolderDefaults(config) {
         const engineKey = config.engineKey;
 
-        if(localDirectory.handle != null){
-            if (config.folders.images.default) {
-                localDirectory.handle.getDirectoryHandle("images", { create: true }).then((handle) => {
-                    
-                    getDirectoryFiles(handle, config.folders.images.fileTypes).then((directoryFiles) => {
-                        setImagesDirectory({ name: handle.name, handle: handle });
-                        setImagesFiles(directoryFiles)
-                    })
-                
-                })
-            }else{
-                get("images"+engineKey).then((value)=>{
-                    if(value != undefined)
-                    {
-                        getPermission(value.handle, (granted)=>{
+         
+        
+        const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
 
-                            getDirectoryFiles(value.handle, config.folders.images.fileTypes).then((directoryFiles) => {
-                                setImagesDirectory({ name: value.name, handle: value.handle, });
-                                setImagesFiles(directoryFiles)
-                            })
-                            
-                           
-                        })
-                    }
-                }).catch((err) => {
-                    console.error(err)
-                })
-            }
-            if (config.folders.objects.default) {
-                localDirectory.handle.getDirectoryHandle("objects", { create: true }).then((handle) => {
-                    getDirectoryFiles(handle, config.folders.objects.fileTypes).then((directoryFiles) => {
-                        setObjectsFiles(directoryFiles)
-                        setObjectsDirectory({ name: handle.name, handle: handle});
-                    })
-                })
-            }else{
-                get("objects" + engineKey).then((value) => {
-                    if (value != undefined) {
-                        getPermission(value.handle, (granted) => {
-                            getDirectoryFiles(value.handle, config.folders.objects.fileTypes).then((directoryFiles) => {
-                                setObjectsDirectory(value)
-                                setObjectsFiles(directoryFiles)
-                            })
-                           
-                        })
-                    }
-                }).catch((err) => {
-                    console.error(err)
-                })
-            }
-            if (config.folders.terrain.default) {
-                localDirectory.handle.getDirectoryHandle("terrain", { create: true }).then((handle) => {
-                    getDirectoryFiles(handle, config.folders.terrain.fileTypes).then((directoryFiles) => {
-                        setTerrainFiles(directoryFiles)
-                        setTerrainDirectory({ name: handle.name, handle: handle });
-                    })
-                })
-            }else{
-                get("terrain" + engineKey).then((value) => {
-                    if (value != undefined) {
-                        getPermission(value.handle, (granted) => {
-                            getDirectoryFiles(value.handle, config.folders.terrain.fileTypes).then((directoryFiles) => {
-                                setTerrainFiles(directoryFiles)
-                                setTerrainDirectory(value)
-                            })
-                        })
-                    }
-                }).catch((err) => {
-                    console.error(err)
-                })
-            }
-            if (config.folders.textures.default) {
-                localDirectory.handle.getDirectoryHandle("textures", { create: true }).then((handle) => {
-                    getDirectoryFiles(handle, config.folders.textures.fileTypes).then((directoryFiles) => {
-                        setTexturesFiles(directoryFiles)
-                        setTexturesDirectory({ name: handle.name, handle: handle });
-                    })
-                })
-            }else{
-                get("textures" + engineKey).then((value) => {
-                    if (value != undefined) {
-                        getPermission(value.handle, (granted) => {
-                            getDirectoryFiles(value.handle, config.folders.textures.fileTypes).then((directoryFiles) => {
-                                setTexturesFiles(directoryFiles)
-                                setTexturesDirectory(value)
-                            })
-                        })
-                    }
-                }).catch((err) => {
-                    console.error(err)
-                })
-            }
-            if (config.folders.media.default) {
-                localDirectory.handle.getDirectoryHandle("media", { create: true }).then((handle) => {
-
-                    getDirectoryFiles(handle, config.folders.media.fileTypes).then((directoryFiles) => {
-                     
-                        setMediaFiles(directoryFiles)
-                        setMediaDirectory({ name: handle.name, handle: handle });
-                    })
-                })
-            }else{
-                get("media" + engineKey).then((value) => {
-                    if (value != undefined) {
-                        getPermission(value.handle, (granted) => {
-                            getDirectoryFiles(value.handle, config.folders.media.fileTypes).then((directoryFiles) => {
-                                setMediaDirectory(value)
-                            })
-                        })
-                    }
-                }).catch((err) => {
-                    console.error(err)
-                })
-            }
-        }
-    }
+        const granted = await getPermissionAsync(imageHandle)
+        
 
 
+        const images = granted ?  await worker.getFirstDirectoryFiles(imageHandle, config.folders.images.fileTypes) : null;
+
+        
+
+        const objectsHandle = config.folders.objects.default ? await localDirectory.handle.getDirectoryHandle("objects", { create: true }) : await get("objects" + engineKey);
+
+        const objectsGranted = await getPermissionAsync(objectsHandle)
 
 
-    async function getDirectoryFiles(dirHandle, fileTypes = {}) {
+        const objects = objectsGranted ? await worker.getFirstDirectoryFiles(objectsHandle, config.folders.objects.fileTypes) : null;
+        
 
-        let files = [];
+        const terrainHandle = config.folders.terrain.default ? await localDirectory.handle.getDirectoryHandle("terrain", { create: true }) : await get("terrain" + engineKey);
 
-        for await (const entry of dirHandle.values()) {
+        const terrainGranted = await getPermissionAsync(terrainHandle)
 
-            if (entry.kind === "file") {
 
-                /*entry
-                fileSystemHandle
-                kind:
-                name:
-                isSameEntry()
-                queryPermission
-                requestPermission
-                */
+        const terrain = terrainGranted ? await worker.getFirstDirectoryFiles(terrainHandle, config.folders.terrain.fileTypes) : null;
+           
+        const mediaHandle = config.folders.media.default ? await localDirectory.handle.getDirectoryHandle("media", { create: true }) : await get("media" + engineKey);
 
-                /*
-                file
-                name:
-                lastModified: 
-                type:
-                size:
-                */
-                getPermission(entry,(valid)=>{
-                    if(valid){
-                        getFileInfo(entry).then((newFile) => {
-                            files.push(newFile)
-                        }
-                        ).catch((err) => {
-                            console.log(err)
-                        })
-                    }
-                })
+        const mediaGranted = await getPermissionAsync(mediaHandle)
 
-                // out[file.name] = file;
-            }
+
+        const media = mediaGranted ? await worker.getFirstDirectoryFiles(mediaHandle, config.folders.media.fileTypes) : null;
+
+      
+        
+        if (images != null) {
+            setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
+            setImagesFiles(images.files)
 
         }
-
-        return new Promise(resolve => { resolve(files) })
-
+        if(objects != null )
+        {
+            setObjectsDirectory({ name: objectsHandle.name, handle: objectsHandle, directories: objects.directories })
+            setObjectsFiles(objects.files)
+        }
+        if (terrain != null) {
+            setTerrainDirectory({ name: terrainHandle.name, handle: terrainHandle, directories: terrain.directories })
+            setTerrainFiles(terrain.files)
+        }
+        if (media != null) {
+            setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories })
+            setMediaFiles(media.files)
+        }
+        return  true;
     }
+    
+
+    /*entry
+        fileSystemHandle
+        kind:
+        name:
+        isSameEntry()
+        queryPermission
+        requestPermission
+        */
+
+    /*
+    file
+        name:
+        lastModified: 
+        type:
+        size:
+    */
+
+    
 
 
     useEffect(()=>{
@@ -499,14 +459,22 @@ const HomeMenu = ({ props}) => {
 
             if("engineKey" in config)
             {
-                setFolderDefaults(config)
-             
+                setFolderDefaults(config).then((promise)=>{
+                    setTimeout(() => {
+                        navigate("/network")
+                    }, 500);
+                })
+                
+
             }
         }
 
     },[configFile])
     
 
+    const page = useZust((state)=>state.page)
+   
+   
 
 
     /*     <NavLink className={(navData) => navData.isActive ? styles.menuActive : styles.menu__item} about="D&D" to={'/campaign'}>
@@ -526,7 +494,11 @@ const HomeMenu = ({ props}) => {
     return (
         <>
           
+        {
+            page == null &&
 
+            <Loader />
+        }
             
        
         {showIndex == 1 &&
@@ -628,6 +600,7 @@ const HomeMenu = ({ props}) => {
                     <SystemMessagesMenu />
                     
             </div>
+            
         </>
     )
     

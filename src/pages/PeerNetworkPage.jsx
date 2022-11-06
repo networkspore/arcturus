@@ -74,7 +74,7 @@ export const PeerNetworkPage = () => {
     }
   
     const onReload = () =>{
-
+        peerConnection.reconnect()
     }
 
     return (
