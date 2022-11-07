@@ -249,7 +249,7 @@ export const NetworkPage = () => {
                         break;
                     case "accepted":
                         tmpList.push(
-                            <>
+                            <div key={i} >
                             <div key={i} 
                             style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} 
                             className={styles.result} onClick={(e) =>{
@@ -266,9 +266,9 @@ export const NetworkPage = () => {
 
                             </div>
                                 {userMenu.userID == c.userID &&
-                                    <OptionsMenu user={userMenu}  />
+                                    <OptionsMenu  user={userMenu}  />
                                 }
-                           </>
+                            </div>
                         )
                         break;
                     

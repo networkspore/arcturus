@@ -22,7 +22,6 @@ export const HomePage = (props ={}) => {
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const objectsDirectory = useZust((state) => state.objectsDirectory);
-    const texturesDirectory = useZust((state) => state.texturesDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
     const pageSize = useZust((state) => state.pageSize)
@@ -31,7 +30,7 @@ export const HomePage = (props ={}) => {
     const nav = useNavigate();
     const setUser = useZust((state) => state.setUser)
 
-
+    const [subDirectory, setSubDirectory] = useState("")
 
     const location = useLocation();
 
@@ -78,7 +77,9 @@ export const HomePage = (props ={}) => {
             setProfile(value)
         })
     },[configFile])
-    const [subDirectory, setSubDirectory] = useState("")
+
+
+
     useEffect(()=>{
         const currentLocation = location.pathname;
 
@@ -197,19 +198,7 @@ export const HomePage = (props ={}) => {
                             </div>
                         </NavLink>
                     }
-                    {texturesDirectory.handle != null &&
-                    
-                     <NavLink to={"/home/localstorage/textures"}>
-                                    <div style={{ color: location.pathname == "/home/localstorage/textures" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
-                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
-                            </div>
-                            <div style={{ paddingLeft: "10px" }} >
-                                Textures
-                            </div>
-                        </div>
-                        </NavLink>
-                    }
+
                     {terrainDirectory.handle != null &&
                         <NavLink to={"/home/localstorage/terrain"}>
                                     <div style={{ color: location.pathname == "/home/localstorage/terrain" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >

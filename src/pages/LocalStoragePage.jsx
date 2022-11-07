@@ -11,20 +11,19 @@ import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
 
 import { ImageDiv } from './components/UI/ImageDiv';
-import { getPermission } from '../constants/utility';
+import { getFileInfo, getPermission } from '../constants/utility';
 
 export const LocalStoragePage = () => {
 
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const objectsDirectory = useZust((state) => state.objectsDirectory);
-    const texturesDirectory = useZust((state) => state.texturesDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setObjectsDirectory = useZust((state) => state.setObjectsDirectory);
-    const setTexturesDirectory = useZust((state) => state.setTexturesDirectory);
+
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
     const terrainFiles = useZust((state) => state.terrainFiles);
@@ -33,6 +32,8 @@ export const LocalStoragePage = () => {
     const texturesFiles = useZust((state) => state.textureFiles);
     const mediaFiles = useZust((state) => state.mediaFiles);
 
+
+    const socket = useZust((state) => state.socket)
 
     const location = useLocation();
 
@@ -93,7 +94,7 @@ export const LocalStoragePage = () => {
                         setShowIndex(1)
                         break;
                     case "/images":
-                        setCurrentDirectories(imagesDirectory.directories)
+                      //  setCurrentDirectories(imagesDirectory.directories)
                         setCurrentFiles(imagesFiles)
                        
                         setShowIndex(2)
@@ -128,7 +129,7 @@ export const LocalStoragePage = () => {
     async function pickAssetDirectory() {
         try{
             const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-            await handleFirst(dirHandle)
+            handleFirst(dirHandle)
         }catch (error) {
             if(error == DOMException.ABORT_ERR) {
                 
@@ -141,35 +142,45 @@ export const LocalStoragePage = () => {
  
 
     async function handleFirst (dirHandle) {
-        turnOffLocalStorage()
-        
-        setFileList([])
-      
+         
         const name = await dirHandle.name;
   
         setLocalDirectory({ name: name, handle: dirHandle })
 
         set("localDirectory" + user.userID, {name: name, handle: dirHandle})
+        try{
+            const handle = await dirHandle.getFileHandle("arcturus.config");
         
-        dirHandle.getFileHandle("arcturus.config").then((handle)=>{
-            
+            const file = await getFileInfo(handle, dirHandle)
 
-           readFileJson(handle, (json)=>{
-                if(json.success)
-                {
+            readFileJson(handle, (json) => {
+                if (json.success) {
                     const config = json.value;
-                    if("engineKey" in config)
-                    {
-                        setConfigFile({ value: json.value, handle: handle, name: name })
-                    }
-                    
-                }else{
+   
+                    socket.emit("checkStorageCRC", file.crc, config.engineKey, (callback) => {
+                        if (callback.valid) {
+                            
+                            
+                                    if ("engineKey" in config) {
+                                        file.value = config;
+                                        setConfigFile(file)
+                                        navigate("/loading")
+                                    }
+                        
+                        } else {
+                            navigate("/home/localstorage/init")
+                        }
+
+                    })
+                } else {
                     navigate("/home/localstorage/init")
                 }
             })
-        }).catch((err)=>{
+          
+        } catch (err) {
             navigate("/home/localstorage/init")
-        })
+        }
+        
     }
 
 
@@ -192,9 +203,6 @@ export const LocalStoragePage = () => {
         setImagesDirectory();
 
         setObjectsDirectory();
-
-        setTexturesDirectory();
-
 
         setMediaDirectory();
 
@@ -357,7 +365,6 @@ export const LocalStoragePage = () => {
                         <FileList fileView={{type:"icons",direction:"column", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
                                 { to: "/home/localstorage/images", name: "images", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
                                 { to: "/home/localstorage/objects", name: "objects", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                { to: "/home/localstorage/textures", name: "textures", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/init", name: configFile.name, type: "Config", crc: configFile.crc, lastModified: configFile.lastModified, size: configFile.size, netImage: { backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)"  }},

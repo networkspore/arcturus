@@ -12,20 +12,17 @@ const useZust = create((set) => ({
    peerOnline:false,
    setPeerOnline:(value = false) => set({peerOnline:value}),
 
-   terrainDirectory: { name: "terrain", handle: null },
-   setTerrainDirectory: (value = { name: "terrain", handle: null }) => set({ terrainDirectory: value }),
+   imagesDirectory: {  name: "images", handle: null, directories: [] },
+   setImagesDirectory: (value = {  name: "images", handle: null, directories: [] }) => set({ imagesDirectory: value }),
 
-   imagesDirectory: { name: "images", handle: null, directories:[] },
-   setImagesDirectory: (value = { name: "images", handle: null, directories:[] }) => set({imagesDirectory: value}),
+   objectsDirectory: {  name: "objects", handle: null },
+   setObjectsDirectory: (value = {  name: "objects", handle: null }) => set({ objectsDirectory: value }),
 
-   objectsDirectory: { name: "objects", handle: null },
-   setObjectsDirectory: (value = { name: "objects", handle: null }) => set({objectsDirectory: value }),
+   terrainDirectory: {  name: "terrain", handle: null },
+   setTerrainDirectory: (value = {  name: "terrain", handle: null }) => set({ terrainDirectory: value }),
 
-   texturesDirectory: { name: "textures", handle: null },
-   setTexturesDirectory: (value = { name: "textures", handle: null }) => set({texturesDirectory: value }),
-
-   mediaDirectory: { name: "media", handle: null },
-   setMediaDirectory: (value = { name: "media", handle: null }) => set({mediaDirectory: value }),
+   mediaDirectory: {  name: "media", handle: null },
+   setMediaDirectory: (value = { lname: "media", handle: null }) => set({mediaDirectory: value }),
    
 
    imagesFiles: [],
@@ -37,8 +34,6 @@ const useZust = create((set) => ({
    terrainFiles: [],
    setTerrainFiles: (value = []) => set({ terrainFiles: value }),
 
-   textureFiles: [],
-   setTextureFiles: (value = []) => set({ textureFiles: value }),
 
    mediaFiles: [],
    setMediaFiles: (value = []) => set({ mediaFiles: value }),
@@ -126,11 +121,10 @@ const useZust = create((set) => ({
    setUserEmail: (userEmail = '') => set(produce(state => { state.user.userEmail = userEmail })),
    setUserSuper: (userSuper = 0) => set(produce(state => { state.user.userSuper = userSuper })),
 
-   loading: { loadPage: "/login", evt: "connect", msg: "Connecting" },
-   setLoading: (l = { loadPage: "/login", evt: "connect", msg: "Connecting" }) => set({loading:l}),
-   setLoadPage: ( l = "/login") => set(produce(state => {state.loading.loadPage = l})),
-   setEvt: (evt = "connect") => set(produce(state => { state.loading.evt = evt })),
-   setMsg: (msg = "Connecting") => set(produce(state => { state.loading.msg = msg })),
+   loading: { loadPage: "/network", finished:false, msg:"" },
+   setLoading: (value = { loadPage: "/network", finished: false, msg: "" }) => set({loading:value}),
+   setLoaded: ( value = true) => set(produce(state => {state.loading.finished = value})),
+   setMsg: (msg = "") => set(produce(state => { state.loading.msg = msg })),
 
    page: 0,
 

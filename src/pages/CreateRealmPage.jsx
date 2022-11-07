@@ -34,8 +34,7 @@ export const CreateRealmPage = (props = {}) =>{
     useEffect(()=>{
         if(selectImage){
             
-            imagesFiles
-        
+         
         }
     },[selectImage,imagesFiles])
 
@@ -73,6 +72,10 @@ export const CreateRealmPage = (props = {}) =>{
         setSelectImage(prev => !prev)
     }
 
+    const onImageSelected = (e) =>{
+
+    }
+
     const handleSubmit = (e) =>{
         const config = configFile.value;
         if(realmName != "" && imageSelected != null && config != null )
@@ -84,7 +87,7 @@ export const CreateRealmPage = (props = {}) =>{
     }
 
     const onCancelClick = (e) =>{
-        navigate("/")
+        navigate("/network")
     }
 
     return(
@@ -269,7 +272,7 @@ export const CreateRealmPage = (props = {}) =>{
                         </div>
                     </div>
                     <div style={{ justifyContent: "center", display: "flex", width:225, height: 400, overflowX:"visible", overflowY: "scroll", color: "white",  }}>
-                        <FileList search={imageSearch} fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100 } }} files={imagesFiles} />
+                        <FileList onClick={onImageSelected} search={imageSearch}  fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100 } }} files={imagesFiles} />
                     </div>
                     
                 </div>

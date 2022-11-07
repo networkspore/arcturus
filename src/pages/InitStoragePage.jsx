@@ -188,10 +188,6 @@ export const InitStoragePage = (props = {}) => {
                                 default: objectsDefault,
                                 fileTypes: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"]
                             },
-                            textures: { name: !texturesDefault ? customFolders.texture : texturesDirectory.name, 
-                                default: texturesDefault,
-                                fileTypes: ["apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
-                            },
                             terrain: { name: !terrainDefault ? customFolders.terrain : terrainDirectory.name, 
                                 default: terrainDefault, 
                                 fileTypes: ["json"]
@@ -224,9 +220,6 @@ export const InitStoragePage = (props = {}) => {
                                     }
                                     if (!objectsDefault) {
                                         set("objects" + engineKey, customFolders.objects)
-                                    }
-                                    if (!texturesDefault) {
-                                        set("textures" + engineKey, customFolders.texture)
                                     }
                                     if (!terrainDefault) {
                                         set("terrain" + engineKey, customFolders.terrain)
@@ -349,7 +342,7 @@ export const InitStoragePage = (props = {}) => {
 
     }
 
-    const [customFolders, setCustomFolders] = useState({images:null, objects:null,terrain:null,texture:null,media:null})
+    const [customFolders, setCustomFolders] = useState({images:null, objects:null,terrain:null,media:null})
 
 
 
@@ -640,56 +633,7 @@ export const InitStoragePage = (props = {}) => {
                                                 </div>
 
                                             </div>
-                                            <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                                <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    Textures Folder:
-                                                </div>
-                                                <div style={{ flex: 1 }}>
-
-                                                    <div onClick={async function (e) {
-                                                        try {
-                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-
-                                                            const name = await dirHandle.name;
-                                                            setCustomFolders(
-                                                                produce((state) => {
-                                                                    state.textures = { name: name, handle: dirHandle };
-                                                                })
-                                                            )
-
-                                                            setTexturesDefault(false)
-                                                        } catch (error) {
-                                                            if (error == DOMException.ABORT_ERR) {
-
-                                                            }
-                                                            setTexturesDefault(true)
-                                                        }
-                                                    }}
-
-                                                        style={{
-                                                            cursor: "pointer",
-                                                            width: 250,
-                                                            fontSize: 14,
-                                                            marginTop: 5,
-                                                            textAlign: "left",
-                                                            border: "0px",
-                                                            outline: 0,
-                                                            color: texturesDefault ? "#ffffff80" : "white",
-                                                            fontFamily: "webrockwell"
-                                                        }} >
-                                                        {texturesDirectory.name}
-                                                    </div>
-
-                                                </div>
-                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setTexturesDefault(prev => !prev) }} >
-                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                        default:
-                                                    </div>
-                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                        <div className={texturesDefault ? styles.checked : styles.check} />
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            
 
                                             <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>

@@ -460,9 +460,11 @@ const HomeMenu = ({ props}) => {
             if("engineKey" in config)
             {
                 setFolderDefaults(config).then((promise)=>{
-                    setTimeout(() => {
-                        navigate("/network")
-                    }, 500);
+                    
+                        setTimeout(() => {
+                            navigate("/network")
+                        }, 1000);
+                    
                 })
                 
 

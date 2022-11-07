@@ -145,7 +145,7 @@ const FileList = (props = {}, ref) => {
                                 }
                                 //  setSelectedIndex(Number(index))
                             }}>
-                                <div style={{ flex: 0.1 }}>
+                                <div style={{ flex: 0.1, alignItems:"center", justifyContent:"center" }}>
                                     {iImage != null &&
 
                                         <ImageDiv width={20} height={20} netImage={iImage} />
