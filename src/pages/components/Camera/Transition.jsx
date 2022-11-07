@@ -128,7 +128,7 @@ export function Transition(props) {
                         x = usePosition.current.position.x;
                     } else {
                         
-                        if (difference > increase + 10 ) {
+                        if (difference > increase + 100 ) {
                             if (useFast.current.x) useFast.current.x = false;
                             x = usePosition.current.position.x;
                             if (usePosition.current.position.x < x + slow) {
@@ -152,7 +152,7 @@ export function Transition(props) {
                         y = usePosition.current.position.y;
                     } else {
                         if (useFast.current.y) useFast.current.y = false;
-                        if (difference > increase + 10) {
+                        if (difference > increase + 100) {
                             y = usePosition.current.position.y;
                             if (usePosition.current.position.y < y + increase) {
                                 usePosition.current.position.y += increase;
