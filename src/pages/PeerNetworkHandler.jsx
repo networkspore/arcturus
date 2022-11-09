@@ -22,7 +22,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
     const socket = useZust((state) => state.socket)
     
-    const openPeerConnection = (onOpen, onCall, onClose, onDisconnect, onError) => useZust.setState(produce((state) => {
+    const openPeerConnection = (onOpen =onPeerOpen, onCall = onPeerCall, onClose = onPeerClose, onDisconnect = onPeerDisconnect, onError = onPeerError) => useZust.setState(produce((state) => {
         state.peerConnection = new Peer()
         state.peerConnection.on("open", onOpen)
         state.peerConnection.on("call", onCall)
@@ -31,9 +31,18 @@ export const PeerNetworkHandler = (props ={}) => {
         state.peerConnection.on('error', onError);
     }))
 
-    const onPeerError = (error) =>{
-        console.log("Peer network error:")
-        console.log(error)
+    const onPeerError = (error = new Error("null")) =>{
+        if (error.message == "Lost connection to server.")
+        {
+           if(peerConnection == null)
+           {
+                openPeerConnection()
+           }else{
+               peerReconnect()
+           }
+            
+        }
+       
     }
 
     const onPeerOpen = (id) =>{
@@ -123,11 +132,11 @@ export const PeerNetworkHandler = (props ={}) => {
             }
             
         }
-    },[configFile])
+    },[configFile,peerConnection])
 
     useEffect(() => {
       
-        console.log(peerConnection)
+        if(peerConnection == null) setPeerOnline(false)
 
     }, [peerConnection])
 

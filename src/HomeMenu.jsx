@@ -15,34 +15,16 @@ import { get } from "idb-keyval";
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
 import { PeerNetworkHandler } from "./pages/PeerNetworkHandler";
 import { ErgoNetworkHandler } from "./pages/ErgoNetworkHandler";
-import { CreateRealmPage } from "./pages/CreateRealmPage";
-
+import { RealmsPage } from "./pages/RealmsPage";
+import { LoadingPage } from "./LoadingPage";
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 
-import { getFileInfo, getDirectoryFiles, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
+import { getFileInfo, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
-import loadingStyles from './pages/css/loading.module.css';
-
-const Loader = ()=>{
-    
 
 
-    return(
-        <>  <div className={loadingStyles.loading}  >
-            <div >
-            <div className={loadingStyles.logo}></div>
-            <div className={loadingStyles.loadingText}>
-                Loading
 
-            </div>
-
-            </div>
-
-            </div>
-        </>
-    )
-}
 
 const HomeMenu = ({ props}) => {
    
@@ -54,12 +36,10 @@ const HomeMenu = ({ props}) => {
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setObjectsDirectory = useZust((state) => state.setObjectsDirectory);
-    const setTexturesDirectory = useZust((state) => state.setTexturesDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
     const setImagesFiles = useZust((state) => state.setImagesFiles)
     const setObjectsFiles = useZust((state) => state.setObjectsFiles)
-    const setTexturesFiles = useZust((state) => state.setTextureFiles)
     const setTerrainFiles = useZust((state) => state.setTerrainFiles)
     const setMediaFiles = useZust((state) => state.setMediaFiles)
 
@@ -71,6 +51,7 @@ const HomeMenu = ({ props}) => {
     const user = useZust((state) => state.user);
     const socket = useZust((state) => state.socket);
 
+    const configFile = useZust((state) => state.configFile)
 
     const [loading, setLoading] = useState(false)
 
@@ -98,7 +79,7 @@ const HomeMenu = ({ props}) => {
     const currentCampaign = useZust((state) => state.currentCampaign)
 
     const setConfigFile = useZust((state) => state.setConfigFile)
-    const configFile = useZust((state) => state.configFile)
+
     const [showIndex, setShowIndex] = useState(false);
 
     
@@ -123,6 +104,8 @@ const HomeMenu = ({ props}) => {
         }
     }))
 
+    const setSystemMessages = useZust((state)=> state.setSystemMessages)
+
     const logout = () => {
         setAutoLogin(false);
         setUser();
@@ -130,6 +113,7 @@ const HomeMenu = ({ props}) => {
         setSocket(null)
         setPeerOnline(false)
         setShowMenu(false)
+        setSystemMessages([])
     }
     const setLocalDirectory = useZust((state) => state.setLocalDirectory)
     const setFiles = (value) => useZust.setState(produce((state) => {
@@ -141,6 +125,8 @@ const HomeMenu = ({ props}) => {
     const [directory, setDirectory] = useState("")
 
     const setPage = useZust((state) => state.setPage)
+
+    const [onComplete, setOnComplete] = useState("/network")
 
     useEffect(() => {
         let currentLocation = location.pathname;
@@ -164,7 +150,7 @@ const HomeMenu = ({ props}) => {
 
                 switch (rootDirectory) {
                     case "/login":
-                        navigate("/loading")
+                    
                         break;
                     case "/network":
                         if (!showMenu) setShowMenu(true);
@@ -174,16 +160,34 @@ const HomeMenu = ({ props}) => {
                     case "/home":
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(4);
+                        setPage(3)
                         break;
-                    case "/createRealm":
+                    case "/realms":
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(6);
                         break;
+                    case "/realm":
+                        if(showMenu) setShowMenu(false)
+                        setShowIndex(7);
+                        break;
                     case "/loading":
-                        setPage(null)
-                        setShowMenu(false)
-                        setShowIndex(-1)
 
+                        if(location.state != null)
+                        {
+                            setPage(null)
+                            setShowMenu(false)
+                            setShowIndex(-1)
+                            if ("navigate" in location.state) {
+
+                                setOnComplete(location.state.navigate)
+                            }
+                            if ("configFile" in location.state) {
+
+                                setConfigFile(location.state.configFile)
+                            }
+                            
+
+                        }
                         break;
 
                     default:
@@ -199,6 +203,7 @@ const HomeMenu = ({ props}) => {
 
             switch (currentLocation) {
                 case '/login':
+                    setSocket(null)
                     setShowIndex(1)
                     break;
                 case '/welcome':
@@ -224,7 +229,7 @@ const HomeMenu = ({ props}) => {
             socketOn("disconnect", (res) => {
                 switch (res) {
                     case "io server disconnect":
-                        setSocket(null)
+                        logout()
                         break;
 
                 }
@@ -277,8 +282,8 @@ const HomeMenu = ({ props}) => {
                                                         socket.emit("checkStorageCRC", file.crc, config.engineKey, (callback) => {
                                                             if (callback.valid) {
                                                                 file.value = config;
+                                                                navigate("/loading", { state: { configFile: file, navigate:"/network" } })
 
-                                                                setConfigFile(file)
                                                             } else {
                                                                 console.log(file)
                                                                 addSystemMessage(initStorage)
@@ -333,7 +338,26 @@ const HomeMenu = ({ props}) => {
 
 
 
+    useEffect(() => {
 
+        if (configFile.value != null) {
+            const config = configFile.value;
+
+            if ("engineKey" in config) {
+
+                setFolderDefaults(config).then((promise) => {
+
+                    setTimeout(() => {
+                        navigate(onComplete)
+                    }, 100);
+
+                })
+
+
+            }
+        }
+
+    }, [configFile])
 
 
     
@@ -372,8 +396,7 @@ const HomeMenu = ({ props}) => {
 
     async function setFolderDefaults(config) {
         const engineKey = config.engineKey;
-
-         
+    
         
         const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
 
@@ -451,28 +474,7 @@ const HomeMenu = ({ props}) => {
     
 
 
-    useEffect(()=>{
-        
-        if(configFile.value != null)
-        {
-            const config = configFile.value;
 
-            if("engineKey" in config)
-            {
-                setFolderDefaults(config).then((promise)=>{
-                    
-                        setTimeout(() => {
-                            navigate("/network")
-                        }, 1000);
-                    
-                })
-                
-
-            }
-        }
-
-    },[configFile])
-    
 
     const page = useZust((state)=>state.page)
    
@@ -499,7 +501,7 @@ const HomeMenu = ({ props}) => {
         {
             page == null &&
 
-            <Loader />
+            <LoadingPage />
         }
             
        
@@ -519,12 +521,13 @@ const HomeMenu = ({ props}) => {
                 <RecoverPasswordPage  />
         }
         {showIndex == 6 &&
-            <CreateRealmPage />
+                <RealmsPage />
         }
 
        {(showMenu) &&
-                <div style={{ position: "fixed", top: 0, left: 0, height: pageSize.height, width: 85, backgroundImage: "linear-gradient(to bottom, #000000,#20232588)" }}>
+                <div style={{ position: "fixed", top: 0, left: 0, height: pageSize.height, width: 85, backgroundImage: "linear-gradient(to bottom, #000000,#20232570)" }}>
                     <div style={{ display: "flex", flexDirection: "column", height: pageSize.height, fontFamily: "WebPapyrus" }}>
+                        
                         <div style={{ flex: 1 }}>
 
                             {socket != null  &&
@@ -535,31 +538,20 @@ const HomeMenu = ({ props}) => {
 
                                 </>
                             }
-
-                            {/*
-                    <NavLink className={(navData) => navData.isActive ? styles.menuActive : styles.menu__item} about="Map"
-                        to={'/editor'}>
-                        <img src="Images/map.png" width={50} height={45} />
-                    </NavLink>*/
-                            }
-
-
-
-
                         </div>
+
                         <div style={{ flex: 0.1 }}>
                             
-                            <NavLink className={location.pathname == "/createRealm"  ? styles.menuActive : styles.menu__item} about="Create Realm"
-                                to={'/createRealm'}>
-                                    <ImageDiv width={60} height={60} netImage={{ image: "/Images/realm.png", filter: "invert(100%)", width: 45, height: 50 }} />
-                               
+                            <NavLink className={location.pathname == "/realms"  ? styles.menuActive : styles.menu__item} about="Realms"
+                                to={'/realms'}>
+                                <ImageDiv width={60} height={60} netImage={{ image: "/Images/realm.png", filter: "invert(100%)", scale: .75 }} /> 
                             </NavLink>
                          
 
 
                             <NavLink className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
-                                <ImageDiv width={60} height={60} netImage={{ image: "/Images/icons/person.svg", filter: "invert(100%)", width:45, height:50}} />
+                                <ImageDiv width={60} height={60} netImage={{ image: "/Images/icons/person.svg", filter: "invert(100%)", scale:.75}} />
                             </NavLink>
 
                         </div>
@@ -577,7 +569,8 @@ const HomeMenu = ({ props}) => {
                         <div onClick={(e) => {
                             toNav("/")
                         }}>
-                            <ImageDiv width={30} height={30} netImage={{ image: socket != null ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
+                            <ImageDiv width={30} height={30} netImage={{
+                                image: socket != null && user.userID > 0 ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
                                 filter: peerOnline ? "drop-shadow(0px 0px 3px #faa014)" : "" }} />
                         </div>
                         {user.userID > 0 &&
@@ -594,7 +587,7 @@ const HomeMenu = ({ props}) => {
                             paddingTop: "5px",
                             paddingLeft: "10px",
                             paddingRight: "10px"
-                        }}> {socket != null ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
+                        }}> {socket != null && user.userID > 0 ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
                     </div>
 
                 </div>

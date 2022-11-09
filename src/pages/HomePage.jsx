@@ -70,8 +70,8 @@ export const HomePage = (props ={}) => {
 
 
 
+
     useEffect(()=>{
-        
         
         getProfile((value)=>{
             setProfile(value)
@@ -252,7 +252,7 @@ export const HomePage = (props ={}) => {
                 display: "flex", justifyContent:"center",alignItems: "center",
                  
                  }}
-                className={styles.menu__item} 
+                className={styles.menuLeft__item} 
                 about={"Log-out"} 
                 onClick={onLogoutClick}
             >

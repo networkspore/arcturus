@@ -89,7 +89,7 @@ export const InitStoragePage = (props = {}) => {
                 sharingRef.current.setValue(config.sharing)
                 P2PRef.current.setValue(config.peer2peer)
                 ergoRef.current.setValue(config.ergo)
-                const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.objects.default) || !(configFile.value.folders.terrain.default) || !(configFile.value.folders.textures.default) || !(configFile.value.folders.media.default));
+                const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.objects.default) || !(configFile.value.folders.terrain.default)  || !(configFile.value.folders.media.default));
 
                 setDefaultFolders( def )
 

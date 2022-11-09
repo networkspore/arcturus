@@ -224,16 +224,14 @@
 
 
 .CancelButton {
-	text-align: center;
 
-	width: 80px;
-	padding-left: 0px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	display:flex;
+	justify-content: center;
+	align-items: center;
 	font-family: WebRockwell;
 	font-size: 18px;
 	font-weight: bolder;
-	color: #77717155;
+	color: #777171CC;
 	cursor: pointer;
 }
 
@@ -312,12 +310,11 @@
 
 
 .OKButton {
-	text-align: center;
+
 	cursor: pointer;
-	width:50px;
-	padding-left:0px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	font-family: WebRockwell;
 	font-size: 18px;
 	font-weight: bolder;
@@ -329,14 +326,16 @@
 }
 
 .OKDisabled {
-	
+	width: 80;
+	height: 30;
+	display:flex;
+	align-items: center;
+	justify-content: center;
 	color: #77717120;
 	text-align: center;
 	cursor: default;
-	width: 50px;
-	padding-left: 0px;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	
+
 	font-family: WebRockwell;
 	font-size: 18px;
 	font-weight: bolder;
@@ -589,7 +588,7 @@
 	/* makes words in same line   */
 	white-space: nowrap;
 
-	padding: 5px;
+	padding:3px;
 
 	/* 90% of current font size   */
 	font-size: 0.9em;
@@ -609,4 +608,239 @@
 .icon__item:hover::after {
 	opacity: 1;
 	visibility: visible;
+}
+
+
+.menuLeft__item {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 15px 0;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+
+}
+
+.menuLeft__item:hover {
+
+	background: #dddddd33;
+}
+
+/* create tooltip after each menu item  */
+.menuLeft__item::after {
+	position: absolute;
+	display: inline-block;
+	/* ::before, ::after are inline as default
+  
+  /*  makes tooltip vertically center within each one of menu items  */
+	top: 50%;
+	transform: translateY(-50%);
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: -100%;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+	margin-right: 15px;
+
+	/* makes words in same line   */
+	white-space: nowrap;
+
+	padding: 7px 12px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: white;
+
+	/*  invisible (can't see it but can click on it)  */
+	opacity: 0;
+	/* can't click  */
+	visibility: hidden;
+	transition: opacity 1s;
+}
+
+/* show tooltip if hover on menu item */
+.menuLeft__item:hover::after {
+	opacity: 1;
+	visibility: visible;
+}
+
+.iconActive__item {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+	background: #ddddddb0;
+}
+
+
+/* create tooltip after each menu item  */
+.iconActive__item::after {
+	position: absolute;
+	display: flex;
+	/* ::before, ::after are inline as default
+  
+  /*  makes tooltip vertically center within each one of menu items  */
+	top: 80%;
+
+	transform: translate(-50%, 0%);
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: 50%;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+
+
+	/* makes words in same line   */
+	white-space: nowrap;
+
+	padding: 3px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: white;
+
+	/*  invisible (can't see it but can click on it)  */
+
+	/* can't click  */
+	
+
+}
+
+.bubble__item {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+
+}
+
+.bubble__item:hover {
+
+	background: #dddddd33;
+}
+
+/* create tooltip after each menu item  */
+.bubble__item::after {
+	position: absolute;
+	display: flex;
+	/* ::before, ::after are inline as default
+  
+  /*  makes tooltip vertically center within each one of menu items  */
+	top: 80%;
+
+	transform: translate(-50%, 0%);
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: 50%;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+
+
+	/* makes words in same line   */
+	white-space: nowrap;
+
+	padding: 3px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: white;
+
+	/*  invisible (can't see it but can click on it)  */
+	opacity: 0;
+	/* can't click  */
+	visibility: hidden;
+	transition: opacity 1s;
+}
+
+/* show tooltip if hover on menu item */
+.bubble__item:hover::after {
+	opacity: 1;
+	visibility: visible;
+}
+
+.bubbleActive__item {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+	background: #ddddddb0;
+}
+
+
+/* create tooltip after each menu item  */
+.bubbleActive__item::after {
+	position: absolute;
+	display: flex;
+	/* ::before, ::after are inline as default
+  
+  /*  makes tooltip vertically center within each one of menu items  */
+	top: 80%;
+
+	transform: translate(-50%, 0%);
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: 50%;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+
+
+	/* makes words in same line   */
+	white-space: nowrap;
+
+	padding: 3px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: white;
+
+	/*  invisible (can't see it but can click on it)  */
+
+	/* can't click  */
+
+
 }

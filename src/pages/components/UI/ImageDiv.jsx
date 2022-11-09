@@ -1,10 +1,9 @@
-import React, {useEffect, useState} from "react";
-
-
+import React, { useEffect, useState, useRef } from "react";
+import useZust from "../../../hooks/useZust";
 
 export const ImageDiv = (props = {}) => {
-
-
+    const pageSize = useZust((state) => state.pageSize)
+    const divRef = useRef()
 
     const [img, setImg] = useState("");
     const [scaleImgWidth, setScaleWidth] = useState("0px");
@@ -50,7 +49,7 @@ export const ImageDiv = (props = {}) => {
         }
 
         if ("netImage" in props) {
-            var info = { scale:0.75, image: "" , filter:"", backgroundImage: "", backgroundColor:"#000000"};
+            var info = { scale:1, image: "" , filter:"", backgroundImage: "", backgroundColor:"#000000"};
             const tmp = props.netImage != null ? props.netImage : info;
             info.image = ("image" in tmp) ? tmp.image : "";
             
@@ -63,15 +62,41 @@ export const ImageDiv = (props = {}) => {
             if ("backgroundColor" in tmp) {
                 info.backgroundColor = tmp.backgroundColor;
             }
-            info.scale = ("scale" in tmp) ? tmp.scale : .75
+            info.scale = ("scale" in tmp) ? tmp.scale : 1
                  
             setImg(info.image);
             
 
-            const percent = (info.scale * 100) +"%"
+            let scale = info.scale;
+            const bounds = divRef.current.getBoundingClientRect()
+            console.log(scale)
+            let percent = 1;
+            if(bounds.width > bounds.height)
+            {{
+                if(bounds.width != 0)
+                    percent = bounds.height / bounds.width
+                    console.log(percent)
+                }
+                const tmpWidth = (scale * 100 * percent) + "%"
+                const tmpHeight = (scale * 100) + "%"
+                setScaleHeight(tmpHeight);
+                setScaleWidth(tmpWidth);
+
+            } else {
+                {
+                    if (bounds.width != 0){
+                        console.log(percent)
+                        percent = bounds.width /bounds.height
+                    }
+                    const tmpWidth = (scale*100) + "%"
+                    const tmpHeight = (scale*100*percent)+"%"
+                    setScaleHeight( tmpHeight);
+                    setScaleWidth( tmpWidth);
+                }
+            }
+          
            
-            setScaleHeight(percent);
-            setScaleWidth(percent);
+        
 
             
             setFilter(info.filter);
@@ -83,13 +108,13 @@ export const ImageDiv = (props = {}) => {
         }
 
 
-    }, [props])
+    }, [props, pageSize])
 
    
 
     return (
-        <div onClick={onClick} style={style}>
-            {img != null ? <img src={img} style={{width:scaleImgWidth, height:scaleImgHeight, filter:filter}} /> : ""}
+        <div ref={divRef} onClick={onClick} style={style}>
+            {img != null && img != "" ? <img src={img} style={{width:scaleImgWidth, height:scaleImgHeight, filter:filter}} /> : ""}
         </div>
     )
 }

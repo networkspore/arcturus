@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } f
 
 const SelectBox = (props = {}, ref) => {
     if (props == null) props = {};
-    const onChanged = "onChanged" in props ? props.onChanged : null;
+    const onChange = "onChange" in props ? props.onChange : null;
 
 
     const [showList, setShowList] = useState(false);
@@ -150,14 +150,14 @@ const SelectBox = (props = {}, ref) => {
           
         }
 
-        if (onChanged != null) {
+        if (onChange != null) {
             if (selectedIndex != lastIndex.current.index) {
                 lastIndex.current.index = selectedIndex;
-                onChanged(selectedIndex);
+                onChange(selectedIndex);
             }
         }
 
-    }, [selectedIndex, options, selectedValue])
+    }, [selectedIndex, selectedValue])
 
 
 

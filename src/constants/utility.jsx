@@ -209,7 +209,7 @@ export async function getPermissionAsync(handle){
 
     const getVerified = verified == 'granted' ? verified : await handle.requestPermission(opts);
 
-    return getVerified;
+    return verified == 'granted';
 }
 
 export const getPermission = (handle, callback) => {

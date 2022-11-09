@@ -43,6 +43,7 @@ export const PeerNetworkPage = () => {
 
     useEffect(()=>{
 
+        const config = configFile.value;
 
         const currentLocation = location.pathname;
         const directory = "/home/peernetwork";
@@ -57,8 +58,15 @@ export const PeerNetworkPage = () => {
                 setShowIndex(1)
                 break;
             default:
-                
-                setShowIndex(0);
+                if(config != null){
+                    if(config.peer2peer){
+                        setShowIndex(2);
+                    }else{
+                        setShowIndex(0)
+                    }
+                }else{
+                    setShowIndex(0)
+                }
                 break;
         }
           
@@ -72,9 +80,9 @@ export const PeerNetworkPage = () => {
     const turnOffPeerNetwork = () => {
         navigate("/home/localstorage/init")
     }
-  
+    const setPeerConnection = useZust((state) => state.setPeerConnection)
     const onReload = () =>{
-        peerConnection.reconnect()
+        setPeerConnection(null)
     }
 
     return (
@@ -83,9 +91,9 @@ export const PeerNetworkPage = () => {
             <div  style={{
                 position: "fixed",
                 backgroundColor: "rgba(0,3,4,.95)",
-                width: pageSize.width - 385,
+                width: pageSize.width - 410,
                 height: pageSize.height,
-                left: 385,
+                left: 410,
                 top: 0,
                 display: "flex",
                 flexDirection: "column",
@@ -202,7 +210,7 @@ export const PeerNetworkPage = () => {
 
              
                
-                {configFile.handle == null &&
+                {showIndex == 0 &&
                         <div onClick={(e) => { navigate("home/localstorage/init") }}
                              style={{display:"flex",width:"100%", height:"100%", flexDirection:"column", alignItems:"center",justifyContent:"center", color:"white",
                         }}>
@@ -220,7 +228,7 @@ export const PeerNetworkPage = () => {
                     </div>         
                 }
                
-                    {showIndex == 0 && peerOnline &&
+                    {showIndex == 2 && peerOnline &&
                         <PeerNetworkMenu />
                     }
                     {showIndex == 1 &&

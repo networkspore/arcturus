@@ -1,13 +1,17 @@
 import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useZust from "../hooks/useZust";
 import { ImageDiv } from "./components/UI/ImageDiv";
 import styles from "./css/home.module.css"
 import FileList from "./components/UI/FileList";
 import { useEffect } from "react";
+import SelectBox from "./components/UI/SelectBox";
+import { getPermissionAsync } from "../constants/utility";
 
-export const CreateRealmPage = (props = {}) =>{
+export const RealmCreatePage = (props = {}) =>{
     
+    
+
     const navigate = useNavigate();
 
     const searchInputRef = useRef()
@@ -22,7 +26,7 @@ export const CreateRealmPage = (props = {}) =>{
     const [realmName, setRealmName] = useState("")
     const configFile = useZust((state) => state.configFile)
 
-    const [valid, setValid] = useState(false)
+
 
     const [selectImage, setSelectImage] = useState(false)
 
@@ -30,13 +34,46 @@ export const CreateRealmPage = (props = {}) =>{
 
     const [imageSearch, setImageSearch] = useState("")
 
+    const imagesDirectory = useZust((state) => state.imagesDirectory)
+
+    const [directoryOptions, setDirectoryOptions] = useState([])
+
+    const [currentDirectory, setCurrentDirectory] = useState("")
+
+    const localDirectory = useZust((state) => state.localDirectory)
+
+    
 
     useEffect(()=>{
         if(selectImage){
             
-         
+            const options = []
+
+            options.push ({value:null, label:"All"})
+            if(Array.isArray(imagesDirectory.directories)){
+                imagesDirectory.directories.forEach(directory => {
+                    if(directory != null){
+                        if("name" in directory){
+                            options.push({ value: directory.name, label: directory.name })
+                        }
+                    }
+                });
+            }
+            setDirectoryOptions(options)
         }
-    },[selectImage,imagesFiles])
+    }, [selectImage, imagesDirectory])
+
+    const directoryChanged = (index) =>{
+        console.log(index)
+        if(directoryOptions.length > 0)
+        {
+            const directoryName = directoryOptions[index].value
+            setCurrentDirectory(directoryName)
+        }else{
+            setCurrentDirectory("")
+        }
+    }
+ 
 
     const handleChange = (e) =>{
         const { name, value } = e.target;
@@ -54,14 +91,16 @@ export const CreateRealmPage = (props = {}) =>{
                 })
             } else {
                 setRealmName("")
+        
+                setImageSelected(null)
             }
 
         }
         if (name == "imageSearch") {
-            if (value.length > 2) {
-                imageSearch(value)
+            if (value.length > 0) {
+                setImageSearch(value)
             } else {
-                setImageSearch("")
+              if(imageSearch != "")  setImageSearch("")
             }
 
         }
@@ -73,24 +112,72 @@ export const CreateRealmPage = (props = {}) =>{
     }
 
     const onImageSelected = (e) =>{
+        const img = imagesFiles[e];
+        const pub = checkImagePublished(img.crc) 
+            
+        img.imageID = ("imageID" in pub) ? pub.imageID : null;
 
-    }
-
-    const handleSubmit = (e) =>{
-        const config = configFile.value;
-        if(realmName != "" && imageSelected != null && config != null )
-        {
-
-            socket.emit(createRealm, config.engineKey)
+        setImageSelected(img)
         
+      
+    }
+    const [submitting, setSubmitting] = useState(false);
+
+    const publishedImages = useZust((state) => state.publishedImages)
+
+    const checkImagePublished = (crc) => {
+        const pF = publishedImages;
+        const length = pF.length;
+
+        if(length == 0){
+            return {}
+        }else{
+            for(let i = 0; i< length ; i++)
+            {
+                if(pF[i].crc == crc){
+                    return pF[i]
+                }
+            }
+
+            return {}
         }
     }
 
+    async function handleSubmit (e) {
+        const config = configFile.value;
+        const granted = await getPermissionAsync(localDirectory.handle)
+        if(! submitting && granted)
+        {
+            socket.emit("createRealm", realmName, imageSelected.imageID, (response) => {
+
+                setSubmitting(false);
+
+                if ("error" in response) {
+
+                    alert(response.error.message)
+                    navigate("/realms")
+
+                } else if (response.created) {
+
+                    const realm = response.realm
+                    
+                    navigate("/realm/config", {state:{realmID: realm.realmID, roomID:realm.roomID, realmName:realmName, imageFile: imageSelected }})    
+
+                }
+            })
+                    
+            
+        }
+    }
+
+
     const onCancelClick = (e) =>{
-        navigate("/network")
+        navigate("/realms")
     }
 
     return(
+        <>
+        
         <div style={{
             
             backgroundImage: "linear-gradient(to bottom, #10131450,#00030480,#10131450)",
@@ -119,7 +206,7 @@ export const CreateRealmPage = (props = {}) =>{
        
             <div >
             <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #00030440 20%, #77777740 50%, #00030440 100%)", }}>&nbsp;</div>
-            <div style={{marginTop:40, backgroundImage: "linear-gradient( to right, #00000030, #33333320, #00000030)"}}>
+            <div style={{marginTop:40,}}>
                 <div style={{ height: 30 }}></div>
                 <div style={{
                     alignItems: "center", justifyContent: "center",
@@ -133,7 +220,7 @@ export const CreateRealmPage = (props = {}) =>{
                     paddingRight: 20
                 }}>
                         {realmName.length > 2 &&
-                        <div style={{width:30}}> &nbsp;</div>
+                        <div style={{width:40}}> &nbsp;</div>
                         }
                     <input onKeyUp={(e) => {
                         if (e.code == "Enter") {
@@ -161,7 +248,7 @@ export const CreateRealmPage = (props = {}) =>{
 
                     <div style={{ display:"flex",
                     flexDirection:"column",
-                        paddingTop: 30, paddingBottom: 10,
+                        paddingBottom: 10,
                         justifyContent: "center",
                         alignItems: "center", }}>
                             
@@ -172,13 +259,13 @@ export const CreateRealmPage = (props = {}) =>{
                             backgroundImage: "linear-gradient(to right, #00030430, #77777720, #00030430)",
                             paddingBottom: 5,
                             paddingTop: 5,
-                            paddingLeft: 20,
-                            paddingRight: 20,
+                            paddingLeft: 100,
+                            paddingRight: 100,
                             flexDirection:"column"
                         }}>
                         
                             <div style={{ cursor: "pointer" }} onClick={ onSelectImage }>
-                                <ImageDiv width={200} height={200} netImage={imageSelected}/>
+                                <ImageDiv width={100} height={100} netImage={{scale:1, image: imageSelected.icon}}/>
                             </div>
                         
                         </div> 
@@ -188,7 +275,7 @@ export const CreateRealmPage = (props = {}) =>{
                         </>
 
                     }
-                    {realmName != "" &&
+                        {realmName != "" && imageSelected == null && 
                     <div style={{
 
                         display: "flex",
@@ -208,17 +295,17 @@ export const CreateRealmPage = (props = {}) =>{
                                 marginRight: 5,
                                 height: "15px",
                                 width: "1px",
-                                backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                        
                             }}>
 
                             </div>
-                            <div style={{ flex: 1 }}>Select Image</div>
+                            <div style={{  }}>Select Image</div>
                             <div style={{
 
                                 marginLeft: 2,
                                 height: "15px",
                                 width: "1px",
-                                backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                               
                             }}>
 
                             </div>
@@ -227,57 +314,63 @@ export const CreateRealmPage = (props = {}) =>{
                     }
                 </div>
               
-                <div style={{ paddingTop:50, paddingBottom:15 }}>  <div style={{
-                    justifyContent: "center",
-
-                    paddingTop: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    width: "100%"
-                }}>
-                    <div style={{ width: "130" }} className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
-
+                <div style={{ paddingTop:20, paddingBottom:15 }}>  
+                
                     <div style={{
+                        justifyContent: "center",
 
-                        marginLeft: "20px", marginRight: "20px",
-                        height: "50px",
-                        width: "1px",
-                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                        paddingTop: "10px",
+                        display: "flex",
+                       
+                     
                     }}>
+                        <div style={{width:100}}  className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
 
+                        <div style={{
+
+                            marginLeft: "20px", marginRight: "20px",
+                            height: "50px",
+                            width: "1px",
+                            backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                        }}>
+
+                        </div>
+                            <div style={{ width: 100 }} className={imageSelected != null ? styles.OKButton : styles.OKDisabled} onClick={handleSubmit} >Ok</div>
                     </div>
-                    <div style={{width:"130"}} className={valid ? styles.OKButton : styles.OKDisabled} onClick={handleSubmit} >OK</div>
-                </div>
                 </div>
             </div>
                 </div>
             {realmName.length > 2 && selectImage && 
                 <div style={{ marginTop: 10, display: "flex", flexDirection:"column"}}>
                     <div style={{ paddingBottom: 15, display: "flex", justifyContent:"right" }}>
-                        <div style={{ backgroundColor: "#33333340", display:"flex", alignItems:"center" }}> 
+                        <div style={{margin:3, backgroundColor: "#33333340", display:"flex", alignItems:"center" }}> 
                             <input ref={searchInputRef} name={"imageSearch"} onChange={handleChange} style={{ 
                                 color: "white", 
                                 backgroundColor: "#33333300", 
                                 fontFamily: "webpapyrus", 
                                 fontSize: 12, 
-                                width: 180,
+                                width: 150,
                                  outline: 0, 
                                  border: 0 }} type={"text"} />
                         </div>
-                    
+                        <div style={{margin:3, width:100}}>
+                            <SelectBox onChange={directoryChanged} textStyle={{ backgroundColor: "#33333340", border:0, outline:0, color:"white"}} placeholder={"All"} options={directoryOptions} />
+                        </div>
                         <div onClick={(e)=>{ searchInputRef.current.focus() }} style={{
                             cursor:"pointer"
                             }}>
                                 <ImageDiv  width={30} height={30} netImage={{ filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
                         </div>
                     </div>
-                    <div style={{ justifyContent: "center", display: "flex", width:225, height: 400, overflowX:"visible", overflowY: "scroll", color: "white",  }}>
-                        <FileList onClick={onImageSelected} search={imageSearch}  fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100 } }} files={imagesFiles} />
+                    <div style={{ justifyContent: "center", display: "flex", width:300, height: 400, overflowX:"visible", overflowY: "scroll", color: "white",  }}>
+                        <FileList onChange={onImageSelected}  filter={{name:imageSearch, directory:currentDirectory}}  fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100 } }} files={imagesFiles} />
                     </div>
                     
                 </div>
             }
         </div>
-   
+        
+     
+        </>
     )
 }

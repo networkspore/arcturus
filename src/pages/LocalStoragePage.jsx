@@ -9,11 +9,15 @@ import { set, del } from 'idb-keyval';
 import produce from 'immer';
 import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
-
+import SelectBox from './components/UI/SelectBox';
 import { ImageDiv } from './components/UI/ImageDiv';
-import { getFileInfo, getPermission } from '../constants/utility';
+import { getFileInfo, getPermission, readFileJson } from '../constants/utility';
 
 export const LocalStoragePage = () => {
+
+    const searchInputRef = useRef()
+   
+    const [directoryOptions, setDirectoryOptions] = useState([])
 
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
@@ -64,10 +68,15 @@ export const LocalStoragePage = () => {
 
     const [showInitPage, setShowInitPage] = useState(false)
     
+    const handleChange = (e) => {
 
+    }
+    const directoryChanged = (index) =>{
+        
+    }
     function onReload() {
        
-       
+        navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
     }
 
 
@@ -94,7 +103,8 @@ export const LocalStoragePage = () => {
                         setShowIndex(1)
                         break;
                     case "/images":
-                      //  setCurrentDirectories(imagesDirectory.directories)
+                        setCurrentDirectories(imagesDirectory.directories)
+                   
                         setCurrentFiles(imagesFiles)
                        
                         setShowIndex(2)
@@ -129,7 +139,9 @@ export const LocalStoragePage = () => {
     async function pickAssetDirectory() {
         try{
             const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+         
             handleFirst(dirHandle)
+            
         }catch (error) {
             if(error == DOMException.ABORT_ERR) {
                 
@@ -144,40 +156,48 @@ export const LocalStoragePage = () => {
     async function handleFirst (dirHandle) {
          
         const name = await dirHandle.name;
-  
-        setLocalDirectory({ name: name, handle: dirHandle })
 
-        set("localDirectory" + user.userID, {name: name, handle: dirHandle})
+        const lDirectory = { name: name, handle: dirHandle }
+        setLocalDirectory(lDirectory)
+      
+        set("localDirectory" + user.userID, lDirectory)
+    
         try{
             const handle = await dirHandle.getFileHandle("arcturus.config");
         
             const file = await getFileInfo(handle, dirHandle)
 
+            console.log(file)
+
+    
+
             readFileJson(handle, (json) => {
                 if (json.success) {
                     const config = json.value;
-   
+                    console.log(config)
                     socket.emit("checkStorageCRC", file.crc, config.engineKey, (callback) => {
                         if (callback.valid) {
-                            
-                            
-                                    if ("engineKey" in config) {
-                                        file.value = config;
-                                        setConfigFile(file)
-                                        navigate("/loading")
-                                    }
-                        
+                            console.log("valid")
+                            file.value = config;
+                            navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
+                          
                         } else {
+                            console.log("invalid")
+                            setConfigFile()
+                           
+                            set("localDirectory" + user.userID, { name: name, handle: dirHandle })
                             navigate("/home/localstorage/init")
                         }
 
                     })
                 } else {
+                    console.log("failure")
                     navigate("/home/localstorage/init")
                 }
             })
           
         } catch (err) {
+            console.log(err)
             navigate("/home/localstorage/init")
         }
         
@@ -206,6 +226,7 @@ export const LocalStoragePage = () => {
 
         setMediaDirectory();
 
+        navigate("/home/localstorage")
         
     }
 
@@ -270,14 +291,20 @@ export const LocalStoragePage = () => {
                     </div>
 
                     
-                    <div onClick={(e)=>{pickAssetDirectory()}}  style={{ 
+                    <div  style={{ 
                         display: "flex", 
                         flex:1,
                         cursor: "pointer",
                         fontFamily: "Webrockwell", 
                         fontSize:"14px",
                         }}>
-                        <div style={{
+                        <div onClick={(e) => { 
+                            if(localDirectory.name == ""){
+                                pickAssetDirectory() 
+                            }else{
+                                searchInputRef.current.focus()
+                            }
+                        }} style={{ 
                             width:"100%", 
                             display:"flex", 
                             alignItems:"center", 
@@ -306,7 +333,7 @@ export const LocalStoragePage = () => {
                             }
                             <div style={{flex:1}}>
                                 <div style={{
-                                    paddingTop: "2px",
+                                   
                                     paddingLeft:"2px",
                                     width: "100%",
                                     height: "18px",
@@ -317,16 +344,50 @@ export const LocalStoragePage = () => {
                                  
                                                             
                                 }}>
-                                    {localDirectory.name == "" ? "Select a local directory..." : "localstorage"}{subDirectory}
+                                    {localDirectory.name == "" ? "Select a local directory..." : localDirectory.name}{subDirectory}
                                 </div>
                                 
                             </div>
+
+                         
                         </div>
-                        <div style={{width:30}}>
+                        </div>
+
+                                <div style={{width:20}}></div>
+                    <div style={{
+                        height:30,
+                       
+                        display: "flex", justifyContent: "right", borderRadius: "30px",
+                       }}>
+                        <div style={{ margin: 3, backgroundColor: "#33333320", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <input ref={searchInputRef} name={"imageSearch"} onChange={handleChange} style={{
+                                color: "white",
+                                backgroundColor: "#33333300",
+                                fontFamily: "webpapyrus",
+                                fontSize: 12,
+                                width: 200,
+                                outline: 0,
+                                border: 0
+                            }} type={"text"} />
+                        </div>
+                        <div style={{ width: 100, margin: 3 }}>
+                            <SelectBox onChange={directoryChanged} textStyle={{ fontSize:14, backgroundColor: "#33333320", border: 0, outline: 0, color: "white" }} placeholder={"All"} options={directoryOptions} />
+                        </div>
+                        <div onClick={(e) => { searchInputRef.current.focus() }} style={{
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer"
+                        }}>
+                            <ImageDiv width={30} height={30} netImage={{ backgroundColor: "", filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
+                        </div>
+                    </div>
+                        
+
+
+                        <div style={{width:20}}>
                    
                             
-                        
-                        </div>
+                 
+                      
                     </div>
                   
                 </div>
