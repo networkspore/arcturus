@@ -21,7 +21,7 @@ export const RealmCreatePage = (props = {}) =>{
     const user = useZust((state) => state.user);
     const socket = useZust((state) => state.socket)
 
-    const [imageSelected, setImageSelected] = useState({icon:null}); 
+    const [imageSelected, setImageSelected] = useState({icon:null, name:""}); 
 
     const [realmName, setRealmName] = useState("")
     const configFile = useZust((state) => state.configFile)
@@ -299,7 +299,7 @@ export const RealmCreatePage = (props = {}) =>{
                      
                         
                             <div style={{ cursor: "pointer" }} onClick={ onImageSelected }>
-                                            <ImageDiv about={imageSelected.name} style={{ textShadow: "2px 2px 2px black", }} className={imageSelected.name.length > 10 ? styles.activeBubbleScroll__item : styles.bubbleActive__item} netImage={{ scale:1.2, backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius: 40, backgroundColor: "", image: imageSelected.icon }} />
+                                <ImageDiv about={imageSelected.name} style={{ textShadow: "2px 2px 2px black", }} className={ imageSelected.name.length > 15 ? styles.activeBubbleScroll__item : styles.bubbleActive__item} netImage={{ scale:1.2, backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius: 40, backgroundColor: "", image: imageSelected.icon }} />
                             </div>
                         
                        

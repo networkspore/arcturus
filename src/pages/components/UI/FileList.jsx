@@ -166,7 +166,7 @@ const FileList = (props = {}, ref) => {
                                                 } else {
                                                     navigate(iTo)
                                                 }}} 
-                                            className={i == selectedIndex ? iName.length > 10 ? activeLongClassName : activeClassName : iName.length > 10 ? longClassName : className} 
+                                            className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className} 
                                             height={fileView.iconSize.width} 
                                             width={fileView.iconSize.height} 
                                             netImage={iImage} 
