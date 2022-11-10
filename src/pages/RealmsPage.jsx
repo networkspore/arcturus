@@ -16,6 +16,8 @@ export const RealmsPage = () =>{
     const [showIndex, setShowIndex] = useState(0)
     const [subDirectory, setSubDirectory] = useState("")
 
+    const [selectedRealm, setSelectedRealm] = useState(null)
+
     useEffect(() => {
         const currentLocation = location.pathname;
 
@@ -39,6 +41,10 @@ export const RealmsPage = () =>{
                 break;
         }
     },[location])
+
+    const onRealmChange = (r) =>{
+        setSelectedRealm(r)
+    }
    
     return (
         <>
@@ -55,44 +61,57 @@ export const RealmsPage = () =>{
             justifyContent:"center"
         }}>
           
-
+             
             <div style={{
              
                 textAlign: "center",
                 width: "100%",
-                paddingTop: "18px",
+                paddingTop: "15px",
+                paddingBottom:"5px",
                 fontFamily: "Webpapyrus",
-                fontSize: "18px",
+                fontSize: "20px",
                 fontWeight: "bolder",
                 color: "#cdd4da",
-                textShadow: "2px 2px 2px #101314",
-             
+                        textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffffc0",
+                       
+                    
 
             }}>
                 Realms
             </div>
-                    <div style={{ height: 10 }}></div>
-                    <div style={{display:"flex", alignItems:"left",  width:"100%"}}>
-                    <div style={{width:"2%"}}></div>
-                    <div className={styles.CancelButton} style={{display:"flex"}}>
-                        <div style={{width:5}}></div>
-                            <ImageDiv style={{  }} width={30} height={30} netImage={{  image:"/Images/icons/add-circle-outline.svg", filter:"invert(100%)"}}/>
-                        <div  onClick={(e) => { navigate("/realms/create") }} style={{ fontSize: 20,  fontFamily: "WebPapyrus", padding: 10, cursor: "pointer" }}>
-                            Create Realm
-                        </div>
-                    </div>
-                    </div>
+                    <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
-            <div style={{display:"flex", flexDirection:"column", width:"100%", justifyContent:"center", alignItems:"center" }}>
-                        <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
-            
-            </div>
+                    {selectedRealm != null &&
+                    <>
+                        <div style={{display:"flex", alignItems:"left",  width:"100%"}}>
+                            <div style={{width:"5%", paddingRight:10}}></div>
+                            <div className={styles.InactiveIcon} style={{display:"flex"}}>
+                                <div style={{width:5}}></div>
+                                    <ImageDiv width={30} height={30} netImage={{  image:"/Images/icons/add-circle-outline.svg", filter:"invert(100%)"}}/>
+                                <div  onClick={(e) => { navigate("/realms/create") }} style={{ fontSize: 20,  fontFamily: "WebPapyrus", padding: 10, cursor: "pointer" }}>
+                                    Create Realm
+                                </div>
+                            </div>
+                        </div>
+                   
+                        </>
+                    }
+                    {selectedRealm === null &&
+                    <>
+                        <div style={{height:60}}>&nbsp;</div>
+                     
+                    </>
+                    }
+                    
+        
             <div style={{width:"100%", display:"flex",height:"100%"}}>
-                <BubbleList options={[
-                    {netImage:{image:"/Images/realm.png", filter:"invert(100%)"}, about:"Create Realm", page:0, index:0 }
-                ]}/>
+                
+                <BubbleList onChange={onRealmChange}
+                            defaultItem={{ netImage:{image: "/Images/realm.png"} }}
+                    
+                />
             </div>
-            <div style={{height:30}}></div>
+           
         </div>
         }
         { showIndex == 1 &&

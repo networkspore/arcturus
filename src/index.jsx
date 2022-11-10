@@ -72,7 +72,7 @@ const App = () => {
                             {page!= null  &&
                                 <Suspense fallback={Loader}>
 
-                                <Canvas  performance={{ min: 0.5, debounce: 100 }} mode="concurrent" shadows  camera={{ fov: 60, near: 1.0, far: 10000.0 }}>
+                                <Canvas  performance={{ min: 0.5, debounce: 100 }} mode="concurrent" shadows  camera={{ fov: 60, near: 1.0, far: 100000.0 }}>
 
                                         <Transition position={[1000,1000,1000]} />
                                         {(page < 10 &&

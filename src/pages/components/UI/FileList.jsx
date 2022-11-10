@@ -17,6 +17,9 @@ const FileList = (props = {}, ref) => {
     const navigate = useNavigate()
     const [list, setList] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(-1);
+
+    const longClassName = ("longClassName" in props) ? props.longClassName : styles.bubbleScroll__item
+    const activeLongClassName = ("activeLongClassName" in props) ? props.activeLongClassName : styles.activeBubbleScroll__item
     const className = ("className" in props) ? props.className : styles.icon__item;
     const activeClassName = ("activeClassName" in props) ? props.activeClassName : styles.iconActive__item;
     
@@ -150,20 +153,26 @@ const FileList = (props = {}, ref) => {
                             {
                                 case "list":
                                 default:
-                                    
+                                    iImage.backgroundColor = ""
+                                    iImage.scale = 1.2;
                                     array.push(
-                                        <div tabIndex={i} onClick={(e) => {
-                                           
-                                            if (iTo == null) {
-                                                setSelectedIndex(i)
-                                            } else {
-                                                navigate(iTo)
-                                            }
-                                            //  setSelectedIndex(Number(index))
-                                        }} about={iName} className={i == selectedIndex ? activeClassName : className} key={i} style={{  display: "flex",flexDirection:"column", alignItems:"center", justifyContent: "center"}}>
-                                            <ImageDiv height={fileView.iconSize.width} width={fileView.iconSize.height} netImage={iImage} />
-                                            
-                                        </div>
+                               
+                                        <ImageDiv 
+                                            style={{margin:10}}
+                                            about={iName}
+                                            onClick={(e) => {
+                                                if (iTo == null) {
+                                                    setSelectedIndex(i)
+                                                } else {
+                                                    navigate(iTo)
+                                                }}} 
+                                            className={i == selectedIndex ? iName.length > 10 ? activeLongClassName : activeClassName : iName.length > 10 ? longClassName : className} 
+                                            height={fileView.iconSize.width} 
+                                            width={fileView.iconSize.height} 
+                                            netImage={iImage} 
+                                        />
+                              
+                                        
                                     )
 
                             }

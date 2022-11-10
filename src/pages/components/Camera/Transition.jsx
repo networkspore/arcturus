@@ -109,9 +109,9 @@ export function Transition(props) {
                         useFast.current = {x:true, y:true, z:true}
                     }                
 
-                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed*.05) * (orbitF.current[0]+200 )) );
+                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed*.05) * (orbitF.current[0]*20 )) );
                     y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1])  ;
-                    z = (Math.sin((clock.getElapsedTime() + offset) * speed*.05) * (orbitF.current[2] +200)) ;
+                    z = (Math.sin((clock.getElapsedTime() + offset) * speed*.05) * (orbitF.current[2] *20)) ;
 
                     x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed*10) * (orbitF.current[0])));
                     y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
@@ -202,9 +202,9 @@ export function Transition(props) {
                         useFast.current = { x: true, y: true, z: true }
                     }
 
-                    x = -((Math.cos((clock.getElapsedTime() + offset*10) * speed*2) * (orbitF.current[0]+30)));
-                    y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
-                    z = (Math.sin((clock.getElapsedTime() + offset*10) * speed *2) * (orbitF.current[2]+30));
+                    x = ((Math.cos((clock.getElapsedTime() + offset) * speed) * (orbitF.current[0]*10)));
+                    y =0 //(Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                    z = (Math.sin((clock.getElapsedTime() + offset) * speed ) * (orbitF.current[2]*10));
 
                     x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed) * (orbitF.current[0])));
                     y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
@@ -288,13 +288,13 @@ export function Transition(props) {
                         useFast.current = { x: true, y: true, z: true }
                     }
 
-                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed * .5) * (orbitF.current[0] - 900)));
+                    x = -((Math.cos((clock.getElapsedTime() + offset) * speed * .5) * (orbitF.current[0]*20 )));
                     y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
-                    z = (Math.sin((clock.getElapsedTime() + offset) * speed *.5) * (orbitF.current[2] - 800));
+                    z = (Math.sin((clock.getElapsedTime() + offset) * speed *.5) * (orbitF.current[2]*20 ));
 
-                    x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed * 5) * (orbitF.current[0])));
+                    x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed * 5) * (orbitF.current[0]*5)));
                     y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
-                    z1 = (Math.sin((clock.getElapsedTime() + offset) * speed * 4) * (orbitF.current[2]));
+                    z1 = (Math.sin((clock.getElapsedTime() + offset) * speed * 4) * (orbitF.current[2]*5));
 
                     difference = diff(x, usePosition.current.position.x);
 

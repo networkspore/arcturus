@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import useZust from "../../../hooks/useZust";
 
+
 export const ImageDiv = (props = {}) => {
     const pageSize = useZust((state) => state.pageSize)
     const divRef = useRef()
@@ -65,17 +66,19 @@ export const ImageDiv = (props = {}) => {
             info.scale = ("scale" in tmp) ? tmp.scale : 1
                  
             setImg(info.image);
-            
+            const propsWidth = ("width" in props) ? props.width : null;
+
+            const propsHeight = ("height" in props) ? props.height : null;
 
             let scale = info.scale;
-            const bounds = divRef.current.getBoundingClientRect()
-            console.log(scale)
+            const bounds = propsWidth != null && propsHeight != null ? {width:propsWidth, height:propsHeight}: divRef.current ?  divRef.current.getBoundingClientRect() : {width:0, height:0}
+       
             let percent = 1;
             if(bounds.width > bounds.height)
             {{
                 if(bounds.width != 0)
                     percent = bounds.height / bounds.width
-                    console.log(percent)
+         
                 }
                 const tmpWidth = (scale * 100 * percent) + "%"
                 const tmpHeight = (scale * 100) + "%"
@@ -85,7 +88,7 @@ export const ImageDiv = (props = {}) => {
             } else {
                 {
                     if (bounds.width != 0){
-                        console.log(percent)
+          
                         percent = bounds.width /bounds.height
                     }
                     const tmpWidth = (scale*100) + "%"
@@ -113,7 +116,7 @@ export const ImageDiv = (props = {}) => {
    
 
     return (
-        <div ref={divRef} onClick={onClick} style={style}>
+        <div about={props.about} className={props.className} ref={divRef} onClick={onClick} style={style}>
             {img != null && img != "" ? <img src={img} style={{width:scaleImgWidth, height:scaleImgHeight, filter:filter}} /> : ""}
         </div>
     )

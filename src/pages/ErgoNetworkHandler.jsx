@@ -23,7 +23,7 @@ export const ErgoNetworkHandler = (props ={}) => {
             connected &&
                 <ImageDiv onClick={(e)=>{
                     navigate("/home/ergo")
-                }} width={30} height={30} netImage={{ image: "/Images/icons/unlink-outline.svg", width:20, height:20, filter:"invert(100%)" }} /> 
+                }} width={25} height={30} netImage={{ image: "/Images/icons/unlink-outline.svg", scale:.7, filter:"invert(100%)" }} /> 
           }
         </>
     )

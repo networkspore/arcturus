@@ -222,6 +222,20 @@
 	visibility: visible;
 }
 
+.InactiveIcon {
+	cursor: pointer;
+	opacity: .7;
+	color:white;
+	display:flex;
+	font-family: "webpapyrus";
+	align-items: center;
+	justify-content: center;
+	font-size: medium;
+	filter: drop-shadow(0 0 2 white);
+}
+.InactiveIcon:hover {
+	opacity: 1;
+}
 
 .CancelButton {
 
@@ -729,6 +743,7 @@
 
 .bubble__item {
 	cursor: pointer;
+	z-index: 1;
 	position: relative;
 	display: flex;
 	justify-content: center;
@@ -737,39 +752,35 @@
 	text-decoration: none;
 	color: #666666;
 	transition: background 0.3s;
+	box-shadow: 0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710;
 
 }
 
 .bubble__item:hover {
 
-	background: #dddddd33;
+	background: #dddddd50;
+	box-shadow: 0 0 10px #ffffff50, 0 0 20px #ffffff50, inset 0 0 30px #77777710;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
 }
 
-/* create tooltip after each menu item  */
 .bubble__item::after {
 	position: absolute;
 	display: flex;
-	/* ::before, ::after are inline as default
-  
-  /*  makes tooltip vertically center within each one of menu items  */
-	top: 80%;
+	font-family: "webpapyrus";
+	z-index: 9999;
+
+	top: 70%;
 
 	transform: translate(-50%, 0%);
 
-	/* starting tooltip 100% left of menu item (just the right of them)   */
+
 	left: 50%;
 
-	/* linked to the HTML attribute value  */
-	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
 	content: attr(about);
 
-	/* set margin between menu item and tooltip  */
-
-
-	/* makes words in same line   */
 	white-space: nowrap;
 
-	padding: 3px;
+	padding: 5px;
 
 	/* 90% of current font size   */
 	font-size: 0.9em;
@@ -791,6 +802,8 @@
 	visibility: visible;
 }
 
+
+
 .bubbleActive__item {
 	cursor: pointer;
 	position: relative;
@@ -801,23 +814,90 @@
 	text-decoration: none;
 	color: #666666;
 	transition: background 0.3s;
-	background: #ddddddb0;
+
+	background: #ffffff70;
+	box-shadow: 0 0 10px #ffffff70, 0 0 20px #ffffff70, inset 0 0 30px #77777740;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
 }
 
 
 /* create tooltip after each menu item  */
 .bubbleActive__item::after {
 	position: absolute;
-	display: flex;
-	/* ::before, ::after are inline as default
-  
-  /*  makes tooltip vertically center within each one of menu items  */
-	top: 80%;
+		display: flex;
+		font-family: "webpapyrus";
+		/* ::before, ::after are inline as default
+		
+	  /*  makes tooltip vertically center within each one of menu items  */
+		top: 70%;
+	
+		transform: translate(-50%, 0%);
+	
+		/* starting tooltip 100% left of menu item (just the right of them)   */
+		left: 50%;
+	
+		/* linked to the HTML attribute value  */
+		/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+		content: attr(about);
+	
+		/* set margin between menu item and tooltip  */
+	
+	
+		/* makes words in same line   */
+		white-space: nowrap;
+	
+		padding: 5px;
+	
+		/* 90% of current font size   */
+		font-size: 0.9em;
+		font-weight: bold;
+		background: rgba(0, 0, 0, 0.8);
+		border-radius: 15px;
+		color: white;
+	
+		/*  invisible (can't see it but can click on it)  */
+	
+		/* can't click  */
+	
+		transition: opacity 1s;
 
-	transform: translate(-50%, 0%);
+
+}
+
+/*//////////////////////*/
+
+
+.activeBubbleScroll__item {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+
+	background: #ffffff70;
+	box-shadow: 0 0 10px #ffffff70, 0 0 20px #ffffff70, inset 0 0 30px #77777740;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
+}
+
+
+/* create tooltip after each menu item  */
+.activeBubbleScroll__item::after {
+	position: absolute;
+	display: flex;
+	font-family: "webpapyrus";
+	/* ::before, ::after are inline as default
+		
+	  /*  makes tooltip vertically center within each one of menu items  */
+	top: 70%;
+
+	
 
 	/* starting tooltip 100% left of menu item (just the right of them)   */
-	left: 50%;
+	left: 0;
 
 	/* linked to the HTML attribute value  */
 	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
@@ -828,7 +908,7 @@
 
 	/* makes words in same line   */
 	white-space: nowrap;
-
+	align-items: right;
 	padding: 3px;
 
 	/* 90% of current font size   */
@@ -842,5 +922,120 @@
 
 	/* can't click  */
 
+	transition: opacity 1s;
+transform: translate(0%, 0%);
 
+		-moz-animation: my-animation 8s linear infinite;
+		-webkit-animation: my-animation 8s linear infinite;
+		animation: my-animation 8s linear infinite;
+}
+
+.bubbleScroll__item {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+
+	box-shadow: 0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710;
+	
+}
+	
+	.bubbleScroll__item:hover {
+	
+		background: #dddddd50;
+		box-shadow: 0 0 10px #ffffff50, 0 0 20px #ffffff50, inset 0 0 30px #77777710;
+		filter: drop-shadow(0px 0px 3px #ffffff30);
+	}
+
+
+
+/* create tooltip after each menu item  */
+.bubbleScroll__item::after {
+	position: absolute;
+	display: flex;
+	font-family: "webpapyrus";
+	/* ::before, ::after are inline as default
+		
+	  /*  makes tooltip vertically center within each one of menu items  */
+	top: 70%;
+
+
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: 0;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+
+
+	/* makes words in same line   */
+	white-space: nowrap;
+	align-items: right;
+	padding: 3px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 15px;
+	color: white;
+
+	/*  invisible (can't see it but can click on it)  */
+
+	/* can't click  */
+	opacity:0;
+	transition: opacity 1s;
+	transform: translate(0%, 0%);
+
+	-moz-animation: my-animation 8s linear infinite;
+	-webkit-animation: my-animation 8s linear infinite;
+	animation: my-animation 8s linear infinite;
+}
+
+.bubbleScroll__item:hover::after {
+	opacity: 1;
+	visibility: visible;
+}
+/* for Firefox */
+@-moz-keyframes my-animation {
+	from {
+		-moz-transform: translateX(0%);
+	}
+
+	to {
+		-moz-transform: translateX(-25%);
+	}
+}
+
+/* for Chrome */
+@-webkit-keyframes my-animation {
+	from {
+		-webkit-transform: translateX(0%);
+	}
+
+	to {
+		-webkit-transform: translateX(-25%);
+	}
+}
+
+@keyframes my-animation {
+	from {
+		-moz-transform: translateX(0%);
+		-webkit-transform: translateX(-0%);
+		transform: translateX(0%);
+	}
+
+	to {
+		-moz-transform: translateX(25%);
+		-webkit-transform: translateX(-25%);
+		transform: translateX(-25%);
+	}
 }

@@ -146,7 +146,7 @@ export const PeerNetworkHandler = (props ={}) => {
             ! peerOnline && 
                 <ImageDiv onClick={(e)=>{
                     navigate("/home/peernetwork")
-                }} width={30} height={30} netImage={{ image: "/Images/icons/cloud-offline-outline.svg", width:15, height:15, filter:"invert(100%)" }} /> 
+                }} width={25} height={30} netImage={{ image: "/Images/icons/cloud-offline-outline.svg", scale:.7, filter:"invert(100%)" }} /> 
           }
         </>
     )
