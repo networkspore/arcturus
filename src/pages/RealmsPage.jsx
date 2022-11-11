@@ -7,6 +7,7 @@ import BubbleList from "./components/UI/BubbleList";
 import styles from "./css/home.module.css"
 import { ImageDiv } from "./components/UI/ImageDiv";
 
+
 export const RealmsPage = () =>{
 
     const navigate = useNavigate();
@@ -117,6 +118,7 @@ export const RealmsPage = () =>{
         { showIndex == 1 &&
             <RealmCreatePage />
         }
+       
         </>
     )
 }

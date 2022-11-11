@@ -157,7 +157,7 @@ const FileList = (props = {}, ref) => {
                                     iImage.scale = 1.2;
                                     array.push(
                                
-                                        <ImageDiv 
+                                        <ImageDiv key={i}
                                             style={{margin:10}}
                                             about={iName}
                                             onClick={(e) => {

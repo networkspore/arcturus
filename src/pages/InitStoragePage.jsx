@@ -170,7 +170,7 @@ export const InitStoragePage = (props = {}) => {
 
            
 
-            localDirectory.handle.getFileHandle("arcturus.config", { create: true }).then((fileHandle)=>{
+            localDirectory.handle.getFileHandle("config.arcnet", { create: true }).then((fileHandle)=>{
                 
                 fileHandle.createWritable().then((configFileStream)=>{
                    
@@ -202,13 +202,13 @@ export const InitStoragePage = (props = {}) => {
                     console.log(config)
                     configFileStream.write(JSON.stringify(config)).then((value)=>{
                         configFileStream.close().then((closed)=>{
-                            localDirectory.handle.getFileHandle("arcturus.config").then((newHandle) => {
+                            localDirectory.handle.getFileHandle("config.arcnet").then((newHandle) => {
                                 
                                 getFileInfo(newHandle).then((fileInfo) => {
 
-                                    const configFile = fileInfo;
+                                    const newConfig = fileInfo;
 
-                                    configFile.value = config
+                                    newConfig.value = config
 
                                     const engineKey = config.engineKey;
 
@@ -227,24 +227,40 @@ export const InitStoragePage = (props = {}) => {
                                     if (!mediaDefault) {
                                         set("media" + engineKey, customFolders.media)
                                     }
+                                    const newFile = {
+                                        mimeType: fileInfo.mimeType,
+                                        name: fileInfo.name,
+                                        crc: fileInfo.crc,
+                                        size: fileInfo.size,
+                                        type: fileInfo.type,
+                                        lastModified: fileInfo.lastModified,
+                                    } 
                                     if(firstRun)
                                     {
-                                        socket.emit("createUserStorage", fileInfo.crc, configFile.value.engineKey, (created) => {
+                                      
+                                        socket.emit("createStorage", newFile, newConfig.value.engineKey, (created) => {
                                             if (created.success) {
-                                                setConfigFile(configFile)
+                                                newConfig.fileID = created.fileID;
+                                                newConfig.storageID = created.storageID;
+
+                                                navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
 
                                                 callback(true)
 
                                             } else {
+                                                console.log(created)
                                                 callback(false)
                                             }
                                         })
                                     }else{
-                                        console.log("updatingCRC")
-                                        socket.emit("updateStorageCRC", fileInfo.crc, configFile.value.engineKey, (updated)=>{
+                                        
+                                        socket.emit("updateStorageConfig",configFile.fileID, configFile.storageID, newFile, (updated)=>{
                                             if (updated) {
                                                 console.log("updated")
-                                                setConfigFile(configFile)
+                                                newConfig.fileID = updated.fileID;
+                                                newConfig.storageID = configFile.storageID;
+                                                
+                                                navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
 
                                                 callback(true)
 
@@ -395,7 +411,7 @@ export const InitStoragePage = (props = {}) => {
                                     fontSize: "13px"
                                 }}>
 
-                                    arcturus.config
+                                    config.arcnet
 
                                 </div>
                                 <div style={{

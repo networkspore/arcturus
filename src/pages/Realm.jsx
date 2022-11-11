@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CreateRealmPage } from "./CreateRealmPage";
-import { RealmConfig } from "./RealmConfig";
+import { RealmGateway } from "./RealmGateway";
+
 
 export const Realm = () => {
 
@@ -10,6 +10,7 @@ export const Realm = () => {
     const location = useLocation();
 
     const [showIndex, setShowIndex] = useState(0)
+    const [navState, setNavState] = useState(null)
 
     useEffect(() => {
         const currentLocation = location.pathname;
@@ -26,20 +27,22 @@ export const Realm = () => {
         setSubDirectory(sD)
 
         switch (sD) {
-            case "/config":
-                setShowIndex(1)
+            case "/gateway":
+                setShowIndex(0);
                 break;
             default:
-                setShowIndex(0)
+                navigate("/realms")
                 break;
         }
     }, [location])
+
+
     return (
         <>
         
         {
-            showIndex == 1 &&
-            <RealmConfig />
+            showIndex == 0 &&
+            <RealmGateway />
         }</>
     )
 }

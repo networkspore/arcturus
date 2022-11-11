@@ -45,8 +45,8 @@ const useZust = create((set) => ({
 
  
 
-   configFile:{value:null, name:"", handle:null},
-   setConfigFile: (value = { value: null, name: "", handle: null }) => set({configFile: value}),
+   configFile:{storageID: -1, fileID: -1, value:null, name:"", handle:null},
+   setConfigFile: (value = { storageID:-1, fileID:-1, value: null, name: "", handle: null }) => set({configFile: value}),
    systemMessages:[],
    setSystemMessages: (value = []) => set({systemMessages: value}),
    connected: false,

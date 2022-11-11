@@ -10,39 +10,22 @@ import { getPermissionAsync } from "../constants/utility";
 
 export const RealmCreatePage = (props = {}) =>{
     
-    
-
     const navigate = useNavigate();
-
     const searchInputRef = useRef()
-
     const pageSize = useZust((state) => state.pageSize)
-
-    const user = useZust((state) => state.user);
     const socket = useZust((state) => state.socket)
-
-    const [imageSelected, setImageSelected] = useState({icon:null, name:""}); 
-
-    const [realmName, setRealmName] = useState("")
     const configFile = useZust((state) => state.configFile)
-
-
-
-    const [selectImage, setSelectImage] = useState(false)
-
-    const imagesFiles = useZust((state)=> state.imagesFiles)
-
-    const [imageSearch, setImageSearch] = useState("")
-
-    const imagesDirectory = useZust((state) => state.imagesDirectory)
-
-    const [directoryOptions, setDirectoryOptions] = useState([])
-
-    const [currentDirectory, setCurrentDirectory] = useState("")
-
+    const publishedImages = useZust((state) => state.publishedImages)
+    const imagesFiles = useZust((state) => state.imagesFiles)
     const localDirectory = useZust((state) => state.localDirectory)
 
-    const [imagesFilesList, setImagesFilesList] = useState([])
+    const [imageSelected, setImageSelected] = useState(null); 
+    const [realmName, setRealmName] = useState("")
+    const [imageSearch, setImageSearch] = useState("")
+    const imagesDirectory = useZust((state) => state.imagesDirectory)
+    const [directoryOptions, setDirectoryOptions] = useState([])
+    const [currentDirectory, setCurrentDirectory] = useState("")
+    
 
     useEffect(()=>{
         if(imagesDirectory.directories != null){
@@ -101,10 +84,8 @@ export const RealmCreatePage = (props = {}) =>{
                 socket.emit("checkRealmName", value, (callback) => {
                     if (callback) {
                         setRealmName(value)
-
                     } else {
                         setRealmName("")
-
                     }
                 })
             } else {
@@ -129,65 +110,56 @@ export const RealmCreatePage = (props = {}) =>{
 
     const onImageSelected = (e) =>{
         const img = imagesFiles[e];
+
         if(img != undefined){
-        if("crc" in img){
-        let pub = checkImagePublished(img.crc) 
-            
-        img.imageID = ("imageID" in pub) ? pub.imageID : null;
-
-        setImageSelected(img)
-        }
-      }
-    }
-    const [submitting, setSubmitting] = useState(false);
-
-    const publishedImages = useZust((state) => state.publishedImages)
-
-    const checkImagePublished = (crc) => {
-        const pF = publishedImages;
-        const length = pF.length;
-
-        if(length == 0){
-            return {}
-        }else{
-            for(let i = 0; i< length ; i++)
+            if("crc" in img)
             {
-                if(pF[i].crc == crc){
-                    return pF[i]
-                }
-            }
+     
 
-            return {}
+                setImageSelected(img)
+
+            }else{
+                setImageSelected(null)
+                alert("No crc in image. Unable to use this image in realm.")
+            }
+        }else{
+            alert("")
         }
     }
+
 
     async function handleSubmit (e) {
         const config = configFile.value;
         const granted = await getPermissionAsync(localDirectory.handle)
-        alert()
-        /*
-        if(! submitting && granted)
+        
+        
+        if(granted && config != null)
         {
-            socket.emit("createRealm", realmName, imageSelected.imageID, (response) => {
+            if ("crc" in imageSelected) {
+                socket.emit("createRealm", realmName, imageSelected.crc, (response) => {
 
-                setSubmitting(false);
+                    setSubmitting(false);
 
-                if ("error" in response) {
+                    if ("error" in response) {
 
-                    alert(response.error.message)
-                    navigate("/realms")
+                        alert(response.error.message)
+                        navigate("/realms")
 
-                } else if (response.created) {
+                    } else if (response.created) {
 
-                    const realm = response.realm
-                    
-                    navigate("/realm/config", {state:{realmID: realm.realmID, roomID:realm.roomID, realmName:realmName, imageFile: imageSelected }})    
+                        const realm = response.realm
+                        
+                        navigate("/realm/gateway", {state:realm})    
 
-                }
-            })
-                    
-            
-        }*/
+                    }
+                })
+            }else{
+                alert("The image is not valid.")
+                navigate("/localstorage")
+            }
+        }else{
+            alert("Local storage must be enabled.")
+        }
     }
 
 

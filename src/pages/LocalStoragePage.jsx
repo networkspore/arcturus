@@ -11,7 +11,7 @@ import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { InitStoragePage } from './InitStoragePage';
 import SelectBox from './components/UI/SelectBox';
 import { ImageDiv } from './components/UI/ImageDiv';
-import { getFileInfo, getPermission, readFileJson } from '../constants/utility';
+import { getFileInfo, getPermission, getPermissionAsync, readFileJson } from '../constants/utility';
 
 export const LocalStoragePage = () => {
 
@@ -74,9 +74,34 @@ export const LocalStoragePage = () => {
     const directoryChanged = (index) =>{
         
     }
-    function onReload() {
+    async function onReload() {
+        const granted = await getPermissionAsync(localDirectory.handle)
+        if(!granted) return false;
+
+        const fileHandle = await localDirectory.handle.getFileHandle("config.arcnet");
+        if(fileHandle == null || fileHandle == undefined){ 
+            turnOffLocalStorage();
+            alert("Config file missing.")
+            navigate("/localstorage/init")  
+            return false;
+        }
+
+        const config = configFile.value;
+
+        if (config == null){
+            turnOffLocalStorage();
+            navigate("/localstorage/init")
+            return false;
+        }
+        const file = await getFileInfo(fileHandle, localDirectory.handle)
+
+        const engineKey = configFile.value.engineKey
+
+        socket.emite("checkFileCRC", file.crc, (valid)=>{
+            
+        })
+            
        
-        navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
     }
 
 

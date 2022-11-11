@@ -271,7 +271,7 @@ const HomeMenu = ({ props}) => {
                         if(verified){
                             setLocalDirectory(value)
 
-                            value.handle.getFileHandle("arcturus.config").then((handle) => {
+                            value.handle.getFileHandle("config.arcnet").then((handle) => {
                                
                                 getFileInfo(handle).then((file)=>{
                                             console.log(file)
@@ -279,8 +279,10 @@ const HomeMenu = ({ props}) => {
                                                 if (json.success) {
                                                     const config = json.value;
                                                     if ("engineKey" in config) {
-                                                        socket.emit("checkStorageCRC", file.crc, config.engineKey, (callback) => {
-                                                            if (callback.valid) {
+                                                        socket.emit("loadStorage", file.crc, config.engineKey, (callback) => {
+                                                            if (callback.success) {
+                                                                file.fileID = callback.fileID;
+                                                                file.storageID = callback.storageID;
                                                                 file.value = config;
                                                                 navigate("/loading", { state: { configFile: file, navigate:"/network" } })
 

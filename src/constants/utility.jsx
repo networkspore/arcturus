@@ -127,7 +127,16 @@ export async function getFileInfo(entry, dirHandle) {
 
                     if(mimeType == "image"){
                         getThumnailFile(file).then((dataURL)=>{
-                            resolve({directory:dirHandle, icon: dataURL, mimeType: mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                            resolve({
+                                directory:dirHandle, 
+                                icon: dataURL, 
+                                mimeType: mimeType, 
+                                name: file.name, 
+                                crc: crc, 
+                                size: file.size, 
+                                type: file.type, 
+                                lastModified: file.lastModified, 
+                                handle: entry })
                         }).catch((err)=>{
                             resolve({ directory: dirHandle, icon: null, mimeType: mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
                         })
