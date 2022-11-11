@@ -20,6 +20,7 @@ import { LoadingPage } from "./LoadingPage";
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 
 import { getFileInfo, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
+import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -223,6 +224,7 @@ const HomeMenu = ({ props}) => {
     }, [location, user, socket])
 
     useEffect(() => {
+
         if (user.userID > 0) {
            
             socketOff("disconnect")
@@ -239,27 +241,7 @@ const HomeMenu = ({ props}) => {
                 
         //    })
 
-            const initDirectory = {
-                id: 1,
-                text: "Select local directory.",
-                navigate: "/home/localstorage",
-                netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
-            }
-
-            const initStorage = {
-                id: 2,
-                text: "Start storage engine.",
-                navigate: "/home/localstorage/init",
-                netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%" }
-            }
-
-            const firstSetup = {
-                id: 0,
-                text: "Welcome! Find more options on your home page.",
-                navigate: "/home",
-                netImage: { image: "/Images/icons/megaphone-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
-            }
-
+           
 
             get("localDirectory" + user.userID).then((value) => {
 
@@ -288,6 +270,7 @@ const HomeMenu = ({ props}) => {
 
                                                             } else {
                                                                 console.log(file)
+                                                                
                                                                 addSystemMessage(initStorage)
                                                                 navigate("/network")
                                                             }
@@ -324,7 +307,7 @@ const HomeMenu = ({ props}) => {
                     })
                     
                 } else {
-            
+          
                     addSystemMessage(firstSetup)
                     navigate("/network")
                 }
@@ -364,28 +347,7 @@ const HomeMenu = ({ props}) => {
 
     
 
-   
 
-    useEffect(() => {
-       
-        setCamps(prev => []);
-        campaigns.forEach((camp, i) => {
-     
-                    setCamps(prev => [...prev,(
-                        <NavLink onClick={(e)=>{
-                            
-                            if (currentCampaign == camp[0]){ e.preventDefault();}else{
-                                
-                            }
-                            
-                        }} key={i} className={currentCampaign == camp[0] ? styles.menuActive : styles.menu__item} about={camp[1]} state={{ campaignID: camp[0], campaignName: camp[1], roomID: camp[3], adminID: camp[4] }} to={"/realm"}>
-                            <div style={{width:"50px", height:"50px", borderRadius: "10px", overflow: "hidden" }}><img src={camp[2]} width={50} height={50} /></div>
-                        </NavLink>
-                    )])
-         
-        });
-       
-    },[campaigns,currentCampaign])
 
     const worker = useWorker(createWorker)
     

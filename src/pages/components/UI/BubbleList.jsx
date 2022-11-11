@@ -74,7 +74,26 @@ const BubbleList = (props = {}, ref) => {
 
         if(Array.isArray(items))
         {
-            console.log("items in props")
+            const currentPageItems = {};
+
+            items.forEach(element => {
+                if("page" in element && "index" in element)
+                {
+                    if(element.page == currentPage)
+                    {
+                        currentPageItems[element.index] = element
+                    }
+                }
+            });
+
+            const tmpItems = []
+            for (let i = 0; i < 12; i++) {
+                const itm = (i in currentPageItems) ? currentPageItems[i] : { index: i, id: null, netImage: defaultItemNetImage, name: defaultItemName }
+                tmpItems.push(
+                    itm
+                )
+            }
+
         }else{
             
 

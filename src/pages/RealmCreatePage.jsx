@@ -6,7 +6,8 @@ import styles from "./css/home.module.css"
 import FileList from "./components/UI/FileList";
 import { useEffect } from "react";
 import SelectBox from "./components/UI/SelectBox";
-import { getPermissionAsync } from "../constants/utility";
+import produce from "immer";
+import { initDirectory, initStorage } from "../constants/systemMessages";
 
 export const RealmCreatePage = (props = {}) =>{
     
@@ -26,6 +27,40 @@ export const RealmCreatePage = (props = {}) =>{
     const [directoryOptions, setDirectoryOptions] = useState([])
     const [currentDirectory, setCurrentDirectory] = useState("")
     
+    const addSystemMessage = (msg) => useZust.setState(produce((state) => {
+        let found = false;
+        if (state.systemMessages.length > 0) {
+            state.systemMessages.forEach(message => {
+                if (message.id == msg.id) {
+                    found = true;
+                }
+            });
+        }
+
+        if (!found) {
+            state.systemMessages.push(
+                msg
+            )
+        }
+    }))
+
+    useEffect(()=>{
+        if(localDirectory.handle != null){
+            const config = configFile.value;
+           
+            if(config == null)
+            {
+                alert("Storage engine not running.")
+                addSystemMessage(initStorage)
+                navigate("/realms")
+            }
+            
+        }else{
+            alert("Local storage required for realm creation.")
+            addSystemMessage(initDirectory)
+            navigate("/realms")
+        }
+    },[configFile, localDirectory])
 
     useEffect(()=>{
         if(imagesDirectory.directories != null){
@@ -123,43 +158,30 @@ export const RealmCreatePage = (props = {}) =>{
                 alert("No crc in image. Unable to use this image in realm.")
             }
         }else{
-            alert("")
+            alert("Image undefined.")
         }
     }
 
+    const [submitting, setSubmitting] = useState(false)
 
     async function handleSubmit (e) {
-        const config = configFile.value;
-        const granted = await getPermissionAsync(localDirectory.handle)
-        
-        
-        if(granted && config != null)
-        {
+      
             if ("crc" in imageSelected) {
-                socket.emit("createRealm", realmName, imageSelected.crc, (response) => {
-
-                    setSubmitting(false);
-
-                    if ("error" in response) {
-
-                        alert(response.error.message)
-                        navigate("/realms")
-
-                    } else if (response.created) {
-
-                        const realm = response.realm
-                        
-                        navigate("/realm/gateway", {state:realm})    
-
-                    }
-                })
+                if (!submitting){
+                    setSubmitting(true)
+                    props.onNewRealm({realmName:realmName, image:imageSelected}, (success)=>{
+                            if(!success)
+                            {
+                                setSubmitting(false)
+                                alert("Unable to create realm.")
+                            }
+                    })
+                }
             }else{
-                alert("The image is not valid.")
-                navigate("/localstorage")
+                alert("The image is not valid. Please reload local storage")
             }
-        }else{
-            alert("Local storage must be enabled.")
-        }
+    
+     
     }
 
 

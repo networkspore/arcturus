@@ -9,7 +9,7 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 
 
 export const RealmsPage = () =>{
-
+    const socket = useZust((state) => state.socket)
     const navigate = useNavigate();
     const location = useLocation();
     const pageSize = useZust((state) => state.pageSize)
@@ -18,6 +18,12 @@ export const RealmsPage = () =>{
     const [subDirectory, setSubDirectory] = useState("")
 
     const [selectedRealm, setSelectedRealm] = useState(null)
+
+    const [selectedItem, setSelectedItem] = useState(null)
+
+    const realms = useZust((state)=> state.realms)
+
+    const [realmItems, setRealmItems] = useState([])
 
     useEffect(() => {
         const currentLocation = location.pathname;
@@ -35,7 +41,10 @@ export const RealmsPage = () =>{
 
         switch (sD) {
             case "/create":
-                setShowIndex(1)
+                if("selectedItem" in location.state){
+                    setSelectedItem( location.state.selectedItem) 
+                    setShowIndex(1)
+                }
                 break;
             default:
                 setShowIndex(0)
@@ -43,9 +52,21 @@ export const RealmsPage = () =>{
         }
     },[location])
 
+    useEffect(()=>{
+        if(realms.length > 0)
+        {
+           
+
+        }
+    },[realms])
+
     const onRealmChange = (r) =>{
-        setSelectedRealm(r)
+        setSelectedItem(r)
     }
+
+    const onCreateRealm = (e) =>[
+        navigate("/realms/create", {state:{selectedItem:selectedItem}})
+    ]
    
     return (
         <>
@@ -82,14 +103,14 @@ export const RealmsPage = () =>{
             </div>
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
-                    {selectedRealm != null &&
+                    {selectedItem != null && selectedRealm == null &&
                     <>
                         <div style={{display:"flex", alignItems:"left",  width:"100%"}}>
                             <div style={{width:"5%", paddingRight:10}}></div>
                             <div className={styles.InactiveIcon} style={{display:"flex"}}>
                                 <div style={{width:5}}></div>
                                     <ImageDiv width={30} height={30} netImage={{  image:"/Images/icons/add-circle-outline.svg", filter:"invert(100%)"}}/>
-                                <div  onClick={(e) => { navigate("/realms/create") }} style={{ fontSize: 20,  fontFamily: "WebPapyrus", padding: 10, cursor: "pointer" }}>
+                                <div  onClick={onCreateRealm} style={{ fontSize: 20,  fontFamily: "WebPapyrus", padding: 10, cursor: "pointer" }}>
                                     Create Realm
                                 </div>
                             </div>
@@ -107,7 +128,10 @@ export const RealmsPage = () =>{
         
             <div style={{width:"100%", display:"flex",height:"100%"}}>
                 
-                <BubbleList onChange={onRealmChange}
+                <BubbleList onChange={(item)=>{
+                  
+                    onRealmChange(item)
+                }} items={realmItems}
                             defaultItem={{ netImage:{image: "/Images/realm.png"} }}
                     
                 />
@@ -116,7 +140,36 @@ export const RealmsPage = () =>{
         </div>
         }
         { showIndex == 1 &&
-            <RealmCreatePage />
+            <RealmCreatePage onNewRealm={(realm, callback)=>{
+                console.log(selectedItem)
+                const newFile = {
+                    mimeType: realm.image.mimeType,
+                    name: realm.image.name,
+                    crc: realm.image.crc,
+                    size: realm.image.size,
+                    type: realm.image.type,
+                    lastModified: realm.image.lastModified,
+                } 
+
+                socket.emit("createRealm", realm.realmName, newFile, selectedItem.page, selectedItem.index, (response) => {
+
+                    
+
+                    if ("error" in response) {
+                        callback(false)
+
+                    } else if ("realmID" in response) {
+
+                        const realm = response.realm
+                        callback(true)
+
+                        addRealm(realm)
+                        navigate("/realm/gateway", { state: realm })
+
+                    }
+                })
+            
+            }}/>
         }
        
         </>

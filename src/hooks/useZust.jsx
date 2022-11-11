@@ -9,6 +9,8 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   realms: [],
+   setRealms: (value = []) => set({realms:value}), 
    publishedImages:[],
    setPublishedImages: (value = []) => set({publishedImages: value}),
    peerOnline:false,
@@ -145,9 +147,6 @@ const useZust = create((set) => ({
    //setScrollLeft: (scroll = 0) => set({scrollLeft: scroll}),
    //setScrollTop: (scroll = 0) => set({scrollTop: scroll}),
 
-   campaigns: [],
-   setCampaigns: (c = []) => set({campaigns: c}),
-   
 }));
 
 
