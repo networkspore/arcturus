@@ -28,7 +28,7 @@ export const RealmsPage = () =>{
     const [realmItems, setRealmItems] = useState([])
 
     const addRealm = (realm) => useZust.setState(produce((state)=>{
-        state.reams.push(realm)
+        state.realms.push(realm)
     }))
 
     useEffect(() => {
@@ -120,26 +120,27 @@ export const RealmsPage = () =>{
             </div>
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
-                    {selectedItem != null && selectedRealm == null &&
-                    <>
-                        <div style={{display:"flex", alignItems:"left",  width:"100%"}}>
-                            <div style={{width:"5%", paddingRight:10}}></div>
-                            <div className={styles.InactiveIcon} style={{display:"flex"}}>
-                                <div style={{width:5}}></div>
-                                    <ImageDiv width={30} height={30} netImage={{  image:"/Images/icons/add-circle-outline.svg", filter:"invert(100%)"}}/>
-                                <div  onClick={onCreateRealm} style={{ fontSize: 20,  fontFamily: "WebPapyrus", padding: 10, cursor: "pointer" }}>
-                                    Create Realm
-                                </div>
-                            </div>
-                        </div>
-                   
-                        </>
-                    }
-                    {selectedRealm === null &&
+                    
+                    {selectedRealm == null &&
                     <>
                         <div style={{height:60}}>&nbsp;</div>
                      
                     </>
+                    }
+                    {selectedItem != null && selectedRealm == null &&
+                        <>
+                            <div style={{ display: "flex", alignItems: "left", width: "100%" }}>
+                                <div style={{ width: "5%", paddingRight: 10 }}></div>
+                                <div className={styles.InactiveIcon} style={{ display: "flex" }}>
+                                    <div style={{ width: 5 }}></div>
+                                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/add-circle-outline.svg", filter: "invert(100%)" }} />
+                                    <div onClick={onCreateRealm} style={{ fontSize: 20, fontFamily: "WebPapyrus", padding: 10, cursor: "pointer" }}>
+                                        Create Realm
+                                    </div>
+                                </div>
+                            </div>
+
+                        </>
                     }
                     
         
@@ -158,7 +159,7 @@ export const RealmsPage = () =>{
         }
         { showIndex == 1 &&
             <RealmCreatePage onNewRealm={(realm, callback)=>{
-                console.log(selectedItem)
+                
                 const newFile = {
                     mimeType: realm.image.mimeType,
                     name: realm.image.name,
@@ -175,8 +176,8 @@ export const RealmsPage = () =>{
                     if ("error" in response) {
                         callback(false)
 
-                    } else if ("realmID" in response) {
-
+                    } else if ("realm" in response) {
+                        console.log(response)
                         const realm = response.realm
                         callback(true)
 

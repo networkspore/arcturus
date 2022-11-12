@@ -50,8 +50,8 @@ export function Transition(props) {
     let y1 = 0;
 
     
-    const increase = .1;
-    const fastIncrease = 3;
+    const increase = .05;
+    const fastIncrease = 1;
     const slow = .001;
 
     let i = 0;

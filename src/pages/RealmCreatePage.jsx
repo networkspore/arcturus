@@ -169,6 +169,10 @@ export const RealmCreatePage = (props = {}) =>{
             if ("crc" in imageSelected) {
                 if (!submitting){
                     setSubmitting(true)
+                    setTimeout(() => {
+                        setSubmitting(false)
+                        handleChange(e)
+                    }, 3);
                     props.onNewRealm({realmName:realmName, image:imageSelected}, (success)=>{
                             if(!success)
                             {
@@ -293,7 +297,17 @@ export const RealmCreatePage = (props = {}) =>{
                      
                         
                             <div style={{ cursor: "pointer" }} onClick={ onImageSelected }>
-                                <ImageDiv about={imageSelected.name} style={{ textShadow: "2px 2px 2px black", }} className={ imageSelected.name.length > 15 ? styles.activeBubbleScroll__item : styles.bubbleActive__item} netImage={{ scale:1.2, backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius: 40, backgroundColor: "", image: imageSelected.icon }} />
+                                <ImageDiv 
+                                    about={imageSelected.name} 
+                                    style={{ textShadow: "2px 2px 2px black", }} 
+                                    className={ imageSelected.name.length > 15 ? styles.activeBubbleScroll__item : styles.bubbleActive__item} 
+                                    netImage={{ 
+                                        scale:1.2, 
+                                        backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", 
+                                        borderRadius: 40, 
+                                        backgroundColor: "", 
+                                        image: imageSelected.icon }} 
+                                    />
                             </div>
                         
                        
