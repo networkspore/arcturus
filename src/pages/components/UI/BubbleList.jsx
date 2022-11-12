@@ -30,9 +30,6 @@ const BubbleList = (props = {}, ref) => {
         cursor: "pointer"
     }
 
-
- 
-    const [index, setIndex] = useState(0)
     const [displayItem, setDisplayItem] = useState([
         { index: -1,  id: null, name: "", netImage: {} },
         { index: -1, id: null, name: "", netImage: {} },
@@ -65,13 +62,6 @@ const BubbleList = (props = {}, ref) => {
         let defaultItemNetImage = { backgroundImage: imageStyle.backgroundImage, backgroundColor: imageStyle.backgroundColor, scale: imageStyle.scale };
 
 
-        const defaultObjectNames = "netImage" in defaultItem ? Object.getOwnPropertyNames(defaultItem.netImage) : [];
-
-        defaultObjectNames.forEach(element => {
-            defaultItemNetImage[element] = defaultObjectNames[element];
-            console.log("element")
-        });
-
         if(Array.isArray(items))
         {
             const currentPageItems = {};
@@ -89,11 +79,12 @@ const BubbleList = (props = {}, ref) => {
             const tmpItems = []
             for (let i = 0; i < 12; i++) {
                 const itm = (i in currentPageItems) ? currentPageItems[i] : { index: i, id: null, netImage: defaultItemNetImage, name: defaultItemName }
+                console.log(itm)
                 tmpItems.push(
                     itm
                 )
             }
-
+            setDisplayItem(tmpItems)
         }else{
             
 

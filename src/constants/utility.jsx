@@ -2,7 +2,7 @@ import  SHA512  from "crypto-js/sha512";
 import MD5 from "crypto-js/md5";
 import WordArray from "crypto-js/lib-typedarrays";
 
-
+import { get, set } from "idb-keyval";
 
 import { randInt } from "three/src/math/MathUtils";
 
@@ -113,45 +113,124 @@ export function formatedNow(now = new Date(), small = false) {
     return small ? stringNow : stringNow + ":" + stringSeconds + ":" + stringMiliseconds;
 }
 
-export async function getFileInfo(entry, dirHandle) {
+export async function getFirstDirectoryFiles(dirHandle, type, fileTypes = {}) {
+    let files = []
+    let directories = []
 
-    return new Promise(resolve => {
-        entry.getFile().then((file) => {
-           
-            const slashIndex = file.type.indexOf("/")
-            const mimeType = slashIndex > 0 ? file.type.slice(0, slashIndex) : file.type;
-           
-            file.arrayBuffer().then((arrayBuffer) => {
-                
-                crc32FromArrayBuffer(arrayBuffer, (crc) => {
 
-                    if(mimeType == "image"){
-                        getThumnailFile(file).then((dataURL)=>{
-                            resolve({
-                                directory:dirHandle, 
-                                icon: dataURL, 
-                                mimeType: mimeType, 
-                                name: file.name, 
-                                crc: crc, 
-                                size: file.size, 
-                                type: file.type, 
-                                lastModified: file.lastModified, 
-                                handle: entry })
-                        }).catch((err)=>{
-                            resolve({ directory: dirHandle, icon: null, mimeType: mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                        })
-                    }else{
-                        resolve({ directory: dirHandle, icon:null, mimeType:mimeType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                    }
-                })
+    await getDirectoryFiles(dirHandle, type, fileTypes, (file) => {
+        files.push(file)
+    }, (d) => {
+        directories.push(d)
+    })
+
+    return { files: files, directories: directories }
+
+}
+export async function getDirectoryFiles(dirHandle, type, fileTypes = [], pushFile, pushDirectory) {
+
+    const push = pushFile;
+
+    for await (const entry of dirHandle.values()) {
+
+        if (entry.kind === "file") {
+
+            const name = entry.name + "";
+
+            const lastIndex = name.lastIndexOf(".");
+
+            const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
+
+
+            let newFile = fileTypes.includes(ext) ? await getFileInfo(entry, dirHandle, type) : null
+            
+            if(newFile != null){
+                push(newFile)
+            }
+
+            
+        } else if (entry.kind == 'directory') {
+            pushDirectory(entry)
+            getDirectoryFiles(entry, type, fileTypes, push, pushDirectory).then((result) => {
+
             })
-        })
-    });
+        }
+
+    }
 
 }
 
 
-export function getThumnailFile(file, size = { width: 100, height: 100 }) {
+export async function getFileInfo(entry, dirHandle, type) {
+
+    return new Promise(resolve => {
+        entry.getFile().then((file) => {
+            file.arrayBuffer().then((arrayBuffer) => {
+                
+                crc32FromArrayBuffer(arrayBuffer, (crc) => {
+                    if (type == "image") {
+                        get(crc + ".arcicon").then((iconInIDB) => {
+                            if(iconInIDB != undefined)
+                            {
+                                const dataURL = iconInIDB;
+                                resolve({
+                                    directory: dirHandle,
+                                    icon: dataURL,
+                                    mimeType: type,
+                                    name: file.name,
+                                    crc: crc,
+                                    size: file.size,
+                                    type: file.type,
+                                    lastModified: file.lastModified,
+                                    handle: entry
+                                })
+                            }else{
+                                getThumnailFile(file, crc).then((dataURL) => {
+                                    resolve({
+                                        directory: dirHandle,
+                                        icon: dataURL,
+                                        mimeType: type,
+                                        name: file.name,
+                                        crc: crc,
+                                        size: file.size,
+                                        type: file.type,
+                                        lastModified: file.lastModified,
+                                        handle: entry
+                                    })
+                                }).catch((err) => {
+                                    resolve({ directory: dirHandle, icon: null, mimeType: type, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                                })
+                            }
+                        }).catch((err)=>{
+                            getThumnailFile(file, crc).then((dataURL) => {
+                                resolve({
+                                    directory: dirHandle,
+                                    icon: dataURL,
+                                    mimeType: type,
+                                    name: file.name,
+                                    crc: crc,
+                                    size: file.size,
+                                    type: file.type,
+                                    lastModified: file.lastModified,
+                                    handle: entry
+                                })
+                            }).catch((err) => {
+                                resolve({ directory: dirHandle, icon: null, mimeType: type, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                            })
+                        })
+                        
+                    } else {
+                        resolve({ directory: dirHandle, icon: null, mimeType: type, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                    }              
+                })
+            })
+        })
+    })
+}
+
+
+async function getThumnailFile(file, crc, size = { width: 100, height: 100 }) {
+    
     return new Promise(resolve => {
         createImageBitmap(file).then((image) => {
             var canvas = document.createElement('canvas'),
@@ -170,8 +249,10 @@ export function getThumnailFile(file, size = { width: 100, height: 100 }) {
                 scale = size.height / image.height;
             }
 
-             const resampledCanvas = resample(canvas, scale);
+            const resampledCanvas = resample(canvas, scale);
             const dataUrl = resampledCanvas.toDataURL();
+
+            set(crc + ".arcicon", dataUrl)
 
             resolve(dataUrl)
             // resolve(resampledCanvas)*/
@@ -243,49 +324,6 @@ export function checkVisible(elm) {
     var rect = elm.getBoundingClientRect();
     var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
     return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
-}
-
-export async function getFirstDirectoryFiles(dirHandle, fileTypes = {}) {
-    let files = []
-    let directories = []
- 
-
-    await getDirectoryFiles(dirHandle, fileTypes, (file) =>{
-        files.push(file)
-    }, (d) =>{
-        directories.push(d)
-    })
-
-    return {files:files, directories:directories}
-
-}
-export async function getDirectoryFiles(dirHandle, fileTypes = {}, pushFile, pushDirectory) {
-
-    const push = pushFile;
-    
-    for await (const entry of dirHandle.values()) {
-
-        if (entry.kind === "file") {
-
-
-            getPermission(entry, (valid) => {
-                if (valid) {
-                    getFileInfo(entry, dirHandle).then((newFile) => {
-                        push(newFile)
-                    }).catch((err)=>{
-                        console.log(err)
-                    })
-                }
-            })
-        } else if (entry.kind == 'directory') {
-            pushDirectory(entry)
-            getDirectoryFiles(entry,{},push, pushDirectory).then((result)=>{
-
-            })
-        }
-
-    }
- 
 }
 
 export const resample = (canvas, scale) => {

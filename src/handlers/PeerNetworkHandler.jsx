@@ -1,7 +1,7 @@
 import React from "react";
 import produce from "immer";
 import useZust from "../hooks/useZust";
-import { ImageDiv } from "./components/UI/ImageDiv";
+import { ImageDiv } from "../pages/components/UI/ImageDiv";
 import { useEffect } from "react";
 import Peer from "peerjs";
 import { useNavigate } from "react-router-dom";
@@ -11,12 +11,10 @@ import { status } from "../constants/constants";
 export const PeerNetworkHandler = (props ={}) => {
     const navigate = useNavigate()
 
-
     const configFile = useZust((state) => state.configFile)
-
     const peerOnline = useZust((state) => state.peerOnline)
     const setPeerOnline = useZust((state) => state.setPeerOnline)
-    
+
     const peerConnection = useZust((state) => state.peerConnection);
     const setPeerConnection = useZust((state) => state.setPeerConnection);
 
@@ -136,9 +134,16 @@ export const PeerNetworkHandler = (props ={}) => {
 
     useEffect(() => {
       
-        if(peerConnection == null) setPeerOnline(false)
+        if(peerConnection == null){
+            setPeerOnline(false)
+        }
 
+       
     }, [peerConnection])
+
+    useEffect(()=>{
+
+    },[])
 
     return (
         <>

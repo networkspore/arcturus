@@ -9,10 +9,15 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   fileRequest: [],
+   setFileRequest: (value = []) => set({ fileRequest: value }),
+   addFileRequest: (value = null) => set(produce(state => { 
+      state.fileRequest.push(value) 
+   })),
    realms: [],
    setRealms: (value = []) => set({realms:value}), 
-   publishedImages:[],
-   setPublishedImages: (value = []) => set({publishedImages: value}),
+   publishedFiles:[],
+   setPublishedFiles: (value = []) => set({publishedImages: value}),
    peerOnline:false,
    setPeerOnline:(value = false) => set({peerOnline:value}),
 

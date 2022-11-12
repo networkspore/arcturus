@@ -9,18 +9,23 @@ import WelcomePage from "./pages/WelcomePage";
 import { NetworkPage } from "./pages/NetworkPage";
 import { HomePage } from "./pages/HomePage";
 import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
+import { RealmsPage } from "./pages/RealmsPage";
+
 import { SystemMessagesMenu } from "./SystemMessagesMenu";
 import { get } from "idb-keyval";
 
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
-import { PeerNetworkHandler } from "./pages/PeerNetworkHandler";
-import { ErgoNetworkHandler } from "./pages/ErgoNetworkHandler";
-import { RealmsPage } from "./pages/RealmsPage";
+
+import { PeerNetworkHandler } from "./handlers/PeerNetworkHandler";
+import { FileHandler } from "./handlers/FileHandler";
+
+
 import { LoadingPage } from "./LoadingPage";
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 
 import { getFileInfo, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
 import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
+
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -54,7 +59,7 @@ const HomeMenu = ({ props}) => {
 
     const configFile = useZust((state) => state.configFile)
 
-    const [loading, setLoading] = useState(false)
+    const setRealms = useZust((state)=> state.setRealms)
 
     const addSystemMessage = (msg) => useZust.setState(produce((state) => {
         let found = false;
@@ -221,7 +226,7 @@ const HomeMenu = ({ props}) => {
 
 
 
-    }, [location, user, socket])
+    }, [location, user])
 
     useEffect(() => {
 
@@ -236,12 +241,12 @@ const HomeMenu = ({ props}) => {
 
                 }
             })
-           // socketOff("connect")
-         //   socketOn("connect", (res) => {
-                
-        //    })
-
-           
+            socket.emit("getRealms", (callback)=>{
+                if(callback.success)
+                {
+                   setRealms(callback.realms)
+                }
+            })
 
             get("localDirectory" + user.userID).then((value) => {
 
@@ -368,7 +373,7 @@ const HomeMenu = ({ props}) => {
         
 
 
-        const images = granted ?  await worker.getFirstDirectoryFiles(imageHandle, config.folders.images.fileTypes) : null;
+        const images = granted ?  await worker.getFirstDirectoryFiles(imageHandle, "image", config.folders.images.fileTypes) : null;
 
         
 
@@ -377,7 +382,7 @@ const HomeMenu = ({ props}) => {
         const objectsGranted = await getPermissionAsync(objectsHandle)
 
 
-        const objects = objectsGranted ? await worker.getFirstDirectoryFiles(objectsHandle, config.folders.objects.fileTypes) : null;
+        const objects = objectsGranted ? await worker.getFirstDirectoryFiles(objectsHandle, "model", config.folders.objects.fileTypes) : null;
         
 
         const terrainHandle = config.folders.terrain.default ? await localDirectory.handle.getDirectoryHandle("terrain", { create: true }) : await get("terrain" + engineKey);
@@ -385,14 +390,14 @@ const HomeMenu = ({ props}) => {
         const terrainGranted = await getPermissionAsync(terrainHandle)
 
 
-        const terrain = terrainGranted ? await worker.getFirstDirectoryFiles(terrainHandle, config.folders.terrain.fileTypes) : null;
+        const terrain = terrainGranted ? await worker.getFirstDirectoryFiles(terrainHandle,"terrain", config.folders.terrain.fileTypes) : null;
            
         const mediaHandle = config.folders.media.default ? await localDirectory.handle.getDirectoryHandle("media", { create: true }) : await get("media" + engineKey);
 
         const mediaGranted = await getPermissionAsync(mediaHandle)
 
 
-        const media = mediaGranted ? await worker.getFirstDirectoryFiles(mediaHandle, config.folders.media.fileTypes) : null;
+        const media = mediaGranted ? await worker.getFirstDirectoryFiles(mediaHandle,"media", config.folders.media.fileTypes) : null;
 
       
         
@@ -541,7 +546,7 @@ const HomeMenu = ({ props}) => {
                             <>
                                 <PeerNetworkHandler />
                         
-                                <ErgoNetworkHandler />
+                                <FileHandler />
                             </>
                         }
                         <div onClick={onProfileClick} style={{

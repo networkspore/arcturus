@@ -6,9 +6,11 @@ import { RealmCreatePage } from "./RealmCreatePage";
 import BubbleList from "./components/UI/BubbleList";
 import styles from "./css/home.module.css"
 import { ImageDiv } from "./components/UI/ImageDiv";
+import produce from "immer";
 
 
 export const RealmsPage = () =>{
+    const user = useZust((state) => state.user)
     const socket = useZust((state) => state.socket)
     const navigate = useNavigate();
     const location = useLocation();
@@ -24,6 +26,10 @@ export const RealmsPage = () =>{
     const realms = useZust((state)=> state.realms)
 
     const [realmItems, setRealmItems] = useState([])
+
+    const addRealm = (realm) => useZust.setState(produce((state)=>{
+        state.reams.push(realm)
+    }))
 
     useEffect(() => {
         const currentLocation = location.pathname;
@@ -52,11 +58,20 @@ export const RealmsPage = () =>{
         }
     },[location])
 
+
     useEffect(()=>{
         if(realms.length > 0)
         {
-           
-
+            const tmp = []
+            realms.forEach(realm => {
+                tmp.push(
+                    { index: realm.realmIndex, page:realm.realmPage, id: realm.realmID, name: realm.realmName, image: realm.image }
+                )
+                
+            });
+            setRealmItems(tmp)
+        }else{
+            setRealmItems([])
         }
     },[realms])
 
@@ -67,6 +82,8 @@ export const RealmsPage = () =>{
     const onCreateRealm = (e) =>[
         navigate("/realms/create", {state:{selectedItem:selectedItem}})
     ]
+
+
    
     return (
         <>
@@ -132,7 +149,7 @@ export const RealmsPage = () =>{
                   
                     onRealmChange(item)
                 }} items={realmItems}
-                            defaultItem={{ netImage:{image: "/Images/realm.png"} }}
+                            defaultItem={{ netImage:{ backgroundColor:""} }}
                     
                 />
             </div>
