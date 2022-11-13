@@ -382,10 +382,9 @@ export const NetworkPage = () => {
 
                 }}></div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center",  padding: "10px" }}>
-                    <ImageDiv netImage={{
+                    <ImageDiv width={130} height={130} netImage={{
                         image: "/Images/logo.png",
-                        width: 130,
-                        height: 130,
+                        
                     }} />
                     <div style={{ width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", display:"flex", justifyContent:"center" }}>
                         <div style={{display:"flex", justifyContent:"center", alignItems:"center"}} >

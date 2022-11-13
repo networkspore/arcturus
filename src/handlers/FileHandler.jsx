@@ -13,58 +13,90 @@ export const FileHandler = ( props = {}) =>{
     const mediaFiles = useZust((state) => state.mediaFiles)
 
     const fileRequest = useZust((state) => state.fileRequest)
-    const takeRequest = (request) => useZust.setState(produce((state) =>{
-        if(state.fileRequest.length > 0)
-            if (state.fileRequest.length == 1 )
-            {
-                request(state.pop(state.fileRequest));
-            }else {
-                request(state.fileRequest.splice(0, 1))
-            }
+    const updateFileRequest = useZust((state) => state.updateFileRequest)
+    const downloads = useZust((state) => state.downloads)
+
+    const addDownload = useZust((state) => state.addDownload)
+
+    const [processing, setProcessing] = useState([])
+
+    const addProcessing = (request) => setProcessing(produce((state)=>{
+        state.push(request);
     }))
 
+    const removeProcessing = (request) => setProcessing(produce((state)=>{
+        const index = state.findIndex(item => item.page == request.page && item.id == request.id)
+
+        if(index > -1)
+        {
+            if(state.length == 1)
+            {
+                state.pop()
+            }else{
+                state.splice(index,1)
+            }
+        }
+    }))
+
+    const removeFileRequest = useZust((state)=> state.removeFileRequest)
 
     useEffect(()=>{
-        if(fileRequest != null)
-        {
-            if(fileRequest.length > 0)
-            {
-                
-                takeRequest((request)=>{
-                    checkLocal(request, (localFile) => {
-                        if ("error" in localFile) {
-                            request.resolve({error: localFile.error})
-                        } else {
-                            if(localFile.success){
-                                request.resolve({success:true, file:localFile.file})
-                            }else{
-                                request.resolve({success:false})
-                                //checkPeers(request, (foundPeer)=>{
+        if(fileRequest != null && fileRequest.length > 0){
+            
+            fileRequest.forEach((request, i) => {
+                const index = processing.findIndex(item => item.page == request.page && item.id == request.id)
 
-                                //})
+                if( index == -1 ){
+                    addProcessing(request)
+                    checkLocal(request).then((localResult)=>{
+                        if("error" in localResult)
+                        {
+                            request.callback({ request: request, error: localResult.error})
+                            removeProcessing(request)
+                            removeFileRequest(request)
+                        }else{
+                            console.log(localResult)
+                            if(localResult.success)
+                            {
+                                request.callback({ request: request, file: localResult.file })
+                                removeProcessing(request)
+                                removeFileRequest(request)
+                            }else{
+                                request.callback({request:request, error: new Error( "Not implemented")})
+                                removeProcessing(request)
+                                removeFileRequest(request)
                             }
                         }
                     })
-                })
-                
-            }
-        }
-    },[fileRequest, imagesFiles, objectFiles, terrainFiles, mediaFiles])
+                }else{
+                    
+                }
+            });
 
-    const checkLocal = (request, callback) => {
-        switch(request.mimeType)
+        }
+    },[fileRequest])
+
+    useEffect(()=>{
+    
+    },[processing])
+
+
+    async function checkLocal(request) {
+       
+        switch(request.file.mimeType)
         {
             case "image":
-                const i = imagesFiles.findIndex( iFile => iFile.crc == request.crc)
-                if (i > 0)
+                const i = imagesFiles.findIndex( iFile => iFile.crc == request.file.crc)
+           
+                if (i > -1)
                 {
-                    callback( {success:true, file: imagesFiles[i] } )
+                    return {success:true, file: imagesFiles[i] } 
                 }else{
-                    callback( {success:false})
+                    return {success:false}
                 }
                 break;
             default:
-                callback({error: new Error("File type not supported.")})
+                return{error: new Error("File type not supported.")}
                 break;
         }
     }
@@ -77,7 +109,7 @@ export const FileHandler = ( props = {}) =>{
     return (
         <>
             {
-                fileRequest != null && fileRequest.length > 0 &&
+                processing != null && processing.length > 0 &&
                 <ImageDiv onClick={(e) => {
                     navigate("/home/peernetwork/transfers")
                 }} width={25} height={30} netImage={{ image: "/Images/icons/file-tray-stacked.svg", scale: .7, filter: "invert(100%)" }} />

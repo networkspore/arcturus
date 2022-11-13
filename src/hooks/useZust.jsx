@@ -9,10 +9,42 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   downloads:[],
+   addDownload: (value = { fileCRC:"", status:"", request:null }) => set(produce(state=>{
+      if (state.downloads.length > 0) {
+         
+         const index = state.downloads.findIndex(download => download.fileCRC == value.fileCRC)
+         if (index > -1) {
+            state.downloads.push(value)
+         }
+    
+      }
+   })),
    fileRequest: [],
-   setFileRequest: (value = []) => set({ fileRequest: value }),
-   addFileRequest: (value = null) => set(produce(state => { 
-      state.fileRequest.push(value) 
+  
+   addFileRequest: (value = {page:-1, id:-1, fileInfo: null, callback: null}) => set(produce(state => { 
+      if(state.fileRequest.length > 0){
+         let found = false;
+         state.fileRequest.forEach(element => {
+            if(element.id == value.id && element.page  == value.page) found = true
+         });
+         if(!found){
+            state.fileRequest.push(value)
+         } 
+      }else{
+         state.fileRequest.push(value) 
+      }
+   })),
+   removeFileRequest: (value) => set(produce((state) => {
+      const index = state.fileRequest.findIndex(item => item.page == value.page && item.id == value.id)
+
+      if (index > -1) {
+         if (state.fileRequest.length == 1) {
+            state.fileRequest.pop()
+         } else {
+            state.fileRequest.splice(index, 1)
+         }
+      }
    })),
    realms: [],
    setRealms: (value = []) => set({realms:value}), 

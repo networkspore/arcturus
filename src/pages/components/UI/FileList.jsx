@@ -140,7 +140,7 @@ const FileList = (props = {}, ref) => {
 
                    
 
-                    const iImage = "netImage" in file ? iIcon == null ? file.netImage : { scale: "scale" in netImage ? netImage.scale : 1, backgroundImage: "backgroundImage" in netImage ? file.netImage.backgroundImage : "", backgroundColor: "backgroundColor" in netImage ? file.netImage.backgroundColor : "", filter: "filter" in netImage ? file.netImage.filter : "", image: iIcon } : iIcon == null ? { image:"/Images/icons/document-outline.svg", filter:"invert(100%)"} : {scale: 1, image:iIcon};
+                    let iImage = "netImage" in file ? iIcon == null ? file.netImage : { scale: "scale" in netImage ? netImage.scale : 1, backgroundImage: "backgroundImage" in netImage ? file.netImage.backgroundImage : "", backgroundColor: "backgroundColor" in netImage ? file.netImage.backgroundColor : "", filter: "filter" in netImage ? file.netImage.filter : "", image: iIcon } : iIcon == null ? { image:"/Images/icons/document-outline.svg", filter:"invert(100%)"} : {scale: 1, image:iIcon};
 
                     
 

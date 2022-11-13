@@ -321,7 +321,69 @@
 	background-color: #FFFFFF20;
 }
 
+.tooltipCenter__item {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 15px 0;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
 
+}
+
+.tooltipCenter__item:hover {
+
+	filter: drop-shadow(0 0 20px #ffffff80);
+}
+
+/* create tooltip after each menu item  */
+.tooltipCenter__item::after {
+	position: absolute;
+	display: flex;
+	/* ::before, ::after are inline as default
+  
+  /*  makes tooltip vertically center within each one of menu items  */
+	top: 100%;
+
+	transform: translate(-50%, 0%);
+
+	/* starting tooltip 100% left of menu item (just the right of them)   */
+	left: 50%;
+
+	/* linked to the HTML attribute value  */
+	/* 使用 ::before 和 ::after 一定要有 content 否則不會發生作用。 */
+	content: attr(about);
+
+	/* set margin between menu item and tooltip  */
+	font-family: "webpapyrus";
+
+	/* makes words in same line   */
+	white-space: nowrap;
+
+	padding: 7px 12px;
+
+	/* 90% of current font size   */
+	font-size: 0.9em;
+	font-weight: bold;
+	background: rgba(0, 0, 0, 0.4);
+	border-radius: 5px;
+	color: white;
+
+	/*  invisible (can't see it but can click on it)  */
+	opacity: 0;
+	/* can't click  */
+	visibility: hidden;
+	transition: opacity 1s;
+}
+
+/* show tooltip if hover on menu item */
+.tooltipCenter__item:hover::after {
+	opacity: 1;
+	visibility: visible;
+}
 
 .OKButton {
 
@@ -758,7 +820,7 @@
 
 .bubble__item:hover {
 
-	background: #dddddd50;
+	background: #ffffff10;
 	box-shadow: 0 0 10px #ffffff50, 0 0 20px #ffffff50, inset 0 0 30px #77777710;
 	filter: drop-shadow(0px 0px 3px #ffffff30);
 }
@@ -812,10 +874,10 @@
 	align-items: center;
 	padding: 10px;
 	text-decoration: none;
-	color: #666666;
+	color:white;
 	transition: background 0.3s;
 
-	background: #ffffff70;
+	background: #ffffff20;
 	box-shadow: 0 0 10px #ffffff70, 0 0 20px #ffffff70, inset 0 0 30px #77777740;
 	filter: drop-shadow(0px 0px 3px #ffffff30);
 }

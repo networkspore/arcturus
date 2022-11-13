@@ -25,7 +25,7 @@ const BubbleList = (props = {}, ref) => {
     const itemStyle = {
         borderRadius: 40,
         margin:"3%",
-  
+        overflow:"hidden",
         textShadow: "2px 2px 2px black",
         cursor: "pointer"
     }
@@ -71,7 +71,17 @@ const BubbleList = (props = {}, ref) => {
                 {
                     if(element.page == currentPage)
                     {
-                        currentPageItems[element.index] = element
+                        let newElement = element; 
+                        if("netImage" in newElement)
+                        {
+                            newElement.netImage.backgroundImage = ("backgroundImage" in element.netImage) ? element.netImage.backgroundImage : imageStyle.backgroundImage;
+                            newElement.netImage.backgroundColor = ("backgroundColor" in element.netImage) ? element.netImage.backgroundColor : imageStyle.backgroundColor;
+                            newElement.netImage.scale = ("scale" in element.netImage) ? element.netImage.scale : imageStyle.scale;
+                            console.log(newElement)
+                        }else{
+                            newElement.netImage = defaultItemNetImage;
+                        }
+                        currentPageItems[element.index] = newElement
                     }
                 }
             });
@@ -79,7 +89,7 @@ const BubbleList = (props = {}, ref) => {
             const tmpItems = []
             for (let i = 0; i < 12; i++) {
                 const itm = (i in currentPageItems) ? currentPageItems[i] : { index: i, id: null, netImage: defaultItemNetImage, name: defaultItemName }
-                console.log(itm)
+               
                 tmpItems.push(
                     itm
                 )

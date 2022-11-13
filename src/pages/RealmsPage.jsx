@@ -28,8 +28,12 @@ export const RealmsPage = () =>{
     const [realmItems, setRealmItems] = useState([])
 
     const addRealm = (realm) => useZust.setState(produce((state)=>{
-        state.realms.push(realm)
+        const index = realms.findIndex(r => r.realmIndex == realm.realmIndex)
+        if(index == -1) state.realms.push(realm)
     }))
+    
+
+    const addFileRequest = useZust((state) => state.addFileRequest)
 
     useEffect(() => {
         const currentLocation = location.pathname;
@@ -57,17 +61,64 @@ export const RealmsPage = () =>{
                 break;
         }
     },[location])
+    
+    const updateRealmImage = (response) =>useZust.setState(produce((state)=>{
+        const index = realms.findIndex(realm => realm.realmID == response.request.id);
+        const image = index != -1 ? state.realms[index].image : null;
 
+        if("error" in response){
+            console.log('error')
+        }else{
+            
+            if (index != -1)
+            {
+                const file = response.file;
+                
+                
 
+                const fileProperties = Object.getOwnPropertyNames(file)
+
+                fileProperties.forEach(property => {
+                    image[property] = file[property];
+                });
+                image.loaded = true;
+
+                if (index != -1) state.realms[index].image = image;
+            } 
+        }
+    }))
     useEffect(()=>{
         if(realms.length > 0)
         {
             const tmp = []
+            
             realms.forEach(realm => {
-                tmp.push(
-                    { index: realm.realmIndex, page:realm.realmPage, id: realm.realmID, name: realm.realmName, image: realm.image }
-                )
-                
+                if (!("icon" in realm.image)) {
+                    
+                    addFileRequest({ page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
+                    tmp.push(
+
+                        { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: {opacity:.2, scale: .6, image:"/Images/spinning.gif"} }
+
+                    )
+
+                }else{
+                    if(realm.image.loaded)
+                    {
+                        tmp.push(
+
+                            { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.icon, opacity: .9} }
+
+                        )
+                    }else{
+                        tmp.push(
+
+                            { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: .4, image: "/Images/icons/cloud-offline-outline.svg", opacity: .1, filter: "invert(90%)" } }
+
+                        )
+                    }
+                }   
+               
             });
             setRealmItems(tmp)
         }else{
@@ -76,6 +127,18 @@ export const RealmsPage = () =>{
     },[realms])
 
     const onRealmChange = (r) =>{
+        
+        if(r != null && r.id > -1 )
+        {
+           const index = realms.findIndex(realm => realm.realmID == r.id)
+           const realm = index > -1 ? realms[index] : null;
+
+           
+            setSelectedRealm(realm)
+            
+        }else{
+            setSelectedRealm(null)
+        }
         setSelectedItem(r)
     }
 
@@ -121,14 +184,15 @@ export const RealmsPage = () =>{
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
                     
-                    {selectedRealm == null &&
+                    {selectedItem == null &&
                     <>
-                        <div style={{height:60}}>&nbsp;</div>
+                        <div style={{height:90}}>&nbsp;</div>
                      
                     </>
                     }
                     {selectedItem != null && selectedRealm == null &&
                         <>
+                        <div style={{ height: 30 }}>&nbsp;</div>
                             <div style={{ display: "flex", alignItems: "left", width: "100%" }}>
                                 <div style={{ width: "5%", paddingRight: 10 }}></div>
                                 <div className={styles.InactiveIcon} style={{ display: "flex" }}>
@@ -142,7 +206,18 @@ export const RealmsPage = () =>{
 
                         </>
                     }
-                    
+                    {selectedRealm != null &&
+                        <>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent:"center",  width: "100%" }}>
+                               
+                            <div onClick={(e) => { navigate("/realm/gateway", {state:{realm:selectedRealm}})}} about="Gateway" className = { styles.tooltipCenter__item } style={{padding:10, display: "flex" }}>
+                                    
+                                <ImageDiv style={{ filter:"drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)"}} width={55} height={55} netImage={{ scale: 1,  backgroundColor: "", image: "/Images/realm.png", filter: "invert(100%)" }} />
+                                </div>
+                            </div>
+
+                        </>
+                    }
         
             <div style={{width:"100%", display:"flex",height:"100%"}}>
                 
