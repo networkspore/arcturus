@@ -11,6 +11,7 @@ export const Realm = () => {
 
     const [showIndex, setShowIndex] = useState(0)
     const [navState, setNavState] = useState(null)
+    const [subDirectory, setSubDirectory] = useState("")
 
     useEffect(() => {
         const currentLocation = location.pathname;
@@ -26,8 +27,11 @@ export const Realm = () => {
 
         setSubDirectory(sD)
 
+        
+
         switch (sD) {
             case "/gateway":
+                console.log("gateway")
                 setShowIndex(0);
                 break;
             default:

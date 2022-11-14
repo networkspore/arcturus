@@ -77,7 +77,7 @@ const BubbleList = (props = {}, ref) => {
                             newElement.netImage.backgroundImage = ("backgroundImage" in element.netImage) ? element.netImage.backgroundImage : imageStyle.backgroundImage;
                             newElement.netImage.backgroundColor = ("backgroundColor" in element.netImage) ? element.netImage.backgroundColor : imageStyle.backgroundColor;
                             newElement.netImage.scale = ("scale" in element.netImage) ? element.netImage.scale : imageStyle.scale;
-                            console.log(newElement)
+                          
                         }else{
                             newElement.netImage = defaultItemNetImage;
                         }

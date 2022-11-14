@@ -25,6 +25,7 @@ import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 
 import { getFileInfo, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
 import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
+import { Realm } from "./pages/Realm";
 
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
@@ -193,6 +194,8 @@ const HomeMenu = ({ props}) => {
                             }
                             
 
+                        }else{
+                            console.log(location.state)
                         }
                         break;
 
@@ -258,47 +261,53 @@ const HomeMenu = ({ props}) => {
                         if(verified){
                             setLocalDirectory(value)
 
-                            value.handle.getFileHandle("config.arcnet").then((handle) => {
-                               
-                                getFileInfo(handle).then((file)=>{
-                                            console.log(file)
-                                            readFileJson(handle, (json) => {
-                                                if (json.success) {
-                                                    const config = json.value;
-                                                    if ("engineKey" in config) {
-                                                        socket.emit("loadStorage", file.crc, config.engineKey, (callback) => {
-                                                            if (callback.success) {
-                                                                file.fileID = callback.fileID;
-                                                                file.storageID = callback.storageID;
-                                                                file.value = config;
-                                                                navigate("/loading", { state: { configFile: file, navigate:"/network" } })
+                            value.handle.getFileHandle("arcturus.config").then((handle) => {
+                                
+                                getFileInfo(handle, value.handle).then((file)=>{
 
-                                                            } else {
-                                                                console.log(file)
-                                                                
-                                                                addSystemMessage(initStorage)
-                                                                navigate("/network")
-                                                            }
-                                                        })
+
+                                    socket.emit("checkStorageCRC", file.crc, (callback) => {
+
+                                        readFileJson(handle, (json) => {
+                                            if (json.success) {
+                                                const config = json.value;
+                                                file.value = config;
+                                                file.fileID = callback.fileID;
+
+                                                if (!("error" in callback)) {
+                                                    file.fileID = callback.fileID;
+                                                    if (callback.success) {
+                                                        
+                                                        file.storageID = callback.storageID;
+                                                        
+
+                                                        navigate("/loading", { state: { configFile: file, navigate: "/network" } })
+
                                                     } else {
-                                                        console.log(json)
-                                                        addSystemMessage(initStorage)
-                                                        navigate("/network")
+
+                                                        navigate("home/localstorage/init", { state: { configFile: file } })
                                                     }
-                                                
-                                        }else{
-                                            console.log(err)
-                                            addSystemMessage(initStorage)
-                                            navigate("/network")
-                                        }
+
+                                                } else {
+
+
+                                                    addSystemMessage(initStorage)
+                                                    navigate("/network")
+                                                }
+                                            } else {
+                                                console.log(err)
+                                                addSystemMessage(initStorage)
+                                                navigate("/network")
+                                            }
+                                        })
+
                                     })
-                                    
+
                                 }).catch((err) => {
                                     console.log(err)
                                     addSystemMessage(initStorage)
                                     navigate("/network")
                                 })
-                               
                             }).catch((err) => {
                                 console.log(err)
                                 addSystemMessage(initStorage)
@@ -475,22 +484,26 @@ const HomeMenu = ({ props}) => {
             
        
         {showIndex == 1 &&
-                <LoginPage  />
+            <LoginPage  />
         }
         {showIndex == 2  &&
-                <WelcomePage />
+            <WelcomePage />
         }
         {showIndex == 3 &&
-                <NetworkPage  />
+            <NetworkPage  />
         }
         {showIndex == 4 &&
-                <HomePage  logOut={logout}  />
+            <HomePage  logOut={logout}  />
         }
         {showIndex == 5 &&
-                <RecoverPasswordPage  />
+            <RecoverPasswordPage  />
         }
         {showIndex == 6 &&
-                <RealmsPage />
+            <RealmsPage />
+        }
+        { showIndex == 7 &&
+           
+            <Realm />
         }
 
        {(showMenu) &&

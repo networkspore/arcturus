@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef  } from "react";
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import useZust from "../hooks/useZust";
 
@@ -12,7 +12,8 @@ import { set } from "idb-keyval";
 import { generateCode, getFileInfo } from "../constants/utility";
 
 export const InitStoragePage = (props = {}) => {
-    
+
+    const location = useLocation()
     const P2PRef = useRef();
     const ergoRef = useRef();
     const sharingRef = useRef();
@@ -62,45 +63,45 @@ export const InitStoragePage = (props = {}) => {
 
     const [firstRun, setFirstRun] = useState(true)
 
+    const [stateConfig, setStateConfig] = useState(null)
+
     useEffect(() => {
-        
-        if(configFile.value == null)
-        {
-            setFirstRun(true)
-            generateEngineKey()
-            P2PRef.current.setValue(true);
-            sharingRef.current.setValue("published");
-            ergoRef.current.setValue(true);
+        console.log(location.state)
+        const isState = location.state != null && ("configFile") in location.state ?  location.state.configFile : null
+        setStateConfig(isState)
+        if(stateConfig != null) {
+            setStateConfig(isState)
         }else{
-            if (!("engineKey" in configFile.value) || !("sharing" in configFile.value) || !("peer2peer" in configFile.value) || !("ergo" in configFile.value))
-            {
+
+            if (configFile.value == null) {
+                
                 setFirstRun(true)
-                if("engineKey" in configFile.value) socket.emit("deleteStorage", configFile.value.engineKey)
-                setConfigFile({value:null, handle:null, name:""})
                 generateEngineKey()
                 P2PRef.current.setValue(true);
                 sharingRef.current.setValue("published");
-                ergoRef.current.setValue(true);
+                ergoRef.current.setValue(false);
+            } else {
 
-            }else{
+                setFirstRun(false)
                 const config = configFile.value;
                 console.log(config)
                 setEngineKey(config.engineKey)
                 sharingRef.current.setValue(config.sharing)
                 P2PRef.current.setValue(config.peer2peer)
                 ergoRef.current.setValue(config.ergo)
-                const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.objects.default) || !(configFile.value.folders.terrain.default)  || !(configFile.value.folders.media.default));
+                const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.objects.default) || !(configFile.value.folders.terrain.default) || !(configFile.value.folders.media.default));
 
-                setDefaultFolders( def )
+                setDefaultFolders(def)
 
                 setCustomFolders(configFile.value.folders)
-                setFirstRun(false)
+
+                
+
             }
-
-            
         }
+        
 
-    }, [])
+    }, [location,stateConfig])
 
 
 
@@ -128,27 +129,6 @@ export const InitStoragePage = (props = {}) => {
 
    
 
-    function handleChange(e) {
-        const { name, value } = e.target;
-
-        if(name == "ref"){
-            if (value.length > 7) {
-                socket.emit("checkRefCode", value, (callback)=>{
-                    if(callback > 0)
-                    {
-                        setValid(prev => true);
-                       
-                    }else{
-                        if (valid) setValid(prev => false);
-                    }
-                });
-            }else{
-               
-                if(valid)setValid(prev => false);
-            }
-        }
-    }
-
     const getLocalPermissions = (callback) =>{
         const opts = { mode: 'readwrite' };
         
@@ -168,9 +148,7 @@ export const InitStoragePage = (props = {}) => {
     const setupConfigFile = (callback) => {
         getLocalPermissions(()=>{
 
-           
-
-            localDirectory.handle.getFileHandle("config.arcnet", { create: true }).then((fileHandle)=>{
+            localDirectory.handle.getFileHandle("arcturus.config", { create: true }).then((fileHandle)=>{
                 
                 fileHandle.createWritable().then((configFileStream)=>{
                    
@@ -202,7 +180,7 @@ export const InitStoragePage = (props = {}) => {
                     console.log(config)
                     configFileStream.write(JSON.stringify(config)).then((value)=>{
                         configFileStream.close().then((closed)=>{
-                            localDirectory.handle.getFileHandle("config.arcnet").then((newHandle) => {
+                            localDirectory.handle.getFileHandle("arcturus.config").then((newHandle) => {
                                 
                                 getFileInfo(newHandle).then((fileInfo) => {
 
@@ -228,7 +206,7 @@ export const InitStoragePage = (props = {}) => {
                                         set("media" + engineKey, customFolders.media)
                                     }
                                     const newFile = {
-                                        mimeType: fileInfo.mimeType,
+                                        mimeType: "config",
                                         name: fileInfo.name,
                                         crc: fileInfo.crc,
                                         size: fileInfo.size,
@@ -237,13 +215,13 @@ export const InitStoragePage = (props = {}) => {
                                     } 
                                     if(firstRun)
                                     {
-                                      
+                                  
                                         socket.emit("createStorage", newFile, newConfig.value.engineKey, (created) => {
                                             if (created.success) {
                                                 newConfig.fileID = created.fileID;
                                                 newConfig.storageID = created.storageID;
 
-                                                navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
+                                               
 
                                                 callback(true)
 
@@ -312,7 +290,7 @@ export const InitStoragePage = (props = {}) => {
                         removeSystemMessage(0)
                         removeSystemMessage(1)
                         removeSystemMessage(2)
-                        navigate("/home/localstorage")
+                        navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
                     }
                 })
             
@@ -360,10 +338,93 @@ export const InitStoragePage = (props = {}) => {
 
     const [customFolders, setCustomFolders] = useState({images:null, objects:null,terrain:null,media:null})
 
+    const onUseConfig = (e) =>{
+        if(stateConfig != null){
+            const fileID = stateConfig.fileID;
+            const storageKey = stateConfig.value.engineKey;
 
+           socket.emit("useConfig", fileID, engineKey,  (callback)=>{
+                if(!("error" in callback)){
+                    const storageID = callback.storageID;
+                    const config = stateConfig;
+                    config.value.storageID = storageID;
+
+                    navigate("/loading", {state:{configFile:config}, navigate:"/localstorage"})
+                }else{
+                    console.log(callback.error)
+                    alert("This config file could not be loaded.")
+                    navigate("/localstorage")
+                }
+            })
+        }else{
+            alert("This config file could not be loaded.")
+            navigate("/localstorage")
+        }
+    }
+    const onCancelConfig = (e) =>{
+        setConfigFile()
+        navigate("home/localstorage/init")
+    }
 
     return (
-           
+        <>
+        {stateConfig != null &&
+            <div style={{
+                position: "fixed",
+                backgroundColor: "rgba(0,3,4,.95)",
+
+                left: (pageSize.width / 2),
+                top: (pageSize.height / 2),
+                transform: "translate(-50%,-50%)",
+                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+            }}>
+
+                <div style={{
+                    
+                    textAlign: "center",
+                    width: "100%",
+                    paddingTop: "10px",
+                    fontFamily: "WebRockwell",
+                    fontSize: "18px",
+                    fontWeight: "bolder",
+                    color: "#cdd4da",
+                    textShadow: "2px 2px 2px #101314",
+                    backgroundImage: "linear-gradient(#131514, #000304EE )",
+
+
+                }}>
+                    Config
+                </div>
+                    <div style={{fontFamily:"webrockwell", color:"white",padding:40, fontSize:16, textAlign:"center"}}>
+                        This configuration file is not associated with your account.
+                    </div>
+                    <div style={{ fontFamily: "webrockwell", color: "#BBBBBB", paddingBottom:30, fontSize: 13, textAlign: "center" }}>
+                        Would you like to use it anyway?
+                    </div>
+                    <div style={{
+                        justifyContent: "center",
+
+                        paddingTop: "10px",
+                        display: "flex",
+                        alignItems: "center",
+                        width: "100%"
+                    }}>
+                        <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={onCancelConfig}>No</div>
+
+                        <div style={{
+
+                            marginLeft: "10px", marginRight: "10px",
+                            height: "50px",
+                            width: "1px",
+                            backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                        }}>
+
+                        </div>
+                        <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={onUseConfig} >Yes</div>
+                    </div>
+            </div>
+        }
+        { stateConfig == null &&
         <div  style={{
             position: "fixed",
             backgroundColor: "rgba(0,3,4,.95)",
@@ -373,6 +434,7 @@ export const InitStoragePage = (props = {}) => {
             transform:"translate(-50%,-50%)",
             boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
         }}>
+            
             <div style={{
                 paddingBottom: 10,
                 textAlign: "center",
@@ -387,7 +449,7 @@ export const InitStoragePage = (props = {}) => {
 
 
             }}>
-               {firstRun ? "Setup" : "Configure"}
+               {firstRun ? "Setup" : "Config"}
             </div>
 
             <div style={{  width: "100%", height:"100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
@@ -411,7 +473,7 @@ export const InitStoragePage = (props = {}) => {
                                     fontSize: "13px"
                                 }}>
 
-                                    config.arcnet
+                                    arcturus.config
 
                                 </div>
                                 <div style={{
@@ -767,7 +829,7 @@ export const InitStoragePage = (props = {}) => {
                             alignItems: "center",
                             width: "100%"
                         }}>
-                            <div style={{ paddingLeft: 10, paddingRight: 10, width: 40 }} className={styles.CancelButton} onClick={onCancelClick}>Back</div>
+                            <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={onCancelClick}>Back</div>
 
                             <div style={{
 
@@ -778,14 +840,16 @@ export const InitStoragePage = (props = {}) => {
                             }}>
 
                             </div>
-                            <div style={{width:80}} className={styles.OKButton} onClick={onOKclick} >{firstRun ? "Ok" : "Update"}</div>
+                            <div style={{  width:80, height:30}} className={styles.OKButton} onClick={onOKclick} >{firstRun ? "Ok" : "Update"}</div>
                         </div>
                             </div>
                         }
                
                     </div>
                     </div>
-        
+                    }
+                    </>
+
     )
 }
 

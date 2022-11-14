@@ -2,7 +2,7 @@ import  SHA512  from "crypto-js/sha512";
 import MD5 from "crypto-js/md5";
 import WordArray from "crypto-js/lib-typedarrays";
 
-import { get, set } from "idb-keyval";
+import { get, set, update } from "idb-keyval";
 
 import { randInt } from "three/src/math/MathUtils";
 
@@ -253,6 +253,10 @@ async function getThumnailFile(file, crc, size = { width: 100, height: 100 }) {
             const dataUrl = resampledCanvas.toDataURL();
 
             set(crc + ".arcicon", dataUrl)
+
+            update(".arcicon", val => val.push(crc + ".arcicon")).catch((error)=>{
+                console.log(error)
+            })
 
             resolve(dataUrl)
             // resolve(resampledCanvas)*/

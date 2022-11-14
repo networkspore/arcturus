@@ -78,7 +78,7 @@ export const LocalStoragePage = () => {
         const granted = await getPermissionAsync(localDirectory.handle)
         if(!granted) return false;
 
-        const fileHandle = await localDirectory.handle.getFileHandle("config.arcnet");
+        const fileHandle = await localDirectory.handle.getFileHandle("arturus.config");
         if(fileHandle == null || fileHandle == undefined){ 
             turnOffLocalStorage();
             alert("Config file missing.")
@@ -109,6 +109,7 @@ export const LocalStoragePage = () => {
     
 
     useEffect(()=>{
+        console.log(localDirectory)
         if(localDirectory.handle != null)
         {
             getPermission(localDirectory.handle, (verified)=>{
@@ -157,7 +158,7 @@ export const LocalStoragePage = () => {
                 }
             })
         }
-    },[location])
+    },[location,localDirectory])
 
 
 
@@ -186,46 +187,57 @@ export const LocalStoragePage = () => {
         setLocalDirectory(lDirectory)
       
         set("localDirectory" + user.userID, lDirectory)
-    
+  
         try{
             const handle = await dirHandle.getFileHandle("arcturus.config");
         
             const file = await getFileInfo(handle, dirHandle)
 
+           
             console.log(file)
 
-    
-
-            readFileJson(handle, (json) => {
-                if (json.success) {
-                    const config = json.value;
-                    console.log(config)
-                    socket.emit("checkStorageCRC", file.crc, config.engineKey, (callback) => {
-                        if (callback.valid) {
-                            console.log("valid")
-                            file.value = config;
-                            navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
-                          
-                        } else {
-                            console.log("invalid")
-                            setConfigFile()
-                           
-                            set("localDirectory" + user.userID, { name: name, handle: dirHandle })
-                            navigate("/home/localstorage/init")
-                        }
-
-                    })
-                } else {
-                    console.log("failure")
-                    navigate("/home/localstorage/init")
-                }
-            })
           
-        } catch (err) {
-            console.log(err)
+            socket.emit("checkStorageCRC", file.crc, (callback) => {
+
+                readFileJson(handle, (json) => {
+                    if (json.success) {
+                        const config = json.value;
+                        file.value = config;
+                        file.fileID = callback.fileID;
+
+                        if (!("error" in callback)) {
+                            file.fileID = callback.fileID;
+                            if (callback.success) {
+
+                                file.storageID = callback.storageID;
+
+
+                                navigate("/loading", { state: { configFile: file, navigate: "/network" } })
+
+                            } else {
+
+                                navigate("home/localstorage/init", { state: { configFile: file } })
+                            }
+
+                        } else {
+
+
+                            addSystemMessage(initStorage)
+                            navigate("/network")
+                        }
+                    } else {
+                        console.log(err)
+                        addSystemMessage(initStorage)
+                        navigate("/network")
+                    }
+                })
+
+            })
+        }catch(err){
+           
             navigate("/home/localstorage/init")
         }
-        
+         
     }
 
 
@@ -324,11 +336,9 @@ export const LocalStoragePage = () => {
                         fontSize:"14px",
                         }}>
                         <div onClick={(e) => { 
-                            if(localDirectory.name == ""){
-                                pickAssetDirectory() 
-                            }else{
-                                searchInputRef.current.focus()
-                            }
+                            
+                            pickAssetDirectory() 
+                            
                         }} style={{ 
                             width:"100%", 
                             display:"flex", 
@@ -424,13 +434,13 @@ export const LocalStoragePage = () => {
                     <div style={{display:"flex",width:"100%", height:"100%", flexDirection:"column", alignItems:"center",justifyContent:"center", color:"white",}}>
                             <ImageDiv onClick={(e) => { pickAssetDirectory() }}
                             style={{cursor:"pointer"}}
-                        width={"80"}
-                        height={"80"}
+                        width={80}
+                        height={80}
                         netImage={{
+                            scale: .7,
                             image: "/Images/icons/server-outline.svg",
                             filter:"invert(100%)",
-                            width:40,
-                            height:40 
+                            
                         }}
                     />  
                             <div onClick={(e) => { pickAssetDirectory() }} style={{ cursor:"pointer", color: "white"}} > Select a local directory </div>
