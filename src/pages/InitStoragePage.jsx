@@ -65,6 +65,13 @@ export const InitStoragePage = (props = {}) => {
 
     const [stateConfig, setStateConfig] = useState(null)
 
+    useEffect(()=>{
+        if(localDirectory.handle == null)
+        {
+            navigate("/home/localstorage")
+        }
+    },[localDirectory])
+
     useEffect(() => {
         console.log(location.state)
         const isState = location.state != null && ("configFile") in location.state ?  location.state.configFile : null

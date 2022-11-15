@@ -260,9 +260,9 @@ export const RealmCreatePage = (props = {}) =>{
                     paddingLeft: 20,
                     paddingRight: 20
                 }}>
-                        {realmName.length > 2 &&
+                        
                         <div style={{width:40}}> &nbsp;</div>
-                        }
+                        
                     <input onKeyUp={(e) => {
                         if (e.code == "Enter") {
                             handleSubmit(e)
@@ -274,12 +274,13 @@ export const RealmCreatePage = (props = {}) =>{
                         width: 500, textAlign: "center", fontSize: "25px", backgroundColor: "#00000090", fontFamily: "WebPapyrus"
 
                     }} name="realmName" onChange={event => handleChange(event)} />
-                        {realmName.length > 2 &&
-                            <ImageDiv width={30} height={30} netImage={{ image: realmName == "" ? "/Images/icons/close-outline.svg" : "/Images/icons/checkmark-outline.svg", width: 20, height: 20, filter: "invert(100%" }} /> 
-                        }
+                        
+                                        <ImageDiv width={30} height={30} netImage={{opacity:.4, image: realmName == ""  ? "/Images/icons/close-outline.svg" : "/Images/icons/checkmark-outline.svg", filter: "invert(100%)" }} /> 
+                        
                         </div>
-                    <div style={{ width:"100%"}}>
-                        <div style={{height:40}}/>
+                    <div style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                            
+                        <div style={{height:35}}/>
                      
                         
                     </div>
@@ -298,11 +299,13 @@ export const RealmCreatePage = (props = {}) =>{
                         
                             <div style={{ cursor: "pointer" }} onClick={ onImageSelected }>
                                 <ImageDiv 
+                                    width={100}
+                                    height={100}
                                     about={imageSelected.name} 
                                     style={{ textShadow: "2px 2px 2px black", }} 
                                     className={ imageSelected.name.length > 15 ? styles.activeBubbleScroll__item : styles.bubbleActive__item} 
                                     netImage={{ 
-                                        scale:1.2, 
+                                        scale:1, 
                                         backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", 
                                         borderRadius: 40, 
                                         backgroundColor: "", 
@@ -323,7 +326,7 @@ export const RealmCreatePage = (props = {}) =>{
                                  
                                     justifyContent: "center",
                                     alignItems: "center", }}>
-                                        <ImageDiv about={"Select Image"} style={{ textShadow: "2px 2px 2px black", }} className={styles.bubble__item}  netImage={{ backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius:40, backgroundColor:"", image: "" }} />
+                                        <ImageDiv width={100}  height={100} about={"Select Image"} style={{ textShadow: "2px 2px 2px black", }} className={styles.bubble__item}  netImage={{ backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius:40, backgroundColor:"", image: "" }} />
                                 </div>
                             }
                     
@@ -388,7 +391,14 @@ export const RealmCreatePage = (props = {}) =>{
                                 </div>
                             </div>
                             <div style={{ justifyContent: "center", display: "flex", width: 300, height: 400, overflowX: "visible", overflowY: "scroll", color: "white", }}>
-                                <FileList className={styles.bubble__item} activeClassName={styles.bubbleActive__item} onChange={onImageSelected} filter={{ name: imageSearch, directory: currentDirectory }} fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100 } }} files={imagesFiles} />
+                                <FileList 
+                                    className={styles.bubble__item} 
+                                    activeClassName={styles.bubbleActive__item} 
+                                    onChange={onImageSelected} 
+                                    filter={{ name: imageSearch, directory: currentDirectory }} 
+                                    fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100 } }} 
+                                    files={imagesFiles} 
+                                />
                             </div>
 
                         </div>

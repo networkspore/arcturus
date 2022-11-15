@@ -130,7 +130,7 @@ export const PeerNetworkHandler = (props ={}) => {
             }
             
         }
-    },[configFile,peerConnection])
+    },[configFile, peerConnection])
 
     useEffect(() => {
       

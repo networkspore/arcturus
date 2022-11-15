@@ -15,6 +15,7 @@ export const RealmsPage = () =>{
     const navigate = useNavigate();
     const location = useLocation();
     const pageSize = useZust((state) => state.pageSize)
+    const configFile = useZust((state) => state.configFile)
 
     const [showIndex, setShowIndex] = useState(0)
     const [subDirectory, setSubDirectory] = useState("")
@@ -35,6 +36,7 @@ export const RealmsPage = () =>{
 
     const addFileRequest = useZust((state) => state.addFileRequest)
 
+ 
     useEffect(() => {
         const currentLocation = location.pathname;
 
@@ -49,18 +51,24 @@ export const RealmsPage = () =>{
 
         setSubDirectory(sD)
 
-        switch (sD) {
-            case "/create":
-                if("selectedItem" in location.state){
-                    setSelectedItem( location.state.selectedItem) 
-                    setShowIndex(1)
-                }
-                break;
-            default:
-                setShowIndex(0)
-                break;
+        const p2pEnabled = configFile.value != null && configFile.value.peer2peer;
+
+        if (p2pEnabled) {
+            switch (sD) {
+                case "/create":
+                    if("selectedItem" in location.state){
+                        setSelectedItem( location.state.selectedItem) 
+                        setShowIndex(1)
+                    }
+                    break;
+                default:
+                    setShowIndex(0)
+                    break;
+            }
+        }else{
+            setShowIndex(-1)
         }
-    },[location])
+    }, [location, configFile])
     
     const updateRealmImage = (response) =>useZust.setState(produce((state)=>{
         const index = realms.findIndex(realm => realm.realmID == response.request.id);
@@ -150,6 +158,61 @@ export const RealmsPage = () =>{
    
     return (
         <>
+        {showIndex == -1 &&
+        
+            <div style={{
+                position: "fixed",
+                backgroundColor: "rgba(0,3,4,.95)",
+
+                left: (pageSize.width / 2),
+                top: (pageSize.height / 2),
+                transform: "translate(-50%,-50%)",
+                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+            }}>
+                <div style={{
+
+                    textAlign: "center",
+                    width: "100%",
+                    paddingTop: "10px",
+                    fontFamily: "WebRockwell",
+                    fontSize: "18px",
+                    fontWeight: "bolder",
+                    color: "#cdd4da",
+                    textShadow: "2px 2px 2px #101314",
+                    backgroundImage: "linear-gradient(#131514, #000304EE )",
+                }}>
+                    Realms
+                </div>
+                <div style={{ fontFamily: "webrockwell", color: "white", padding: 40, fontSize: 16, textAlign: "center" }}>
+                    Realms require the peer-to-peer network to be enabled.
+                </div>
+                <div style={{ fontFamily: "webrockwell", color: "#BBBBBB", paddingBottom: 30, fontSize: 13, textAlign: "center" }}>
+                    Would you like to enable peer-to-peer?
+                </div>
+                <div style={{
+                    justifyContent: "center",
+
+                    paddingTop: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%"
+                }}>
+                    <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={(e)=>{navigate("/network")}}>No</div>
+
+                    <div style={{
+
+                        marginLeft: "10px", marginRight: "10px",
+                        height: "50px",
+                        width: "1px",
+                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                    }}>
+
+                    </div>
+                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={(e)=>{navigate("/home/localstorage/init")}} >Yes</div>
+                </div>
+            </div>
+            
+        }
         {showIndex == 0 &&
         <div style={{
             position: "fixed",
@@ -184,17 +247,12 @@ export const RealmsPage = () =>{
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
                     
-                    {selectedItem == null &&
-                    <>
-                        <div style={{height:90}}>&nbsp;</div>
-                     
-                    </>
-                    }
+                   
                     {selectedItem != null && selectedRealm == null &&
                         <>
                         <div style={{ height: 30 }}>&nbsp;</div>
                             <div style={{ display: "flex", alignItems: "left", width: "100%" }}>
-                                <div style={{ width: "5%", paddingRight: 10 }}></div>
+                                <div style={{ width: "2%"}}></div>
                                 <div className={styles.InactiveIcon} style={{ display: "flex" }}>
                                     <div style={{ width: 5 }}></div>
                                     <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/add-circle-outline.svg", filter: "invert(100%)" }} />

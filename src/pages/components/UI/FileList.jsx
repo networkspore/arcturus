@@ -158,7 +158,7 @@ const FileList = (props = {}, ref) => {
                                     array.push(
                                
                                         <ImageDiv key={i}
-                                            style={{margin:10}}
+                                            style={{margin:10, overflow:"hidden"}}
                                             about={iName}
                                             onClick={(e) => {
                                                 if (iTo == null) {
@@ -192,7 +192,7 @@ const FileList = (props = {}, ref) => {
                                     <div style={{ flex: 0.1, alignItems:"center", justifyContent:"center" }}>
                                         {iImage != null &&
 
-                                            <ImageDiv width={20} height={20} netImage={iImage} />
+                                            <ImageDiv width={20} height={20} style={{borderRadius: 5, overflow:"hidden"}} netImage={iImage} />
 
                                         }
                                     </div>

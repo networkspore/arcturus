@@ -174,7 +174,12 @@ const HomeMenu = ({ props}) => {
                         setShowIndex(6);
                         break;
                     case "/realm":
-                        if(showMenu) setShowMenu(false)
+                        if(location.pathname == "/realm/gateway") {
+                            if (!showMenu) setShowMenu(true)
+                        }else{
+                            if(showMenu) setShowMenu(false)
+                        }
+                        
                         setShowIndex(7);
                         break;
                     case "/loading":
@@ -514,7 +519,7 @@ const HomeMenu = ({ props}) => {
 
                             {socket != null  &&
                                 <>
-                                    <NavLink className={directory == "/network" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/network'}>
+                                    <NavLink style={{outline:0}} className={directory == "/network" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/network'}>
                                         <img src="/Images/logo.png" width={50} height={50} />
                                     </NavLink>
 
@@ -524,14 +529,14 @@ const HomeMenu = ({ props}) => {
 
                         <div style={{ flex: 0.1 }}>
                             
-                            <NavLink className={location.pathname == "/realms"  ? styles.menuActive : styles.menu__item} about="Realms"
+                            <NavLink style={{ outline: 0 }} className={location.pathname == "/realms"  ? styles.menuActive : styles.menu__item} about="Realms"
                                 to={'/realms'}>
                                 <ImageDiv width={60} height={60} netImage={{ image: "/Images/realm.png", filter: "invert(100%)", scale: .75 }} /> 
                             </NavLink>
                          
 
 
-                            <NavLink className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
+                            <NavLink style={{ outline: 0 }} className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
                                 <ImageDiv width={60} height={60} netImage={{ image: "/Images/icons/person.svg", filter: "invert(100%)", scale:.75}} />
                             </NavLink>
@@ -549,7 +554,7 @@ const HomeMenu = ({ props}) => {
 
                     <div style={{ paddingTop: "6px", display: "flex", cursor: "pointer", backgroundColor: "black" }} >
                         <div onClick={(e) => {
-                            toNav("/")
+                            toNav("/network")
                         }}>
                             <ImageDiv width={30} height={30} netImage={{
                                 image: socket != null && user.userID > 0 ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 

@@ -97,9 +97,14 @@ export const ImageDiv = (props = {}) => {
                 tmpStyle[element] = props.style[element];
             });
         }
-        setImgStyle(
-            { width: tmpWidth, height: tmpHeight, filter: info.filter, opacity:info.opacity }
-        )
+        let tmpImgStyle = { width: tmpWidth, 
+            height: tmpHeight, 
+            filter: info.filter, 
+            opacity:info.opacity
+        }
+      
+        setImgStyle(tmpImgStyle)
+
         setImgURL(info.image)
  
         
