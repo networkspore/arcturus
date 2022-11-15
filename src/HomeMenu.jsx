@@ -50,6 +50,8 @@ const HomeMenu = ({ props}) => {
     const setTerrainFiles = useZust((state) => state.setTerrainFiles)
     const setMediaFiles = useZust((state) => state.setMediaFiles)
 
+   
+
     const [showMenu, setShowMenu] = useState(false) 
  
     const navigate = useNavigate();
@@ -478,6 +480,78 @@ const HomeMenu = ({ props}) => {
       
     }
 
+
+
+    const [realmQuickBar, setRealmQuickBar] = useState(null)
+    const addFileRequest = useZust((state) => state.addFileRequest)
+    const realms = useZust((state) => state.realms)
+    const updateRealmImage = (response) => useZust.setState(produce((state) => {
+        const index = realms.findIndex(realm => realm.realmID == response.request.id);
+        const image = index != -1 ? state.realms[index].image : null;
+
+        if ("error" in response) {
+            console.log('error')
+        } else {
+
+            if (index != -1) {
+                const file = response.file;
+
+
+
+                const fileProperties = Object.getOwnPropertyNames(file)
+
+                fileProperties.forEach(property => {
+                    image[property] = file[property];
+                });
+                image.loaded = true;
+
+                if (index != -1) state.realms[index].image = image;
+            }
+        }
+    }))
+
+    useEffect(()=>{
+        if(showMenu && realms != null && realms.length > 0 && peerOnline)
+        {
+            const tmp = []
+
+            realms.forEach(realm => {
+                if (!("icon" in realm.image)) {
+
+                    addFileRequest({ page: "homeMenu", id: realm.realmID, file: realm.image, callback: updateRealmImage })
+                    tmp.push(
+
+                        <div onClick={()=>{navigate("/realm/gateway", {state:{realm}})}} style={{ outline: 0 }} className={location.pathname == "/realm/gateway" ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                            <ImageDiv width={60} height={60} netImage={{opacity:.6, image: "/Images/spinning.gif", filter: "invert(100%)", scale: .75 }} />
+                        </div>
+
+                    
+
+                    )
+
+                } else {
+                    if (realm.image.loaded) {
+                        tmp.push(
+                            <div onClick={() => { navigate("/realm/gateway", { state: { realm } }) }} style={{ outline: 0 }} className={location.pathname == "/realm/gateway" && location.state.realm.realmName == realm.realmName ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                                <ImageDiv width={60} height={60} netImage={{ opacity: 1, image: realm.image.icon,  scale: 1 }} />
+                            </div>
+                        )
+                    } else {
+                        tmp.push(
+                            <div onClick={() => { navigate("/realm/gateway", { state: { realm } }) }} style={{ outline: 0 }} className={ location.pathname == "/realm/gateway" ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                                <ImageDiv width={60} height={60} netImage={{ opacity: .1, image: "/Images/icons/cloud-offline-outline.svg",  filter: "invert(90%)", scale: .4 }} />
+                            </div>
+                        )
+                    }
+                }
+
+            });
+            setRealmQuickBar(tmp)
+        }else{
+            setRealmQuickBar([])
+        }
+    },[realms, peerOnline, showMenu, location])
+
     return (
         <>
           
@@ -517,14 +591,19 @@ const HomeMenu = ({ props}) => {
                         
                         <div style={{ flex: 1 }}>
 
-                            {socket != null  &&
-                                <>
-                                    <NavLink style={{outline:0}} className={directory == "/network" ? styles.menuActive : styles.menu__item} about="Arcturus Network" to={'/network'}>
+                          
+                             
+                                    <div onClick={(e)=>{
+                                     
+                                            navigate("/network")
+                                      
+                                        
+                                    }} style={{outline:0}} className={directory == "/network" ? styles.menuActive : styles.menu__item} about="Arcturus Network" >
                                         <img src="/Images/logo.png" width={50} height={50} />
-                                    </NavLink>
+                                    </div>
 
-                                </>
-                            }
+                               {realmQuickBar}
+                            
                         </div>
 
                         <div style={{ flex: 0.1 }}>

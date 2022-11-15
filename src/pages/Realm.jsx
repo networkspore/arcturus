@@ -23,32 +23,19 @@ export const Realm = () => {
     useEffect(() => {
         const currentLocation = location.pathname;
 
-        const secondSlash = currentLocation.indexOf("/", 1)
-
-        const subLocation = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
-
-
-        const thirdSlash = subLocation.indexOf("/", 1)
-
-        const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
-
-        setSubDirectory(sD)
-
+        
         
         const p2pEnabled = configFile.value != null && configFile.value.peer2peer;
 
         if (p2pEnabled) {
-            switch (sD) {
-                case "/gateway":
+            switch (currentLocation) {
+                case "/realm/gateway":
                     if (location.state != undefined && location.state.realm != undefined && location.state.realm != null){
                     
                         setCurrentRealm(location.state.realm)
                         setShowIndex(0);
                     
                     }
-                    break;
-                default:
-                    navigate("/realms")
                     break;
             }
         }else{

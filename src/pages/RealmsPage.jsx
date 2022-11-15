@@ -40,32 +40,21 @@ export const RealmsPage = () =>{
     useEffect(() => {
         const currentLocation = location.pathname;
 
-        const secondSlash = currentLocation.indexOf("/", 1)
-
-        const subLocation = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
-
-
-        const thirdSlash = subLocation.indexOf("/", 1)
-
-        const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
-
-        setSubDirectory(sD)
-
         const p2pEnabled = configFile.value != null && configFile.value.peer2peer;
 
         if (p2pEnabled) {
-            switch (sD) {
-                case "/create":
-                    if("selectedItem" in location.state){
-                        setSelectedItem( location.state.selectedItem) 
+            switch (currentLocation) {
+                case "/realms/create":
+                    if ("selectedItem" in location.state) {
+                        setSelectedItem(location.state.selectedItem)
                         setShowIndex(1)
                     }
                     break;
-                default:
+                case "/realms":
                     setShowIndex(0)
                     break;
             }
-        }else{
+        } else {
             setShowIndex(-1)
         }
     }, [location, configFile])
