@@ -61,11 +61,10 @@ export const RealmGateway= (props = {}) =>{
         }
     },[user, currentRealm])
 
-    const onHandleSubmit = (e) =>{
-      
+    
+    const onStartRealm = (e) =>{
+        navigate("/realm", {state:{realm:currentRealm}})
     }
-
-
 
 
     return (
@@ -80,9 +79,12 @@ export const RealmGateway= (props = {}) =>{
             alignItems: "center",
         }}>
             <div style={{
-                textAlign: "center",
-                width: "100%",
-                paddingTop: "15px",
+                display:"flex",
+    
+                alignItems:"center",
+                justifyContent:"center",
+                width: pageSize.width - 105,
+                paddingTop: "10px",
                 paddingBottom: "5px",
                 fontFamily: "Webpapyrus",
                 fontSize: "20px",
@@ -96,7 +98,7 @@ export const RealmGateway= (props = {}) =>{
             {currentRealm != null &&
             <div style={{
                 position: "fixed",
-                width: pageSize.width - 95,
+                width: pageSize.width - 115,
                 height: pageSize.height,
                 left: 95,
                 top: 0,
@@ -128,39 +130,66 @@ export const RealmGateway= (props = {}) =>{
                             </div>
                             }
                               
-                                <ImageDiv style={{paddingLeft:15, paddingRight:15}} width={150} height={150} netImage={{
+                                <ImageDiv style={{paddingLeft:15, paddingRight:15}} width={170} height={170} netImage={{
                                     image: currentRealm.image.icon,
                                     backgroundColor:"",
                                 }} />
 
-                                <div style={{ width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                               
+                        {admin &&
+                        <div style={{width:"100%", display:"flex", flexDirection:"column", alignItems:"center"}}>
                             
-                                    <div style={{
-                                        
-                                        textAlign: "center",
-                                        fontFamily: "Webpapyrus",
-                                        fontSize: "16px",
-                                        fontWeight: "bolder",
-                                        color: "#cdd4da",
-                                        textShadow: "2px 2px 2px #101314",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }} >
-                                        {currentRealm.realmName}
-                                    </div>
-                            
+                          
+                            <div style={{
 
+                                
+                                fontWeight: "bold",
+                            
+                                fontSize: "14px",
+                                fontFamily: "WebPapyrus",
+                                color: "#cdd4da",
+                                textShadow: "3px 3px 4px black",
+                             
+                                paddingBottom: "10px",
+
+                            }}>
+                                Members
                             </div>
+                            <div style={{
+                                marginBottom: '2px',
 
-                            <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
-                            <div>&nbsp;</div>
-
-                            
+                                height: "1px",
+                                width: "100%",
+                                backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
+                            }}>&nbsp;</div>
+                        </div>
+                        }
                     </div>
-                        <div style={{marginLeft:20, display: "flex", flexDirection: "column", flex:1, alignItems:"flex-start", height:"100%"}}>
+                        
+                            <div style={{ width: 750, display: "flex", flexDirection: "column", flex:1, alignItems:"flex-start", height:"100%"}}>
+                                <div style={{
+                                    
+                                    width: "100%",
+                                    textAlign: "center",
+                                    fontFamily: "Webpapyrus",
+                                    fontSize: "16px",
+                                    fontWeight: "bolder",
+                                    color: "white",
+                                    textShadow: "2px 2px 2px #101314",
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    paddingTop:5,
+                                    paddingBottom:5,
+                                }} >
+                                    {currentRealm.realmName}
+                                   
+                                </div>
+                                <div style={{height:2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                                    &nbsp;
+                                </div>
                                     <div style={{height:40}}>
-
+                                   
                                     </div>
                                     <div style={{display:"flex", height:150, }}>
                                     <ImageDiv
@@ -180,7 +209,21 @@ export const RealmGateway= (props = {}) =>{
                                         }}
                                     />
                                     </div>
+                                <div style={{
 
+                                    textAlign:"center",
+                                    fontWeight: "bold",
+                                    width:"100%",
+                                    fontSize: "14px",
+                                    fontFamily: "WebPapyrus",
+                                    color: "#888888",
+                                    textShadow: "3px 3px 4px black",
+                                    paddingTop: "10px",
+                                    paddingBottom: "6px",
+
+                                }}>
+                                   Information
+                                </div>
                                 <div style={{
 
                                     marginTop: "5px",
@@ -188,10 +231,11 @@ export const RealmGateway= (props = {}) =>{
                                     width: "100%",
                                     backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
                                 }} />
-                                    <div style={{ height: "100%", paddingLeft: 15, paddingTop: 5, width: "100%", backgroundColor: "#33333330" }}>
+                                    <div style={{ height: "100%", paddingTop: 5, width: "100%", backgroundColor: "#33333330" }}>
                                        
 
                                         <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                            <div style={{width:15}}/>
                                             <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                Visibility:
                                             </div>
@@ -221,6 +265,7 @@ export const RealmGateway= (props = {}) =>{
 
                                         </div>
                                         <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                            <div style={{ width: 15 }} />
                                             <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                 Content Advisory:
                                             </div>
@@ -250,6 +295,7 @@ export const RealmGateway= (props = {}) =>{
                                             </div>
                                         </div>
                                         <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                        <div style={{ width: 15 }} />
                                             <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                 Game:
                                             </div>
@@ -273,6 +319,7 @@ export const RealmGateway= (props = {}) =>{
 
                                         </div>
                                         <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
+                                        <div style={{ width: 15 }} />
                                             <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                 Description:
                                             </div>
@@ -301,9 +348,22 @@ export const RealmGateway= (props = {}) =>{
                         </div >
                            
                     </div>
-                        <div style={{ height: 200, width:800 }}>
-                            ddasaa
+                        <div style={{display:"flex", width:"100%"  }}>
+                            <div style={{ width: 150, }} />
+                            <div style={{ flex: 1, backgroundColor:"" }}>
+                                <div style={{height:200}}>&nbsp;</div>
+                                <div style={{width:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}> 
+                                    <div style={{ width: 200, } } />
+                                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={onStartRealm} >Start</div>
+                                    <div style={{ width: 200, }} />
+                                </div>
+                            </div>
+                           
+                            <div style={{ width: 150, }} />
+                            
+                            
                         </div>
+                        
                 </div>
                 
             </div>

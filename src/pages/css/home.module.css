@@ -820,8 +820,8 @@
 
 .bubble__item:hover {
 
-	background: #ffffff10;
-	box-shadow: 0 0 10px #ffffff50, 0 0 20px #ffffff50, inset 0 0 30px #77777710;
+	background: #ffffff05;
+	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
 	filter: drop-shadow(0px 0px 3px #ffffff30);
 }
 

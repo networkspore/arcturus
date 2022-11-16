@@ -62,7 +62,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
         if(!socket.disconnected){
             if(socket!= null && configFile.value != null){
-                socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
+                socket.emit("peerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
 
                 }))
             }

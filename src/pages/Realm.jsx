@@ -19,29 +19,47 @@ export const Realm = () => {
 
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
+    const setPage = useZust((state) => state.setPage)
 
     useEffect(() => {
         const currentLocation = location.pathname;
 
-        
-        
-        const p2pEnabled = configFile.value != null && configFile.value.peer2peer;
+       
+        switch (currentLocation) {
+            case "/realm/disabled":
+                setShowIndex(-1);
+                break;
+            case "/realm/gateway":
+                if (location.state != undefined && location.state.realm != undefined && location.state.realm != null){
+                
+                    setCurrentRealm(location.state.realm)
+                    setShowIndex(0);
+                
+                }
+                break;
+            case "/realm":
+                if (location.state != undefined && location.state.realm != undefined && location.state.realm != null) {
 
-        if (p2pEnabled) {
-            switch (currentLocation) {
-                case "/realm/gateway":
-                    if (location.state != undefined && location.state.realm != undefined && location.state.realm != null){
-                    
-                        setCurrentRealm(location.state.realm)
-                        setShowIndex(0);
-                    
-                    }
-                    break;
+                    setCurrentRealm(location.state.realm)
+                    setShowIndex(1);
+                    setPage(null)
+                }
+                break;
+        }
+       
+    }, [location])
+
+    useEffect(()=>{
+        if(configFile.value != null)
+        {
+            if(configFile.value.peer2peer == false)
+            {
+                navigate("/realm/disabled")
             }
         }else{
-            setShowIndex(-1)
+            navigate("/realm/disabled")
         }
-    }, [location])
+    },[configFile])
 
 
     return (
@@ -104,6 +122,11 @@ export const Realm = () => {
         {
             showIndex == 0 &&
             <RealmGateway currentRealm={currentRealm}/>
-        }</>
+        }
+
+        {showIndex == 1 &&
+                <RealmGamePage currentRealm={currentRealm} />
+        }
+        </>
     )
 }

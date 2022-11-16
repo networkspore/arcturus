@@ -9,6 +9,16 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   party:[],
+   quickBar:[],
+   setQuickBar:(value) => set({quickBar:value}),
+   addQuickBarItem:(value) => set(produce(state=>{
+      const index = state.quickBar.findIndex(qBar => qBar.realmID == value.realmID)
+      if(index == -1)
+      {
+         state.quickBar.splice(0, 0, value)
+      }
+   })),
    downloads:[],
    addDownload: (value = { fileCRC:"", status:"", request:null }) => set(produce(state=>{
       if (state.downloads.length > 0) {
@@ -91,6 +101,9 @@ const useZust = create((set) => ({
    connected: false,
    setConnected: (value = false) => set({connected:value}),
    
+   peerConnection: null,
+   setPeerConnection: (conn) => set({ peerConnection: conn }),
+   localAudio: null,
   
    showDirManager: false,
    setShowDirManager: (value = false) => set({showDirManager: value}),
@@ -124,19 +137,15 @@ const useZust = create((set) => ({
    //party: [],
    //setParty: (value =[]) => set({party:value}),
    currentPage: -1,
-   campaignScene: null,
+   realmScene: null,
    userCharacter: {PCID:-2, show:false, object:{objectName:"", objectUrl:"", objectColor:"", position: [0,0,0], rotation:0}},
    setUserCharacter: (playerCharacter = {PCID:-2}) => set({userCharacter: playerCharacter}),
    characters:[],
    setCharacters:(value=[]) => set({characters: value}),
-   peerConnection: null,
-   setPeerConnection: (conn) => set({peerConnection: conn}),
-   localAudio: null,
+
    setLocalAudio: (audioElement = null) => set({localAudio: audioElement}),
    campaignUsers: [],
    setCampaignUsers: (cUsers = []) => set({campaignUsers: cUsers}),
-   currentCampaign: -1,
-   setCurrentCampaign: (number = -1) => set({currentCampaign: number}),
    currentCharacter: null,
    setCurrentCharacter:(value = null) => set({currentCharacter: value}),
    uniform: {

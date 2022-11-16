@@ -31,20 +31,22 @@ CameraControls.install({ THREE: THREE });
 const TableTop = (props ={}, ref) => {
 
     const mode = useZust((state) => state.mode)
-    const party = [];
-    const isAdmin = props.isAdmin;
+ 
+    const [isAdmin, setIsAdmin] = useState(false)
+   
     const [currentPlaceable, setCurrentPlaceable] = useState(null)
     const [selectedCharacter, setSelectedCharacter] = useState(null)
+
     const monsterManagerRef = useRef();
     const terrainManagerRef = useRef();
-    const campaignScene = useZust((state) => state.campaignScene)
+    const realmScene = useZust((state) => state.realmScene)
   //  const usePlanet = useRef();
     const placeables = useZust((state) => state.placeables)
     const [partyList, setPartyList] = useState(null);
  //   const [monsterList, setMonsterList] = useState(null);
     const [placeableList, setPlaceableList] = useState(null);
 
-
+    const party = useZust((state) => state.party)
 
     const assets = useZust((state) => state.assets)
 
@@ -112,8 +114,8 @@ const TableTop = (props ={}, ref) => {
     const camera = useThree((state) => state.camera)
     const regress = useThree((state) => state.performance.regress)
     const current = useThree((state) => state.performance.current)
-  
-    const controls = new CameraControls(camera, gl.domElement);
+    const raycaster = new THREE.Raycaster();
+    const frameLimiter = useRef({ delta: 0, interval: (1 / 30) * 1000 });
 
 
     const gltfLoader = new GLTFLoader();
@@ -128,9 +130,9 @@ const TableTop = (props ={}, ref) => {
         gl.setPixelRatio(window.devicePixelRatio);
        // gl.autoClear = false;
      
-        if ( campaignScene != null) {
+        if ( realmScene != null) {
             //     scene.fog = new THREE.Fog("white", 500, 500);
-            if (campaignScene.setting.name == "Day") {
+            if (realmScene.setting.name == "Day") {
                   //scene.fog = new THREE.Fog(0xFFFFFFFF, 15, 20);
                 scene.fog =  new THREE.Fog(0xEEEEEE, 18, 28)
             } else {
@@ -142,16 +144,16 @@ const TableTop = (props ={}, ref) => {
                scene.fog = null; 
              //  scene.fog = new THREE.Fog("black", 10, 500);
         }
+
+        setIsAdmin(props.admin)
        
       
         return () => {
             scene.fog = null;
         }
 
-    }, [])
+    }, [props])
 
-    const frameLimiter = useRef({ delta: 0, interval: (1 / 30) * 1000});
-    
   //  useEffect(()=>{
       //  gl.setPixelRatio(window.devicePixelRatio * current)
 
@@ -173,7 +175,7 @@ const TableTop = (props ={}, ref) => {
         }
     })
 
-    const raycaster = new THREE.Raycaster();
+ 
     
 
 
@@ -261,9 +263,9 @@ const TableTop = (props ={}, ref) => {
     */
 
     const setPCposition = (PC, position) => {
-        if(campaignScene != null){
+        if(realmScene != null){
            
-            socket.emit("PCscenePosition",campaignScene.roomID, PC.PCID,campaignScene.sceneID, [position.x,position.y, position.z])
+          //  socket.emit("PCscenePosition",campaignScene.roomID, PC.PCID,campaignScene.sceneID, [position.x,position.y, position.z])
             
         }        
     }
@@ -298,7 +300,7 @@ const TableTop = (props ={}, ref) => {
           if(currentPlaceable != null && placeables != null){
             placeables.forEach(placeable => {
                 if(placeable.placeableSceneID == currentPlaceable.placeableSceneID){
-                    socket.emit("placeableScenePosition", campaignScene.roomID, currentPlaceable.placeableSceneID, [position.x,position.y, position.z])
+                //    socket.emit("placeableScenePosition", campaignScene.roomID, currentPlaceable.placeableSceneID, [position.x,position.y, position.z])
                 }
             });
           
@@ -308,108 +310,13 @@ const TableTop = (props ={}, ref) => {
         }
     }
 
-    const moveTo = (pos, inBounds)=>{
-            alert("move")
-        
-            if(selectedCharacter != null && inBounds){
-            
-                setSelectedPosition(pos)
-            } else if (userCharacter != null && userCharacter.PCID > 0 && inBounds){
-              
-                setPCposition(userCharacter, pos)
-               
-            } else if (currentPlaceable != null ){
-             
-                setPlaceablePosition(pos)
-            } else if (currentCharacter != null && inBounds){
-                
-               setPCposition(currentCharacter, pos);
-              
-            }
-          
-    }
 
- 
    
   
 
 
     
   
-
-    useEffect(() => {
-        if(party != null && party !== undefined && campaignScene != null){
-            var array = [];
-            if(party.length > 0)
-            {
-                party.forEach((member, index) => {
-                    if("object" in member){
-                        if("position" in member.object){
-                            if (member.sceneID == campaignScene.sceneID){
-                                array.push(
-                                  /* <Placeable 
-                                        key={index}
-                                        scale={.08*mapScale}  
-                                        position={member.object.position} 
-                                        rotation={member.object.rotation} 
-                                        name={member.object.name} 
-                                        src={member.object.url} 
-                                        color={member.object.color} 
-                                    />*/
-                                )
-                        
-                            }
-                        }
-                    }
-                });
-                setPartyList(array);
-            }else{
-                setPartyList(null)
-            }
-        }
-        return () =>{
-            setPartyList(null)
-        }
-    }, [party,campaignScene])
-
- 
-   
-
-    /*
-  
-            
-
-    useEffect(() => {
-        if (monsters != null && monsters !== undefined ) {
-            var array = [];
-            if (monsters.length > 0) {
-                monsters.forEach((monster, index) => {
-                    if ("object" in monster) {
-                        if ("position" in monster.object) {
-                           
-                            if( monster.object.position != null){
-                                loadGltf(monster.object.url)
-                                array.push(
-                                    <Character
-                                        scene={scene} 
-                                        scale={.08*mapScale}
-                                        object={monster.object}
-                                    />
-                                )
-                            }
-                        }
-                    }
-                });
-                
-                setMonsterList(array);
-            } else {
-                setMonsterList(null)
-            }
-        }
-        return ()=>{
-            setMonsterList(null)
-        }
-    }, [monsters])*/
 
     useEffect(() => {
         if (placeables != null && placeables !== undefined) {
@@ -531,7 +438,7 @@ const TableTop = (props ={}, ref) => {
         return ()=>{
             orbitRef.current?.removeEventListener('change', regress)
         }
-    },[isAdmin,selectedCharacter,userCharacter,campaignScene])
+    },[isAdmin,selectedCharacter,userCharacter,realmScene])
  
 
 
@@ -608,12 +515,24 @@ const TableTop = (props ={}, ref) => {
 
             </>
         }
-           
-            
+            <pointLight
+                position={[20, 400, 10]}
+                ref={pointLightRef}
+
+                intensity={1}
+                castShadow={true}
+                shadow-mapSize-height={128}
+                shadow-mapSize-width={128}
+
+            />
+            <hemisphereLight
+                ref={ambientLightRef}
+                args={[0x9999ff, 0x000000, 1]}
+            />
+
           
-        
-            {userCharacter.PCID > 0  && campaignScene &&
-                userCharacter.sceneID == campaignScene.sceneID  && 
+            {userCharacter.PCID > 0  && realmScene &&
+                userCharacter.sceneID == realmScene.sceneID  && 
                     userCharacter.object.position  &&
                     <>
                     {updateCharacterPosition  &&
@@ -628,26 +547,13 @@ const TableTop = (props ={}, ref) => {
             
             }
     
-           <pointLight
-            position={[20,400,10]}
-            ref={pointLightRef}
-            
-            intensity={1}
-                castShadow={true}
-            shadow-mapSize-height={128}
-            shadow-mapSize-width={128}
-
-            />
-            <hemisphereLight
-                ref={ambientLightRef}
-                args={[0x9999ff, 0x000000, 1]}
-            />
-     
-           <TerrainManager ref={terrainManagerRef} regress={regress} />
+      
+          
             
             
-            {campaignScene.sceneID > 0 &&
+            {realmScene != null &&
             <>
+                <TerrainManager ref={terrainManagerRef} regress={regress} />
                 <MonsterManager
                     ref={monsterManagerRef}
                     pointLight={pointLightRef.current}
@@ -657,12 +563,12 @@ const TableTop = (props ={}, ref) => {
                 />
 
           
-                {campaignScene.setting.name == "Day" && 
+                {realmScene.setting.name == "Day" && 
                     <>
                                         <Sky />
                     </> 
                 }
-                { campaignScene.setting.name == "Night" &&
+                { realmScene.setting.name == "Night" &&
                     <>
                     <Stars /> 
                     </> 

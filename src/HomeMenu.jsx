@@ -342,31 +342,63 @@ const HomeMenu = ({ props}) => {
         }
     }, [user])
 
-
+    const setQuickBar = useZust((state) => state.setQuickBar)
+    const quickBar = useZust((state) => state.quickBar)
 
     useEffect(() => {
 
         if (configFile.value != null) {
             const config = configFile.value;
 
-            if ("engineKey" in config) {
+            setFolderDefaults(config).then((promise) => {
+                
+                setQuickBarDefaults()
+                
+                navigate(onComplete)  
+               
+            })
 
-                setFolderDefaults(config).then((promise) => {
-
-                    setTimeout(() => {
-                        navigate(onComplete)
-                    }, 100);
-
-                })
-
-
-            }
+        }else{
+            setQuickBar([]);
         }
 
     }, [configFile])
 
 
-    
+    const setQuickBarDefaults = () => {
+       console.log("gettingQuickBarDefaults")
+        socket.emit("getQuickBar", (callback) => {
+            if ("error" in callback) {
+                console.log(callback.error)
+            } else {
+                if (callback.success) {
+                    var tmpValue = callback.quickBar;
+                    if (tmpValue != null && tmpValue != "") {
+
+                        try {
+                            const tmpQBar = JSON.parse(tmpValue)
+
+                            if (Array.isArray(tmpQBar)) {
+                                setQuickBar(tmpQBar);
+                             
+                            } else {
+                                console.log("Quick bar is corrupt")
+                          
+                               
+                            }
+
+                        } catch (err) {
+                            console.log(err)
+                          
+                        
+                        }
+                    }
+                }
+            }
+           
+        })
+  
+    }
 
 
 
@@ -482,9 +514,10 @@ const HomeMenu = ({ props}) => {
 
 
 
-    const [realmQuickBar, setRealmQuickBar] = useState(null)
+    const [realmQuickBarItems, setRealmQuickBarItems] = useState(null)
     const addFileRequest = useZust((state) => state.addFileRequest)
     const realms = useZust((state) => state.realms)
+
     const updateRealmImage = (response) => useZust.setState(produce((state) => {
         const index = realms.findIndex(realm => realm.realmID == response.request.id);
         const image = index != -1 ? state.realms[index].image : null;
@@ -510,47 +543,51 @@ const HomeMenu = ({ props}) => {
         }
     }))
 
+
     useEffect(()=>{
         if(showMenu && realms != null && realms.length > 0 && peerOnline)
         {
             const tmp = []
+            if(quickBar != undefined && quickBar != null){
+                for(let i = 0; i < quickBar.length ; i ++ ){
+                    const realmIndex = realms.findIndex(r => r.realmID == quickBar[i].realmID)
+                    if(realmIndex != -1){
+                        const realm = realms[realmIndex];
+                        if (!("icon" in realm.image)) {
 
-            realms.forEach(realm => {
-                if (!("icon" in realm.image)) {
+                            addFileRequest({ page: "homeMenu", id: realm.realmID, file: realm.image, callback: updateRealmImage })
+                            tmp.push(
 
-                    addFileRequest({ page: "homeMenu", id: realm.realmID, file: realm.image, callback: updateRealmImage })
-                    tmp.push(
+                                <div onClick={()=>{navigate("/realm/gateway", {state:{realm}})}} style={{ outline: 0 }} className={location.pathname == "/realm/gateway" ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                                    <ImageDiv width={60} height={60} netImage={{opacity:.6, image: "/Images/spinning.gif", filter: "invert(100%)", scale: .75 }} />
+                                </div>
+                            )
 
-                        <div onClick={()=>{navigate("/realm/gateway", {state:{realm}})}} style={{ outline: 0 }} className={location.pathname == "/realm/gateway" ? styles.menuActive : styles.menu__item} about={realm.realmName}>
-                            <ImageDiv width={60} height={60} netImage={{opacity:.6, image: "/Images/spinning.gif", filter: "invert(100%)", scale: .75 }} />
-                        </div>
-
-                    
-
-                    )
-
-                } else {
-                    if (realm.image.loaded) {
-                        tmp.push(
-                            <div onClick={() => { navigate("/realm/gateway", { state: { realm } }) }} style={{ outline: 0 }} className={location.pathname == "/realm/gateway" && location.state.realm.realmName == realm.realmName ? styles.menuActive : styles.menu__item} about={realm.realmName}>
-                                <ImageDiv width={60} height={60} netImage={{ opacity: 1, image: realm.image.icon,  scale: 1 }} />
-                            </div>
-                        )
-                    } else {
-                        tmp.push(
-                            <div onClick={() => { navigate("/realm/gateway", { state: { realm } }) }} style={{ outline: 0 }} className={ location.pathname == "/realm/gateway" ? styles.menuActive : styles.menu__item} about={realm.realmName}>
-                                <ImageDiv width={60} height={60} netImage={{ opacity: .1, image: "/Images/icons/cloud-offline-outline.svg",  filter: "invert(90%)", scale: .4 }} />
-                            </div>
-                        )
+                        } else {
+                            if (realm.image.loaded) {
+                                tmp.push(
+                                    <div onClick={() => { navigate("/realm/gateway", { state: { realm } }) }} style={{ outline: 0 }} className={location.pathname == "/realm/gateway" && location.state.realm.realmName == realm.realmName ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                                        <ImageDiv width={60} height={60} netImage={{ backgroundColor:"", opacity: 1, image: realm.image.icon,  scale: 1 }} />
+                                    </div>
+                                )
+                            } else {
+                                tmp.push(
+                                    <div onClick={() => { navigate("/realm/gateway", { state: { realm } }) }} style={{ outline: 0 }} className={ location.pathname == "/realm/gateway" ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                                        <ImageDiv width={60} height={60} netImage={{ opacity: .1, image: "/Images/icons/cloud-offline-outline.svg",  filter: "invert(90%)", scale: .4 }} />
+                                    </div>
+                                )
+                            }
+                        }
+                    }else{
+                        console.log("QuickBar realmID: " +quickBar[i].realmID + " not found in realms")
                     }
                 }
-
-            });
-            setRealmQuickBar(tmp)
+                setRealmQuickBarItems(tmp)
+            }
         }else{
-            setRealmQuickBar([])
+            setRealmQuickBarItems([])
         }
-    },[realms, peerOnline, showMenu, location])
+    },[quickBar, realms, showMenu, location])
 
     return (
         <>
@@ -602,7 +639,7 @@ const HomeMenu = ({ props}) => {
                                         <img src="/Images/logo.png" width={50} height={50} />
                                     </div>
 
-                               {realmQuickBar}
+                               {realmQuickBarItems}
                             
                         </div>
 
