@@ -201,8 +201,8 @@ export const LocalStoragePage = () => {
 
                 readFileJson(handle, (json) => {
                     if (json.success) {
-                        const config = json.value;
-                        file.value = config;
+                        const json = json.value;
+                        file.value = json[user.userName];
                         file.fileID = callback.fileID;
 
                         if (!("error" in callback)) {

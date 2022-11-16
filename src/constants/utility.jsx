@@ -7,6 +7,65 @@ import { get, set, update } from "idb-keyval";
 import { randInt } from "three/src/math/MathUtils";
 
 
+async function xmur3(str) {
+    for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {
+        h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+        h = h << 13 | h >>> 19;
+    } return function () {
+        h = Math.imul(h ^ (h >>> 16), 2246822507);
+        h = Math.imul(h ^ (h >>> 13), 3266489909);
+        return (h ^= h >>> 16) >>> 0;
+    }
+}
+async function sfc32(a, b, c, d) {
+    return function () {
+        a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+        var t = (a + b) | 0;
+        a = b ^ b >>> 9;
+        b = c + (c << 3) | 0;
+        c = (c << 21 | c >>> 11);
+        d = d + 1 | 0;
+        t = t + d | 0;
+        c = c + t | 0;
+        return (t >>> 0) / 4294967296;
+    }
+}
+
+export async function getRandomInt(min, max, seedStr) {
+    var seed = await xmur3(seedStr + '')
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    const rand = sfc32(seed(),seed(),seed(),seed())();
+
+    return Math.floor(rand * (max - min + 1)) + min;
+}
+
+export async  function rand(seedStr){
+    var seed = await xmur3(seedStr + '')
+
+    return sfc32(seed(), seed(), seed(), seed())();
+}
+
+//fisher-yates shuffle
+export async function shuffle(array, seedStr) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(rand(seedStr) * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+
+    return array;
+}
+
 
 export const crc32FromArrayBuffer = (ab, callback) => {
 
@@ -303,7 +362,7 @@ export async function getPermissionAsync(handle){
 
     const getVerified = verified == 'granted' ? verified : await handle.requestPermission(opts);
 
-    return verified == 'granted';
+    return getVerified == 'granted';
 }
 
 export const getPermission = (handle, callback) => {

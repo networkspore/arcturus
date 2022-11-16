@@ -184,8 +184,10 @@ export const InitStoragePage = (props = {}) => {
                            
                         } 
                     }
-                    console.log(config)
-                    configFileStream.write(JSON.stringify(config)).then((value)=>{
+                    let userConfig = {}
+                    userConfig[user.userName] = config;
+
+                    configFileStream.write(JSON.stringify(userConfig)).then((value)=>{
                         configFileStream.close().then((closed)=>{
                             localDirectory.handle.getFileHandle("arcturus.config").then((newHandle) => {
                                 
@@ -245,7 +247,7 @@ export const InitStoragePage = (props = {}) => {
                                                 newConfig.fileID = updated.fileID;
                                                 newConfig.storageID = configFile.storageID;
                                                 
-                                                navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
+                                                
 
                                                 callback(true)
 

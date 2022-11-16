@@ -26,6 +26,7 @@ import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { getFileInfo, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
 import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
 import { Realm } from "./pages/Realm";
+import { useRef } from "react";
 
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
@@ -237,11 +238,12 @@ const HomeMenu = ({ props}) => {
 
 
     }, [location, user])
-
+    const prevUserID = useRef({value:null})
     useEffect(() => {
 
-        if (user.userID > 0) {
-           
+        if (user.userID > 0 && user.userID != prevUserID.current.value) {
+            prevUserID.current.value = user.userID;
+
             socketOff("disconnect")
             socketOn("disconnect", (res) => {
                 switch (res) {
@@ -277,8 +279,8 @@ const HomeMenu = ({ props}) => {
 
                                         readFileJson(handle, (json) => {
                                             if (json.success) {
-                                                const config = json.value;
-                                                file.value = config;
+                                                const json = json.value;
+                                                file.value = json[user.userName];
                                                 file.fileID = callback.fileID;
 
                                                 if (!("error" in callback)) {
