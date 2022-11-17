@@ -5,6 +5,7 @@ import { RealmGateway } from "./RealmGateway";
 
 import styles from "./css/home.module.css"
 import useZust from "../hooks/useZust";
+import { RealmGamePage } from "./RealmGamePage";
 
 
 export const Realm = () => {
@@ -125,7 +126,7 @@ export const Realm = () => {
         }
 
         {showIndex == 1 &&
-                <RealmGamePage currentRealm={currentRealm} />
+                < RealmGamePage currentRealm={currentRealm} />
         }
         </>
     )

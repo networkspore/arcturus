@@ -100,7 +100,9 @@ const useZust = create((set) => ({
    setSystemMessages: (value = []) => set({systemMessages: value}),
    connected: false,
    setConnected: (value = false) => set({connected:value}),
-   
+
+   editRealm: { mode: "", settings: { inner: 0, outer: 0, value: 0 }, updated: false },
+
    peerConnection: null,
    setPeerConnection: (conn) => set({ peerConnection: conn }),
    localAudio: null,
@@ -117,7 +119,7 @@ const useZust = create((set) => ({
    showLoadingScreen: false,
    terrainList: [],
    mode: { main: "", sub: "" , id:-1},
-   editCampaign: {mode: "", settings: { inner: 0, outer: 0, value: 0 }, updated:false },
+
   // setEditCampaign: (value = { mode: "", settings: { inner: 0, outer: 0, value: 0 }, updated:false }) => set({editTerrain: value}),
    tempObject: null,
    setTempObject: (value = { name: "", url: "", color: "", textureUrl: "" }) => set({tempObject: value}),

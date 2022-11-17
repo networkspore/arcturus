@@ -4,13 +4,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useZust from "../hooks/useZust";
 import { LoadingPage } from "../LoadingPage";
 import TableTop from "./components/TableTop";
+import { RealmEditor } from "./realm/RealmEditor";
 
 
 export const RealmGamePage = (props = {}) =>{
     
     const location = useLocation()
     const navigate = useNavigate()
-
+    const setPage = useZust((state) => state.setPage)
     const page = useZust((state) => state.page)
     const user = useZust((state) => state.user)
     const [currentRealm, setCurrentRealm] = useState(null)
@@ -33,12 +34,19 @@ export const RealmGamePage = (props = {}) =>{
 
         }
     }, [user, currentRealm])
+
+    useEffect(()=>{
+        if(realmScene == null)
+        {
+            setPage(0)
+        }
+    },[realmScene])
     
     return (
         <>
         {currentRealm != null &&
             <>
-                <div style={{ flex: 1, display: page == null && realmScene != null ? "block" : "none" }}>
+                <div style={{ width:"100%", height:"100%", display: page == null && realmScene != null ? "block" : "none" }}>
                     {page == null && realmScene != null &&
                         <Suspense fallback={LoadingPage}>
                            <Canvas linear flat shadows mode="concurrent"
@@ -58,6 +66,16 @@ export const RealmGamePage = (props = {}) =>{
 
                     }
                 </div>
+                {admin &&
+                <div style={{
+                    position: "fixed", display: "flex", flexDirection:"column",
+                    left: "50%", bottom: 0,
+                    width: 800, backgroundColor: "rgba(10,12,16,.5)",
+                    transform:"translateX(-50%)"
+                }}>
+                    <RealmEditor currentRealm={currentRealm} />
+                </div>
+                 }
             </>
         }
         </>

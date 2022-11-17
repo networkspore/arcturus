@@ -614,7 +614,7 @@ const HomeMenu = ({ props}) => {
         <>
           
         {
-            page == null &&
+            showIndex == -1 &&
 
             <LoadingPage />
         }
