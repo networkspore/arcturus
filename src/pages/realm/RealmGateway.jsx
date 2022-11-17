@@ -1,11 +1,12 @@
+import produce from "immer";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-import useZust from "../hooks/useZust";
-import { ContactsList } from "./components/UI/ContactsList";
-import { ImageDiv } from "./components/UI/ImageDiv";
-import SelectBox from "./components/UI/SelectBox";
-import styles from "./css/home.module.css"
+import useZust from "../../hooks/useZust";
+import { ContactsList } from "../components/UI/ContactsList";
+import { ImageDiv } from "../components/UI/ImageDiv";
+import SelectBox from "../components/UI/SelectBox";
+import styles from "../css/home.module.css"
 
 export const RealmGateway= (props = {}) =>{
 
@@ -17,6 +18,7 @@ export const RealmGateway= (props = {}) =>{
     const pageSize = useZust((state) => state.pageSize)
     const realms = useZust((state) => state.realms)
     const user = useZust((state) => state.user)
+    const socket = useZust((state) => state.socket)
 
     const [currentRealm, setCurrentRealm] = useState(null)
     const [currentPublishing, setCurrentPublishing] = useState("PRIVATE")
@@ -26,6 +28,43 @@ export const RealmGateway= (props = {}) =>{
 
     const className = styles.bubble__item;
     const activeClassName =  styles.bubbleActive__item;
+
+    const quickBar = useZust((state) => state.quickBar)
+    const setQuickBar = useZust((state) => state.setQuickBar)
+    const quickBarAdd = (realm) => useZust.setState(produce((state) => {
+        if (state.quickBar != null) {
+            const length = state.quickBar.length
+
+            if (length > 0) {
+                const index = state.quickBar.findIndex(qbar => qbar.realmID == realm.realmID)
+                if (index == -1) {
+                    state.quickBar.splice(0, 0, realm)
+                }
+            }else{
+                state.quickBar.push(realm)
+            }
+        }else{
+            state.quickBar = [realm]
+        }
+    }))
+    const quickBarRemove = (realmID) => useZust.setState(produce((state)=>{
+        if(state.quickBar != null){
+            const length = state.quickBar.length
+            
+            if(length > 0)
+            {
+                const index = state.quickBar.findIndex(qbar => qbar.realmID == realmID)
+                if(index > -1){
+                    if(length == 1)
+                    {
+                        state.quickBar.pop()
+                    }else{
+                        state.splice(index, 1)
+                    }   
+                }
+            }
+        }
+    }))
 
     const itemStyle = {
         borderRadius: 40,
@@ -61,11 +100,43 @@ export const RealmGateway= (props = {}) =>{
         }
     },[user, currentRealm])
 
+    const prevQuickBar = useRef({value:null})
+
+    useEffect(()=>{
+        if(prevQuickBar.current.value == null)
+        {
+            prevQuickBar.current.value = true
+        }else{
+            const json = JSON.stringify(quickBar)
+            socket.emit("setQuickBar", json)
+        }
+    },[quickBar])
+
     
     const onStartRealm = (e) =>{
         navigate("/realm", {state:{realm:currentRealm}})
     }
 
+    const onToggleQuickBar = (e) =>{
+    
+        const length = quickBar.length;
+
+        if(length == 0)
+        {
+            setQuickBar([currentRealm])
+        }else{
+            const index = quickBar.findIndex(qb => qb.realmID == currentRealm.realmID)
+
+            if(index == -1){
+                quickBarAdd(currentRealm)
+                
+            }else{
+                quickBarRemove(currentRealm.realmiD)
+            }
+        }
+  
+       
+    }
 
     return (
         <div style={{
@@ -115,20 +186,50 @@ export const RealmGateway= (props = {}) =>{
                 boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                 
             }}>
-                <div style={{display:"flex", width:600}}>
-                    <div style={{ display: "flex", flexDirection: "column",  alignItems: "center", justifyContent:"start",  }}>
-                                {admin &&
+                        <div style={{
+
+                            width: "100%",
+                            textAlign: "center",
+                            fontFamily: "Webpapyrus",
+                            fontSize: "16px",
+                            fontWeight: "bolder",
+                            color: "white",
+                            textShadow: "2px 2px 2px #101314",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height:30,
+                            paddingBottom: 5,
+                        }} >
+                         
                             <div style={{
-                                borderTopLeftRadius:10, 
-                                padding:3, 
-                                backgroundImage: "linear-gradient(to right, #33333350 20%, #77777710 70%, #00030400)", 
-                                display: "flex",  width:"100%", alignItems:"left", }}
+                                borderTopLeftRadius: 10,
+                                
+                                backgroundImage: "linear-gradient(to right, #33333350 20%, #77777710 70%, #00030400)",
+                                display: "flex", alignItems: "left", width: 150,
+                            }}
                             >
-                                
-                                    <div style={{ paddingTop: 8, paddingLeft: 10, width: "100%", fontWeight: "bolder", color: "#ffffff90", fontFamily: "webpapyrus", fontSize: 18 }}>   Creator </div>
-                                
+                                {/*Gate way User type */}
+                                <div style={{paddingBottom:2, width:"100%", paddingTop: 8, paddingLeft: 10, fontWeight: "bolder", color: "#77777790", fontFamily: "webpapyrus", fontSize: 18 }}> 
+                                {admin ? "Creator" : "Member" }   
+                                </div>
+
                             </div>
-                            }
+                           
+                            <div style={{flex:1}}>
+                            {currentRealm.realmName}
+                            </div>
+                            <div style={{display:"flex", width: 150, alignItems:"center", justifyContent:"right", }}>
+                                <ImageDiv onClick={onToggleQuickBar}  className={styles.InactiveIcon} width={30} height={35} netImage={{scale:.7, image:"/Images/icons/planet-outline.svg", filter:"invert(100%)"}}/>
+                                <ImageDiv onClick={(e)=>{navigate("/")}}  className={styles.InactiveIcon} width={30} height={35} netImage={{ scale: .7, image: "/Images/icons/close-outline.svg", filter: "invert(100%)" }} />
+                            </div>
+                        </div>
+                        <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                            &nbsp;
+                        </div>
+                <div style={{display:"flex", }}>
+                    <div style={{ display: "flex", flexDirection: "column",  alignItems: "center", justifyContent:"start",  }}>
+                            
                               
                                 <ImageDiv style={{paddingLeft:15, paddingRight:15}} width={170} height={170} netImage={{
                                     image: currentRealm.image.icon,
@@ -166,28 +267,8 @@ export const RealmGateway= (props = {}) =>{
                         }
                     </div>
                         
-                            <div style={{ width: 750, display: "flex", flexDirection: "column", flex:1, alignItems:"flex-start", height:"100%"}}>
-                                <div style={{
-                                    
-                                    width: "100%",
-                                    textAlign: "center",
-                                    fontFamily: "Webpapyrus",
-                                    fontSize: "16px",
-                                    fontWeight: "bolder",
-                                    color: "white",
-                                    textShadow: "2px 2px 2px #101314",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    paddingTop:5,
-                                    paddingBottom:5,
-                                }} >
-                                    {currentRealm.realmName}
-                                   
-                                </div>
-                                <div style={{height:2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-                                    &nbsp;
-                                </div>
+                            <div style={{ width:"100%", display: "flex", flexDirection: "column", flex:1, alignItems:"flex-start", height:"100%"}}>
+                                
                                     <div style={{height:40}}>
                                    
                                     </div>
@@ -341,12 +422,12 @@ export const RealmGateway= (props = {}) =>{
 
                                         </div>
                                         <div style={{height:10}}/>
-                                        
+                                    
                                     </div>  
-                                
+                             
                                 
                         </div >
-                           
+                            
                     </div>
                         <div style={{display:"flex", width:"100%"  }}>
                             <div style={{ width: 150, }} />
@@ -358,10 +439,10 @@ export const RealmGateway= (props = {}) =>{
                                     <div style={{ width: 200, }} />
                                 </div>
                             </div>
-                           
-                            <div style={{ width: 150, }} />
+                           {/* Bottom Right*/}
+                            <div style={{ width: 150,  }} >
                             
-                            
+                            </div>
                         </div>
                         
                 </div>

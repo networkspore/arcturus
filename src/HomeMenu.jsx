@@ -25,7 +25,7 @@ import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 
 import { getFileInfo, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
 import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
-import { Realm } from "./pages/Realm";
+import { Realm } from "./pages/realm/Realm";
 import { useRef } from "react";
 
 
@@ -153,7 +153,8 @@ const HomeMenu = ({ props}) => {
             if (currentLocation == '/') {
 
                 if (!showMenu) setShowMenu(true);
-                
+                setShowIndex(0)
+                setPage(1)
             } else {
 
                 const rootDirectory = currentLocation.slice(0, secondSlash == -1 ? currentLocation.length : secondSlash)

@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { RealmGateway } from "./RealmGateway";
 
-import styles from "./css/home.module.css"
-import useZust from "../hooks/useZust";
-import { RealmGamePage } from "./RealmGamePage";
+import styles from "../css/home.module.css"
+import { Canvas } from "@react-three/fiber";
+import useZust from "../../hooks/useZust";
 
 
 export const Realm = () => {
@@ -18,6 +18,9 @@ export const Realm = () => {
     const [subDirectory, setSubDirectory] = useState("")
     const [currentRealm, setCurrentRealm] = useState(null)
 
+    const [admin, setAdmin] = useState(false)
+
+    const user = useZust((state) => state.user)
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
     const setPage = useZust((state) => state.setPage)
@@ -63,6 +66,13 @@ export const Realm = () => {
     },[configFile])
 
 
+    useEffect(() => {
+        if (currentRealm != null) {
+            setAdmin(user.userID == currentRealm.userID)
+
+        }
+    }, [user, currentRealm])
+
     return (
         <>
         {showIndex == -1 &&
@@ -70,11 +80,11 @@ export const Realm = () => {
             <div style={{
                 position: "fixed",
                 backgroundColor: "rgba(0,3,4,.95)",
-
+                    boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                 left: (pageSize.width / 2),
                 top: (pageSize.height / 2),
                 transform: "translate(-50%,-50%)",
-                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+              
             }}>
                 <div style={{
 
@@ -120,13 +130,47 @@ export const Realm = () => {
             </div>
         }
             
-        {
-            showIndex == 0 &&
+        {showIndex == 0 &&
             <RealmGateway currentRealm={currentRealm}/>
         }
 
         {showIndex == 1 &&
-                < RealmGamePage currentRealm={currentRealm} />
+                 currentRealm != null &&
+                <>
+                    <div style={{ width: "100%", height: "100%", display: page == null && realmScene != null ? "block" : "none" }}>
+                        {page == null && realmScene != null &&
+                            <Suspense fallback={LoadingPage}>
+                                <Canvas linear flat shadows mode="concurrent"
+                                    performance={{ min: 0.8, debounce: 200 }} camera={{
+                                        fov: 90,
+                                        near: 1,
+                                        far: 1000.0,
+                                        position: [0, 15, 0]
+                                    }}>
+                                    <TableTop
+                                        admin={admin}
+                                        currentRealm={currentRealm}
+                                        ref={tableTopRef}
+                                    />
+                                </Canvas>
+                            </Suspense>
+
+                        }
+                    </div>
+                    {admin &&
+                        <div style={{
+                            position: "fixed", display: "flex", flexDirection: "column",
+                            left: "50%", bottom: 0,
+                            width: 800,
+                            transform: "translateX(-50%)",
+                                            backgroundColor: "rgba(0,3,4,.95)",
+                        boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+                        }}>
+                            <RealmEditor currentRealm={currentRealm} />
+                        </div>
+                    }
+                </>
+            
         }
         </>
     )
