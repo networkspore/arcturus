@@ -130,18 +130,25 @@ export const crc32FromArrayBuffer = (ab, callback) => {
 
 }
 
-export async function readFileJson(handle, callback) {
+export async function readFileJson(handle) {
     try {
-        const file = await handle.getFile();
 
-        const txt = await file.text()
-
-        const value = JSON.parse(txt)
-
-        callback({ success: true, value: value })
+        const file = handle == null && handle != undefined ? await handle.getFile() : null;
+        
+        const txt = file != undefined && file != null ? await file.text() : null;
+        
+        const value = txt != null && txt != undefined ? JSON.parse(txt) : null;
+        
+        if(value != null && value != undefined)
+        {
+            return { success: true, value: value }
+        }else{
+            return {success:false}
+        }
+        
     } catch (error) {
         console.error(error)
-        callback({ success: false })
+        return { error: new Error("Json read error") }
     }
 
 }

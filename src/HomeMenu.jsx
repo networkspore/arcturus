@@ -271,52 +271,69 @@ const HomeMenu = ({ props}) => {
                             setLocalDirectory(value)
 
                             value.handle.getFileHandle("arcturus.config").then((handle) => {
-                                
-                                getFileInfo(handle, value.handle).then((file)=>{
+                             
+                                if(handle != null && handle != undefined){
+                                    getFileInfo(handle, value.handle).then((file)=>{
 
 
-                                    socket.emit("checkStorageCRC", file.crc, (callback) => {
+                                        
+                                        socket.emit("checkStorageCRC", file.crc, (callback) => {
+                                            if("error" in callback)
+                                            {
+                                                addSystemMessage(initStorage)
+                                                navigate("/network")
+                                            }else{
+                                                if(callback.success){
+                                                    readFileJson(handle).then((jsonResult) => {
+                                                        if ("error" in jsonResult) {
+                                                            addSystemMessage(initStorage)
+                                                            navigate("/network")
+                                                        } else {
+                                                            if (jsonResult.success) {
+                                                                const json = jsonResult.value;
+                                                                file.value = json[user.userName];
+                                                                file.fileID = callback.fileID;
 
-                                        readFileJson(handle, (json) => {
-                                            if (json.success) {
-                                                const json = json.value;
-                                                file.value = json[user.userName];
-                                                file.fileID = callback.fileID;
+                                                                if (!("error" in callback)) {
+                                                                    file.fileID = callback.fileID;
+                                                                    if (callback.success) {
 
-                                                if (!("error" in callback)) {
-                                                    file.fileID = callback.fileID;
-                                                    if (callback.success) {
-                                                        
-                                                        file.storageID = callback.storageID;
-                                                        
-
-                                                        navigate("/loading", { state: { configFile: file, navigate: "/network" } })
-
-                                                    } else {
-
-                                                        navigate("home/localstorage/init", { state: { configFile: file } })
-                                                    }
-
-                                                } else {
+                                                                        file.storageID = callback.storageID;
 
 
+                                                                        navigate("/loading", { state: { configFile: file, navigate: "/network" } })
+
+                                                                    } else {
+
+                                                                        navigate("home/localstorage/init", { state: { configFile: file } })
+                                                                    }
+                                                                } else {
+
+
+                                                                    addSystemMessage(initStorage)
+                                                                    navigate("/network")
+                                                                }
+                                                            } else {
+                                                                console.log(jsonResult.error)
+
+                                                                addSystemMessage(initStorage)
+                                                                navigate("/network")
+                                                            }
+                                                        }
+                                                    })
+                                                }else{
                                                     addSystemMessage(initStorage)
                                                     navigate("/network")
                                                 }
-                                            } else {
-                                                console.log(err)
-                                                addSystemMessage(initStorage)
-                                                navigate("/network")
                                             }
                                         })
 
+                                    }).catch((err) => {
+                                        console.log(err)
+                                        addSystemMessage(initStorage)
+                                        navigate("/network")
                                     })
-
-                                }).catch((err) => {
-                                    console.log(err)
-                                    addSystemMessage(initStorage)
-                                    navigate("/network")
-                                })
+                                }
                             }).catch((err) => {
                                 console.log(err)
                                 addSystemMessage(initStorage)

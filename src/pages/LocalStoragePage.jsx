@@ -189,58 +189,78 @@ export const LocalStoragePage = () => {
         set("localDirectory" + user.userID, lDirectory)
   
         try{
-            const handle = await dirHandle.getFileHandle("arcturus.config");
-        
-            const file = await getFileInfo(handle, dirHandle)
+            dirHandle.handle.getFileHandle("arcturus.config").then((handle) => {
 
-           
-            console.log(file)
-
-          
-            socket.emit("checkStorageCRC", file.crc, (callback) => {
-
-                readFileJson(handle, (json) => {
-                    if (json.success) {
-                        const json = json.value;
-                        file.value = json[user.userName];
-                        file.fileID = callback.fileID;
-
-                        if (!("error" in callback)) {
-                            file.fileID = callback.fileID;
-                            if (callback.success) {
-
-                                file.storageID = callback.storageID;
+                if (handle != null && handle != undefined) {
+                    getFileInfo(handle, value.handle).then((file) => {
 
 
-                                navigate("/loading", { state: { configFile: file, navigate: "/network" } })
 
+                        socket.emit("checkStorageCRC", file.crc, (callback) => {
+                            if ("error" in callback) {
+                                addSystemMessage(initStorage)
+                                navigate("/home/localstorage/init")
                             } else {
+                                if (callback.success) {
+                                    readFileJson(handle).then((jsonResult) => {
+                                        if ("error" in jsonResult) {
+                                            addSystemMessage(initStorage)
+                                            navigate("/home/localstorage/init")
+                                        } else {
+                                            if (jsonResult.success) {
+                                                const json = jsonResult.value;
+                                                file.value = json[user.userName];
+                                                file.fileID = callback.fileID;
 
-                                navigate("home/localstorage/init", { state: { configFile: file } })
+                                                if (!("error" in callback)) {
+                                                    file.fileID = callback.fileID;
+                                                    if (callback.success) {
+
+                                                        file.storageID = callback.storageID;
+
+
+                                                        navigate("/loading", { state: { configFile: file, navigate: "/network" } })
+
+                                                    } else {
+
+                                                        navigate("home/localstorage/init", { state: { configFile: file } })
+                                                    }
+                                                } else {
+
+
+                                                    addSystemMessage(initStorage)
+                                                    navigate("/home/localstorage/init")
+                                                }
+                                            } else {
+                                                console.log(jsonResult.error)
+
+                                                addSystemMessage(initStorage)
+                                                navigate("/home/localstorage/init")
+                                            }
+                                        }
+                                    })
+                                } else {
+                                    addSystemMessage(initStorage)
+                                    navigate("/home/localstorage/init")
+                                }
                             }
+                        })
 
-                        } else {
-
-
-                            addSystemMessage(initStorage)
-                            navigate("/network")
-                        }
-                    } else {
+                    }).catch((err) => {
                         console.log(err)
                         addSystemMessage(initStorage)
-                        navigate("/network")
-                    }
-                })
-
-            })
-        }catch(err){
-           
-            navigate("/home/localstorage/init")
-        }
+                        navigate("/home/localstorage/init")
+                    })
+                }
+        })
          
+    }catch(err){
+            console.log(err)
+            addSystemMessage(initStorage)
+            navigate("/home/localstorage/init")
     }
-
-
+}
+        
     
 
 
