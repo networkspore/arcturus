@@ -152,7 +152,7 @@ export const InitStoragePage = (props = {}) => {
         })
     }
 
-    const setupConfigFile = (callback) => {
+    async function setupConfigFile(callback){
         getLocalPermissions(()=>{
 
             localDirectory.handle.getFileHandle("arcturus.config", { create: true }).then((fileHandle)=>{
@@ -225,34 +225,31 @@ export const InitStoragePage = (props = {}) => {
                                     if(firstRun)
                                     {
                                   
-                                        socket.emit("createStorage", newFile, newConfig.value.engineKey, (created) => {
-                                            if (created.success) {
-                                                newConfig.fileID = created.fileID;
-                                                newConfig.storageID = created.storageID;
+                                        socket.emit("createStorage", newFile, engineKey, (created) => {
+                                            if (!("error" in created)) {
+                                                if(created.success){
+                                                    newConfig.fileID = created.fileID;
+                                                    newConfig.storageID = created.storageID;
 
-                                               
-
-                                                callback(true)
-
+                                                    return {success:true, config:newConfig}
+                                                }else{
+                                                    return { success: false }
+                                                }
                                             } else {
-                                                console.log(created)
-                                                callback(false)
+                                                return {error: created.error}
                                             }
                                         })
                                     }else{
                                         
-                                        socket.emit("updateStorageConfig",configFile.fileID, configFile.storageID, newFile, (updated)=>{
-                                            if (updated) {
-                                                console.log("updated")
-                                                newConfig.fileID = updated.fileID;
-                                                newConfig.storageID = configFile.storageID;
-                                                
-                                                
-
-                                                callback(true)
-
+                                        socket.emit("updateStorageConfig",configFile.fileID, newFile, (updated)=>{
+                                            if (!("error" in updated)) {
+                                                if(updated.success){
+                                                    return { success: true, config: configFile }
+                                                }else{
+                                                    return {success:false}
+                                                }
                                             } else {
-                                                callback(false)
+                                                return { error: updated.error }
                                             }
                                         })
                                     }
@@ -260,12 +257,12 @@ export const InitStoragePage = (props = {}) => {
 
                                 }).catch((err) => {
                                     console.log(err)
-                                    callback(false)
+                                    return { error: err  }
                                 })
 
                             }).catch((err) => {
                                 console.log(err)
-                                callback(false)
+                                return { error: err }
                             })
                         });
 
@@ -292,16 +289,22 @@ export const InitStoragePage = (props = {}) => {
             console.log("submitting")
     
             setValid(false)
-            setupConfigFile(result=>{
+            setupConfigFile.then(result=>{
                     setValid(true);
-                    if(result)
-                    {
-                        removeSystemMessage(0)
-                        removeSystemMessage(1)
-                        removeSystemMessage(2)
-                        navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
+                    if(!("error" in result)){
+                        if(result.success)
+                        {
+                            const newConfig = result.config
+                            removeSystemMessage(0)
+                            removeSystemMessage(1)
+                            removeSystemMessage(2)
+                            navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
+                        }
+                    }else{
+                        console.log(result.error)
+                        alert("Could not set the config file.")
                     }
-                })
+            })
             
     
        }

@@ -133,17 +133,17 @@ export const crc32FromArrayBuffer = (ab, callback) => {
 export async function readFileJson(handle) {
     try {
 
-        const file = handle == null && handle != undefined ? await handle.getFile() : null;
+        const file = handle == null || handle == undefined ? null : await handle.getFile();
         
-        const txt = file != undefined && file != null ? await file.text() : null;
+        const txt = file == undefined || file == null ? null : await file.text();
         
-        const value = txt != null && txt != undefined ? JSON.parse(txt) : null;
+        const value = txt == null || txt == undefined ? null : JSON.parse(txt);
         
-        if(value != null && value != undefined)
+        if(value == null || value == undefined)
         {
-            return { success: true, value: value }
+            return { success: false }
         }else{
-            return {success:false}
+            return { success: true, value: value }
         }
         
     } catch (error) {

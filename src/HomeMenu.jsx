@@ -314,7 +314,7 @@ const HomeMenu = ({ props}) => {
                                                                     navigate("/network")
                                                                 }
                                                             } else {
-                                                                console.log(jsonResult.error)
+                                                              
 
                                                                 addSystemMessage(initStorage)
                                                                 navigate("/network")
@@ -358,6 +358,8 @@ const HomeMenu = ({ props}) => {
                 navigate("/network")
             })
             
+        }else{
+            prevUserID.current.value = null;
         }
     }, [user])
 
