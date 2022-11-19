@@ -9,6 +9,36 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   currentRealm: {
+      realmID: null,
+      realmName: "",
+      userID: null,
+      roomID: null,
+      realmPage: null,
+      realmIndex: null,
+      statusID: null,
+      accessID: null,
+      realmDescription: null,
+      advisoryID: null,
+      image: null,
+      config: null,
+      realmType: null,
+},
+   setCurrentRealm: (value = {
+      realmType:null,
+      realmID: null,
+      realmName: "",
+      userID: null,
+      roomID: null,
+      realmPage: null,
+      realmIndex: null,
+      statusID: null,
+      accessID: null,
+      realmDescription: null,
+      advisoryID: null,
+      image: null,
+      config: null,
+   }) => set({currentRealm: value}) ,
    party:[],
    quickBar:[],
    setQuickBar:(value) => set({quickBar:value}),
@@ -32,17 +62,15 @@ const useZust = create((set) => ({
    })),
    fileRequest: [],
   
-   addFileRequest: (value = {page:-1, id:-1, fileInfo: null, callback: null}) => set(produce(state => { 
-      if(state.fileRequest.length > 0){
-         let found = false;
-         state.fileRequest.forEach(element => {
-            if(element.id == value.id && element.page  == value.page) found = true
-         });
-         if(!found){
+   addFileRequest: (value) => set(produce(state => { 
+      if(state.fileRequest.length == 0){
+         state.fileRequest.push(value) 
+      }else{
+         const index = state.fileRequest.findIndex(fileRequest => fileRequest.id == value.id && fileRequest.page == value.page)
+
+         if (index == -1) {
             state.fileRequest.push(value)
          } 
-      }else{
-         state.fileRequest.push(value) 
       }
    })),
    removeFileRequest: (value) => set(produce((state) => {

@@ -1,5 +1,11 @@
 //Monsters
 import React from "react";
+
+export const access = Object.freeze({
+    private: 0,
+    contacts: 1,
+    public: 2,
+})
 export const status = Object.freeze({
     valid: 1,
     invalid: 2,

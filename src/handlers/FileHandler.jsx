@@ -3,14 +3,25 @@ import React, { useState, useEffect } from "react"
 import useZust from "../hooks/useZust"
 import { ImageDiv } from "../pages/components/UI/ImageDiv"
 import produce from "immer"
+import { get } from "idb-keyval"
+
+import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
+
+const createWorker = createWorkerFactory(() => import('../constants/utility'));
+
 
 export const FileHandler = ( props = {}) =>{
-    const [active, setActive] = useState()
 
+    const worker = useWorker(createWorker)
+
+    const [active, setActive] = useState()
+  
     const imagesFiles = useZust((state) => state.imagesFiles)
     const objectFiles = useZust((state) => state.objectsFiles)
     const terrainFiles = useZust((state) => state.terrainFiles)
     const mediaFiles = useZust((state) => state.mediaFiles)
+
+    const socket = useZust((state) => state.socket)
 
     const fileRequest = useZust((state) => state.fileRequest)
     const updateFileRequest = useZust((state) => state.updateFileRequest)
@@ -48,26 +59,13 @@ export const FileHandler = ( props = {}) =>{
 
                 if( index == -1 ){
                     addProcessing(request)
-                    checkLocal(request).then((localResult)=>{
-                        if("error" in localResult)
-                        {
-                            request.callback({ request: request, error: localResult.error})
-                            removeProcessing(request)
-                            removeFileRequest(request)
-                        }else{
-                            console.log(localResult)
-                            if(localResult.success)
-                            {
-                                request.callback({ request: request, file: localResult.file })
-                                removeProcessing(request)
-                                removeFileRequest(request)
-                            }else{
-                                request.callback({request:request, error: new Error( "Not implemented")})
-                                removeProcessing(request)
-                                removeFileRequest(request)
-                            }
-                        }
-                    })
+                    
+                    executeFileCommand(request).then((result)=>{
+                        request.callback(result)
+                        removeProcessing(request)
+                        removeFileRequest(request)
+                    })           
+                   
                 }else{
                     
                 }
@@ -76,33 +74,74 @@ export const FileHandler = ( props = {}) =>{
         }
     },[fileRequest])
 
-    useEffect(()=>{
-    
-    },[processing])
 
 
-    async function checkLocal(request) {
-       
-        switch(request.file.mimeType)
-        {
-            case "image":
-                const i = imagesFiles.findIndex( iFile => iFile.crc == request.file.crc)
-           
-                if (i > -1)
-                {
-                    return {success:true, file: imagesFiles[i] } 
-                }else{
-                    return {success:false}
+    async function executeFileCommand(request) {
+        const localResult = await checkLocal(request)
+        console.log(localResult)
+        switch (request.command) {
+            case "getRealmIcon":
+                
+                if ("error" in localResult) {
+
+                    return localResult
+
+                } else {
+
+                    if (localResult.success) {
+                        return localResult
+                    }else{
+
+                        checkPeers(request).then((peersResult)=>{
+                            return {error:"not implemented"}
+                        })
+
+                    }
                 }
                 break;
             default:
-                return{error: new Error("File type not supported.")}
+                request.callback({ request: request, file: file })
+        }
+    }
+
+
+
+    async function checkLocal(request) {
+
+        switch (request.file.mimeType) {
+            case "image":
+                const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+
+                if (i > -1) {
+                    return {request:request, success: true, file: imagesFiles[i] }
+                } else {
+                    return {request:request, success: false }
+                }
+                break;
+            default:
+                return {request:request, error: new Error("File type not supported.") }
                 break;
         }
     }
 
-    const checkPeers = (request, callback) =>{
+    
+
+    async function checkPeers(request){
         console.log("checking peers")
+        socket.emit("fileRequest", request, (callback)=>{
+            if("error" in callback)
+            {
+                return { request: request, error: new Error("File type not supported.") }
+            }else{
+                if(callback.success)
+                {
+                    const peers = callback.peers;
+                    for(let i = 0; i < peers.length ; i++){
+                        
+                    }
+                }
+            }
+        })
     }
 
 

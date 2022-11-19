@@ -295,10 +295,11 @@ export async function getFileInfo(entry, dirHandle, type) {
 }
 
 
-async function getThumnailFile(file, crc, size = { width: 100, height: 100 }) {
+
+export async function getThumnailFile(arrayBuffer, crc, size = { width: 100, height: 100 }) {
     
     return new Promise(resolve => {
-        createImageBitmap(file).then((image) => {
+        createImageBitmap(arrayBuffer).then((image) => {
             var canvas = document.createElement('canvas'),
                 ctx = canvas.getContext("2d");
 
@@ -319,10 +320,21 @@ async function getThumnailFile(file, crc, size = { width: 100, height: 100 }) {
             const dataUrl = resampledCanvas.toDataURL();
 
             set(crc + ".arcicon", dataUrl)
+            get(".arcicon").then((arr)=>{
+                if(arr != undefined)
+                {
+                    const index = arr.findIndex(icons => icons == crc + ".arcicon")
 
-            update(".arcicon", val => val.push(crc + ".arcicon")).catch((error)=>{
-                console.log(error)
+                    if(index == -1){
+                        update(".arcicon", val => val.push(crc + ".arcicon")).catch((error)=>{
+                            console.log(error)
+                        })
+                    }
+                }else{
+                    set(".arcicon", [crc + ".arcicon"])
+                }
             })
+            
 
             resolve(dataUrl)
             // resolve(resampledCanvas)*/

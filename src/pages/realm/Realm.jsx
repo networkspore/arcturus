@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { RealmGateway } from "./RealmGateway";
 
@@ -16,43 +15,63 @@ export const Realm = () => {
     const [showIndex, setShowIndex] = useState(0)
     const [navState, setNavState] = useState(null)
     const [subDirectory, setSubDirectory] = useState("")
-    const [currentRealm, setCurrentRealm] = useState(null)
+    const currentRealm = useZust((state) => state.currentRealm)
+
 
     const [admin, setAdmin] = useState(false)
+    const [currentLocation, setCurrentLocation] = useState("/realm/gateway")
 
     const user = useZust((state) => state.user)
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
     const setPage = useZust((state) => state.setPage)
 
+
+
+
     useEffect(() => {
-        const currentLocation = location.pathname;
+        const cL = location.pathname;
 
-       
-        switch (currentLocation) {
-            case "/realm/disabled":
-                setShowIndex(-1);
-                break;
-            case "/realm/gateway":
-                if (location.state != undefined && location.state.realm != undefined && location.state.realm != null){
-                
-                    setCurrentRealm(location.state.realm)
-                    setShowIndex(0);
-                
-                }
-                break;
-            case "/realm":
-                if (location.state != undefined && location.state.realm != undefined && location.state.realm != null) {
+        const secondSlash = cL.indexOf("/", 1)
 
-                    setCurrentRealm(location.state.realm)
+        const subLocation = secondSlash == -1 ? "" : cL.slice(secondSlash)
+
+
+        const thirdSlash = subLocation.indexOf("/", 1)
+
+        const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
+
+        setSubDirectory(sD)
+
+        switch (sD) {
+            case "/disabled":
+                setShowIndex(-1)
+                break;
+            case "/gateway":
+                setShowIndex(0)
+                break;
+            default:
+                if (cL == "/realm"){
                     setShowIndex(1);
                     setPage(null)
                 }
                 break;
         }
-       
+
+        setCurrentLocation(cL)
+
     }, [location])
 
+
+/*
+    useEffect(()=>{
+        if(realmID.current.value != null)
+        {
+            const index = realms.findIndex(r => r.realmID == realmID)
+            setCurrentRealm(realms[index])
+        }
+    },[realms])
+*/
     useEffect(()=>{
         if(configFile.value != null)
         {
@@ -72,6 +91,8 @@ export const Realm = () => {
 
         }
     }, [user, currentRealm])
+
+
 
     return (
         <>
@@ -131,11 +152,11 @@ export const Realm = () => {
         }
             
         {showIndex == 0 &&
-            <RealmGateway currentRealm={currentRealm}/>
+            <RealmGateway admin={admin} currentLocation={currentLocation}/>
         }
 
         {showIndex == 1 &&
-                 currentRealm != null &&
+                 currentRealm.realmID != null &&
                 <>
                     <div style={{ width: "100%", height: "100%", display: page == null && realmScene != null ? "block" : "none" }}>
                         {page == null && realmScene != null &&
@@ -149,7 +170,6 @@ export const Realm = () => {
                                     }}>
                                     <TableTop
                                         admin={admin}
-                                        currentRealm={currentRealm}
                                         ref={tableTopRef}
                                     />
                                 </Canvas>
@@ -166,7 +186,7 @@ export const Realm = () => {
                                             backgroundColor: "rgba(0,3,4,.95)",
                         boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                         }}>
-                            <RealmEditor currentRealm={currentRealm} />
+                            <RealmEditor />
                         </div>
                     }
                 </>

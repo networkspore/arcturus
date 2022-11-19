@@ -124,7 +124,8 @@ export const HomePage = (props ={}) => {
                 }}></div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
                     <ImageDiv netImage={profile.image} />
-                    <div style={{ paddingTop:5, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
+                    <div style={{height:20}}> &nbsp;</div>
+                    <div style={{  paddingTop:5, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
                         <div style={{
 
                             textAlign: "center",
@@ -142,7 +143,7 @@ export const HomePage = (props ={}) => {
 
                 </div>
                         
-                <div style={{ width: 260, paddingLeft:"15px" }}>
+                <div style={{ width: 260, paddingLeft:"15px", paddingTop:25, }}>
                     
                     
                         <NavLink className={styles.result}  to={ "/home/account"}>

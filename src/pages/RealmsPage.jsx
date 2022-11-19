@@ -59,67 +59,67 @@ export const RealmsPage = () =>{
         }
     }, [location, configFile])
     
-    const updateRealmImage = (response) =>useZust.setState(produce((state)=>{
-        const index = realms.findIndex(realm => realm.realmID == response.request.id);
-        const image = index != -1 ? state.realms[index].image : null;
 
-        if("error" in response){
+    const updateRealmImage = (response) => useZust.setState(produce((state) => {
+        if ("error" in response) {
             console.log('error')
-        }else{
-            
-            if (index != -1)
-            {
-                const file = response.file;
-                
-                
+        } else {
+            if (response.success) {
+                const index = realms.findIndex(realm => realm.realmID == response.request.id);
+                const image = index != -1 ? state.realms[index].image : null;
 
-                const fileProperties = Object.getOwnPropertyNames(file)
+                if (index != -1) {
+                    const file = response.file;
 
-                fileProperties.forEach(property => {
-                    image[property] = file[property];
-                });
-                image.loaded = true;
+                    const fileProperties = Object.getOwnPropertyNames(file)
 
-                if (index != -1) state.realms[index].image = image;
-            } 
+                    fileProperties.forEach(property => {
+                        image[property] = file[property];
+                    });
+                    image.loaded = true;
+
+                    if (index != -1) state.realms[index].image = image;
+                }
+            }
+
         }
     }))
+
     useEffect(()=>{
-        if(realms.length > 0)
-        {
-            const tmp = []
-            
-            realms.forEach(realm => {
-                if (!("icon" in realm.image)) {
+        if(realms != null){
+            console.log(realms)
+            if(realms.length > 0)
+            {
+                
+                const tmp = []
+                
+                realms.forEach(realm => {
                     
-                    addFileRequest({ page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
-                    tmp.push(
-
-                        { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: {opacity:.2, scale: .6, image:"/Images/spinning.gif"} }
-
-                    )
-
-                }else{
-                    if(realm.image.loaded)
-                    {
+                    if (("icon" in realm.image)) {
+            
                         tmp.push(
-
                             { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.icon, opacity: .9} }
-
                         )
                     }else{
+                      
+                        addFileRequest({ command: "requestIcon", page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
                         tmp.push(
-
-                            { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: .4, image: "/Images/icons/cloud-offline-outline.svg", opacity: .1, filter: "invert(90%)" } }
-
+                            { 
+                                index: realm.realmIndex, 
+                                page: realm.realmPage, 
+                                id: realm.realmID, 
+                                name: realm.realmName, 
+                                netImage: { opacity: .2, scale: .6, image: "/Images/spinning.gif" } }
                         )
                     }
-                }   
-               
-            });
-            setRealmItems(tmp)
-        }else{
-            setRealmItems([])
+                    
+                    
+                
+                });
+                setRealmItems(tmp)
+            }else{
+                setRealmItems([])
+            }
         }
     },[realms])
 
