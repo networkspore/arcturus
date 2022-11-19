@@ -66,23 +66,7 @@ const HomeMenu = ({ props}) => {
 
     const setRealms = useZust((state)=> state.setRealms)
 
-    const addSystemMessage = (msg) => useZust.setState(produce((state) => {
-        let found = false;
-        if (state.systemMessages.length > 0 ){
-            state.systemMessages.forEach(message => {
-                if(message.id == msg.id)
-                {
-                    found = true;
-                }
-            });
-        }
-   
-        if(!found){
-            state.systemMessages.push(
-                msg
-            )
-        }
-    }))
+    const addSystemMessage = useZust((state) => state.addSystemMessage)
 
 
     const toNav = useNavigate()

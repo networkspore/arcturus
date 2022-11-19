@@ -17,11 +17,24 @@ export const RealmGateway= (props = {}) =>{
     const realms = useZust((state) => state.realms)
     const user = useZust((state) => state.user)
     const socket = useZust((state) => state.socket)
-    const currentRealm = useZust((state) => state.currentRealm)
 
-    const [currentPublishing, setCurrentPublishing] = useState("PRIVATE")
+
     const [admin, setAdmin] = useState(false)
-
+    const [currentRealm, setCurrentRealm] = useState({
+        realmID: null,
+        realmName: "",
+        userID: null,
+        roomID: null,
+        realmPage: null,
+        realmIndex: null,
+        statusID: null,
+        accessID: null,
+        realmDescription: null,
+        advisoryID: null,
+        image: null,
+        config: null,
+        realmType: null,
+})
     const [subDirectory, setSubDirectory] = useState("")
 
     const [showIndex, setShowIndex] = useState(null)
@@ -86,36 +99,42 @@ export const RealmGateway= (props = {}) =>{
     useEffect(() => {
 
         setAdmin(props.admin)
+        setCurrentRealm(props.currentRealm)
 
         const currentLocation = props.currentLocation
         const directory = "/realm/gateway";
 
-        const thirdSlash = currentLocation.indexOf("/", directory.length)
+        if(currentLocation != directory){
+            const thirdSlash = currentLocation.indexOf("/", directory.length)
 
-        const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
-        setSubDirectory(l)
+            const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
+            setSubDirectory(l)
 
-        console.log(l)
-        switch (l) {
-            case "/information":
-                setShowIndex(0)
-                break;
-            case "/hall":
-                setShowIndex(1)
-                break;
-            case "/pcs":
-                setShowIndex(2);
-                break;
-            case "/nps":
-                setShowIndex(3)
-                break;
-            case "/placeables":
-                setShowIndex(4)
-                break;
-            case "/textures":
-                setShowIndex(5)
+            console.log(l)
+            switch (l) {
+                case "/information":
+                    setShowIndex(0)
+                    break;
+                case "/hall":
+                    setShowIndex(1)
+                    break;
+                case "/pcs":
+                    setShowIndex(2);
+                    break;
+                case "/nps":
+                    setShowIndex(3)
+                    break;
+                case "/placeables":
+                    setShowIndex(4)
+                    break;
+                case "/textures":
+                    setShowIndex(5)
 
 
+            }
+        }else{
+            setSubDirectory("")
+            setShowIndex(null)
         }
     }, [props])
 
@@ -191,7 +210,7 @@ export const RealmGateway= (props = {}) =>{
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
                     <ImageDiv about={"Select Image"} className={admin ? className : ""} netImage={{
-                        image: "icon" in currentRealm.image ? currentRealm.image.icon : "/Images/spinning.gif",
+                        image: currentRealm.realmID != null && "icon" in currentRealm.image ? currentRealm.image.icon : "/Images/spinning.gif",
                         backgroundColor: "#44444450",
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
                         width: 130,
@@ -287,7 +306,7 @@ export const RealmGateway= (props = {}) =>{
 
             </div>
             {showIndex == 0 &&
-              <RealmInformation admin={admin}/>
+              <RealmInformation admin={admin} currentRealm={currentRealm}/>
             }
        </>
     )

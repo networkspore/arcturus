@@ -57,6 +57,14 @@ export const SystemMessagesMenu = (props = {}) => {
                 const messageID = message.id
                 const messageText = message.text
                 const messageNetImage = message.netImage
+                const messageDeleteOn = message.deleteOn
+                
+                if(messageDeleteOn == "seconds:5"){
+                    setTimeout(() => {
+                        removeSystemMessage(messageID)
+                    }, 5000);
+                }
+
                 tmpArray.push(
                     <div key={messageID} onClick={(e)=>{
                        
@@ -66,7 +74,7 @@ export const SystemMessagesMenu = (props = {}) => {
                         <div style={{paddingLeft:"2px"}}>
                             <ImageDiv width={18} height={18} netImage={messageNetImage} />
                         </div>
-                        <div style={{ paddingLeft:"10px"}}>
+                        <div style={{color:"white", paddingLeft:"10px"}}>
                             {messageText}
                         </div>
                     </div>

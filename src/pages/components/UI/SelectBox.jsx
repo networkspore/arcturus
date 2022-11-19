@@ -9,7 +9,7 @@ const SelectBox = (props = {}, ref) => {
 
     const [showList, setShowList] = useState(false);
     const [list, setList] = useState(null);
-    const [selectedIndex, setSelectedIndex] = useState(-1);
+    const [selectedIndex, setSelectedIndex] = useState(null);
 
     const id = "id" in props ? props.id : "";
     let optionsStyle = { zIndex: "9999", textAlign: "left", color: "#cdd4da", position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)", maxHeight: 100, overflowY: "scroll" };
@@ -88,8 +88,8 @@ const SelectBox = (props = {}, ref) => {
     useEffect(() => {
 
         const value = selectedValue;
-        if (value == -1) {
-            setSelectedIndex(-1);
+        if (value == null) {
+            setSelectedIndex(null);
         } else if (value == null || value == undefined) {
         } else {
             if (options != null || options !== undefined) {
@@ -105,17 +105,17 @@ const SelectBox = (props = {}, ref) => {
     useImperativeHandle(
         ref,
         () => ({
-            getLabel: options == null ? "" : selectedIndex == -1 ? "" : options[selectedIndex] === undefined ? "" : options[selectedIndex].label,
-            getValue: options == null ? -1 : selectedIndex == -1 ? -1 : options[selectedIndex] === undefined ? -1 : options[selectedIndex].value,
+            getLabel: options == null ? "" : selectedIndex == null ? "" : options[selectedIndex] === undefined ? "" : options[selectedIndex].label,
+            getValue: options == null ? null : selectedIndex == null ? null : options[selectedIndex] === undefined ? null : options[selectedIndex].value,
             setValue: (value) => {
 
              
                 setSelectedValue(value)
             },
             setSelectedIndex: (value) => {
-                if (value == -1 || value == null || value === undefined) {
-                    setSelectedValue(-1)
-                } else if (value > -1) {
+                if ( value == null || value === undefined) {
+                    setSelectedValue(null)
+                } else if (value != null) {
                     if (options != null) {
                         if (options.length > 0) {
                             setSelectedValue(options[Number(value)].value)
@@ -124,7 +124,7 @@ const SelectBox = (props = {}, ref) => {
                 }
             },
             selectedIndex: selectedIndex,
-            selectedOption: options == null ? null : selectedIndex == -1 ? null : options[selectedIndex] === undefined ? null : options[selectedIndex],
+            selectedOption: options == null ? null : selectedIndex == null ? null : options[selectedIndex] === undefined ? null : options[selectedIndex],
             setOptions: (value) => {
 
                 setOptions(value)
@@ -133,12 +133,12 @@ const SelectBox = (props = {}, ref) => {
         }), [selectedIndex, options]);
 
 
-    const lastIndex = useRef({ index: -1 })
+    const lastIndex = useRef({ index: null })
     
     useEffect(() => {
         
 
-        if (selectedIndex > -1) {
+        if (selectedIndex != null) {
 
             if (options[selectedIndex] === undefined) { textBoxRef.current.value = "" } else {
          

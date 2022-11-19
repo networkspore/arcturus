@@ -27,7 +27,21 @@ export const Realm = () => {
     const setPage = useZust((state) => state.setPage)
 
 
-
+    const [localRealm, setLocalRealm] = useState({
+        realmID: null,
+        realmName: "",
+        userID: null,
+        roomID: null,
+        realmPage: null,
+        realmIndex: null,
+        statusID: null,
+        accessID: null,
+        realmDescription: null,
+        advisoryID: null,
+        image: null,
+        config: null,
+        realmType: null,
+    })
 
     useEffect(() => {
         const cL = location.pathname;
@@ -88,7 +102,7 @@ export const Realm = () => {
     useEffect(() => {
         if (currentRealm != null) {
             setAdmin(user.userID == currentRealm.userID)
-
+            setLocalRealm(currentRealm)
         }
     }, [user, currentRealm])
 
@@ -152,7 +166,7 @@ export const Realm = () => {
         }
             
         {showIndex == 0 &&
-            <RealmGateway admin={admin} currentLocation={currentLocation}/>
+            <RealmGateway admin={admin} currentRealm={localRealm} currentLocation={currentLocation}/>
         }
 
         {showIndex == 1 &&

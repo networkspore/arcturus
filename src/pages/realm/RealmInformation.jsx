@@ -1,6 +1,7 @@
 import produce from "immer";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { errorSaving, noChanges, saved } from "../../constants/systemMessages";
 import useZust from "../../hooks/useZust";
 import { ImageDiv } from "../components/UI/ImageDiv";
 import SelectBox from "../components/UI/SelectBox";
@@ -9,7 +10,7 @@ import styles from "../css/home.module.css"
 
 const RealmInformation = (props = {}) =>{
 
-    const publishRef = useRef();
+    const accessRef = useRef();
     const descriptionRef = useRef();
     const advisoryRef = useRef();
     const realmTypeRef = useRef();
@@ -19,7 +20,25 @@ const RealmInformation = (props = {}) =>{
     const realms = useZust((state) => state.realms)
     const user = useZust((state) => state.user)
     const socket = useZust((state) => state.socket)
-    const currentRealm = useZust((state) => state.currentRealm)
+
+    const addSystemMessage = useZust((state) => state.addSystemMessage)
+
+    const [currentRealm, setCurrentRealm] = useState({
+        realmID: null,
+        realmName: "",
+        userID: null,
+        roomID: null,
+        realmPage: null,
+        realmIndex: null,
+        statusID: null,
+        accessID: null,
+        realmDescription: null,
+        advisoryID: null,
+        image: null,
+        config: null,
+        realmType: null,
+    })
+
     const className = styles.bubble__item;
     const activeClassName = styles.bubbleActive__item;
 
@@ -28,9 +47,80 @@ const RealmInformation = (props = {}) =>{
 
     useEffect(()=>{
        setAdmin(props.Admin)
-    },[props.admin])
+        setCurrentRealm(props.currentRealm)
+    },[props])
 
-  
+    useEffect(()=>{
+        if(currentRealm.realmID != null){
+            accessRef.current.setValue(currentRealm.accessID) 
+            descriptionRef.current.value = currentRealm.realmDescription;
+            advisoryRef.current.setValue(currentRealm.advisoryID)
+            realmTypeRef.current.value = currentRealm.realmType
+
+        }
+    },[currentRealm])
+
+    const onCancelClick = (e) =>{
+        navigate("/realm/gateway")
+    }
+
+    const onOKclick = (e) =>{
+     
+        const accessID = Number(accessRef.current.getValue)
+        const description = descriptionRef.current.value + ""
+        const advisoryID = Number(advisoryRef.current.getValue)
+        const realmType = realmTypeRef.current.value + ""
+        const realmID = currentRealm.realmID;
+
+        const information = {
+            realmID: realmID,
+            accessID: accessID,
+            realmDescription: description,
+            advisoryID: advisoryID,
+            realmType: realmType
+        }
+
+        socket.emit("updateRealmInformation", information, (callback) => {
+            if("error" in callback)
+            {
+                addSystemMessage(errorSaving)
+            }else{
+                if(callback.success)
+                {
+                    addSystemMessage(saved)
+                    updateRealmInformation(information)
+                    
+                    navigate("/realm/gateway")
+
+                }else{
+                    addSystemMessage( noChanges)
+                }
+            }
+        })
+      
+    }
+
+ 
+
+    const updateRealmInformation = (information) =>useZust.setState(produce((state) =>{
+        const index = state.realms.findIndex(realm => realm.realmID == information.realmID)
+
+        if(index > -1)
+        {
+            const realm = state.realms[index]
+
+            const objInformationNames = Object.getOwnPropertyNames(information)
+         
+
+            
+            objInformationNames.forEach(name => {
+                realm[name] = information[name]
+            });
+            state.realms[index] = realm
+        }
+
+   
+    }))
 
 
     return(
@@ -38,7 +128,7 @@ const RealmInformation = (props = {}) =>{
         position: "fixed",
         backgroundColor: "rgba(0,3,4,.95)",
         width: 700,
-        height: 700,
+   
         left: ((pageSize.width + 360) / 2),
         top: (pageSize.height / 2),
         transform: "translate(-50%,-50%)",
@@ -58,7 +148,7 @@ const RealmInformation = (props = {}) =>{
         }}>
             Information
         </div>
-        <div style={{ margin: 30 }}>
+        <div style={{ marginLeft:30, marginRight:30 }}>
             <div style={{ display: "flex", height: 150, }}>
                 <ImageDiv
                     width={100}
@@ -116,7 +206,7 @@ const RealmInformation = (props = {}) =>{
                     </div>
                     <div style={{ flex: .5, color: "#ffffffA0", fontSize: 12 }}>
                         <SelectBox
-                            ref={publishRef}
+                            ref={accessRef}
                             textStyle={{
                                 padding: 4,
                                 backgroundColor: "#00000060",
@@ -201,9 +291,31 @@ const RealmInformation = (props = {}) =>{
 
             </div>
 
-
+              
 
         </div>
+            <div style={{
+                justifyContent: "center",
+                paddingTop:15,
+
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+                paddingBottom:15
+            }}>
+                <div style={{ width: 100, height: 30 }} className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
+
+                <div style={{
+
+                    marginLeft: "20px", marginRight: "20px",
+                    height: "50px",
+                    width: "1px",
+                    backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                }}>
+
+                </div>
+                <div style={{ width: 100, height: 30 }} className={styles.OKButton} onClick={onOKclick} >OK</div>
+            </div>
     </div>
     )
 }

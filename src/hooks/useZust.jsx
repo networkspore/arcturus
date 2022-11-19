@@ -9,6 +9,7 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+
    currentRealm: {
       realmID: null,
       realmName: "",
@@ -39,6 +40,7 @@ const useZust = create((set) => ({
       image: null,
       config: null,
    }) => set({currentRealm: value}) ,
+  
    party:[],
    quickBar:[],
    setQuickBar:(value) => set({quickBar:value}),
@@ -86,6 +88,9 @@ const useZust = create((set) => ({
    })),
    realms: [],
    setRealms: (value = []) => set({realms:value}), 
+   updateRealm: (value, i) => set(produce((state) => {
+      state.realm[i] = value
+   })),
    publishedFiles:[],
    setPublishedFiles: (value = []) => set({publishedImages: value}),
    peerOnline:false,
@@ -126,6 +131,17 @@ const useZust = create((set) => ({
    setConfigFile: (value = { storageID:-1, fileID:-1, value: null, name: "", handle: null }) => set({configFile: value}),
    systemMessages:[],
    setSystemMessages: (value = []) => set({systemMessages: value}),
+   addSystemMessage:(value) => set(produce((state)=>{
+
+         const index = state.systemMessages.findIndex(msg => msg.id == value.id)
+
+         if (index == -1) {
+            state.systemMessages.push(
+               value
+            )
+         }
+   
+   })),
    connected: false,
    setConnected: (value = false) => set({connected:value}),
 
