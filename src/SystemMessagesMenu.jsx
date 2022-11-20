@@ -57,12 +57,26 @@ export const SystemMessagesMenu = (props = {}) => {
                 const messageID = message.id
                 const messageText = message.text
                 const messageNetImage = message.netImage
-                const messageDeleteOn = message.deleteOn
+                const messageDeleteOn = "deleteOn" in message ? message.deleteOn + "" : ""
                 
-                if(messageDeleteOn == "seconds:5"){
-                    setTimeout(() => {
-                        removeSystemMessage(messageID)
-                    }, 5000);
+                if(messageDeleteOn.length > 0){
+                    const index = messageDeleteOn.indexOf(":")
+                    const args = messageDeleteOn.split(":")
+                    
+                    const cmd = index == -1 ? messageDeleteOn : args.splice(0, 1)
+
+                    switch(cmd)
+                    {
+                        case "seconds":
+                            const seconds = parseInt(args[0]) * 1000
+                            setTimeout(() => {
+                                removeSystemMessage(messageID)
+                            }, seconds);
+
+                            break;
+                    }
+
+                    
                 }
 
                 tmpArray.push(

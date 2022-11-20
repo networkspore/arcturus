@@ -111,6 +111,14 @@ const useZust = create((set) => ({
 
    imagesFiles: [],
    setImagesFiles: (value = []) => set({imagesFiles:value}),
+   updateImages: (value) => set(produce((state)=>{
+      const index = state.imagesFiles.findIndex(image => image.crc == value.crc);
+
+      if(index > -1)
+      {
+         state.imagesFiles[index] = value;
+      }
+   })),
 
    objectsFiles: [],
    setObjectsFiles: (value = []) => set({ objectsFiles: value }),
@@ -208,9 +216,20 @@ const useZust = create((set) => ({
 
    user: { LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '' },
    setUser: (u = { LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '' }) => set({user: u}),
-   
    socket: null,
-   setSocket: (sock = null) => set({socket: sock}),
+   setSocket: (sock = null) => set({ socket: sock }),
+   socketListeners: [],
+   addSocketListener: (value) => set(produce((state) => {
+      if(Array.isArray(socketListeners)){
+         const index = state.socketListeners.findIndex(listener => listener.id == value.id)
+
+         if (index == -1) {
+            state.socketListeners.push(
+               value
+            )
+         }
+      }
+   })),
    setUserLoggedIn: (loggedIn = false) => set(produce(state => { state.user.LoggedIn = loggedIn})),
    setUserID: (userID = '') => set(produce(state => { state.user.userID = userID })),
    setUserName: (userName = '') => set(produce(state => { state.user.userName = userName})),

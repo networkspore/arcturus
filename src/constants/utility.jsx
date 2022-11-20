@@ -294,9 +294,27 @@ export async function getFileInfo(entry, dirHandle, type) {
     })
 }
 
+export async function getImageHandleDataURL(handle){
+  
+    const file = await handle.getFile()
+   
+    const image = await createImageBitmap(file)
+
+    var canvas = document.createElement('canvas'),
+        ctx = canvas.getContext("2d");
+
+    canvas.width = image.width;
+    canvas.height = image.height;
+    ctx.drawImage(image, 0, 0);
+
+    const dataURL = canvas.toDataURL();
+
+    return dataURL
+    
+}
 
 
-export async function getThumnailFile(arrayBuffer, crc, size = { width: 100, height: 100 }) {
+async function getThumnailFile(arrayBuffer, crc, size = { width: 100, height: 100 }) {
     
     return new Promise(resolve => {
         createImageBitmap(arrayBuffer).then((image) => {

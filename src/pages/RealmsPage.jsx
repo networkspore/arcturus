@@ -87,7 +87,7 @@ export const RealmsPage = () =>{
 
     useEffect(()=>{
         if(realms != null){
-            console.log(realms)
+         
             if(realms.length > 0)
             {
                 
@@ -95,22 +95,29 @@ export const RealmsPage = () =>{
                 
                 realms.forEach(realm => {
                     
-                    if (("icon" in realm.image)) {
-            
+                    if (("value" in realm.image && realm.image.value != null)) {
+                   
                         tmp.push(
-                            { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.icon, opacity: .9} }
+                            { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.value, opacity: .9} }
                         )
                     }else{
-                      
-                        addFileRequest({ command: "requestIcon", page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
-                        tmp.push(
-                            { 
-                                index: realm.realmIndex, 
-                                page: realm.realmPage, 
-                                id: realm.realmID, 
-                                name: realm.realmName, 
-                                netImage: { opacity: .2, scale: .6, image: "/Images/spinning.gif" } }
-                        )
+                        addFileRequest({ command: "getRealmImage", page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
+                        if (("icon" in realm.image)) {
+                            tmp.push(
+                                { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.icon, opacity: .9 } }
+                            )
+                        }else{
+                            tmp.push(
+                                {
+                                    index: realm.realmIndex,
+                                    page: realm.realmPage,
+                                    id: realm.realmID,
+                                    name: realm.realmName,
+                                    netImage: { opacity: .2, scale: .6, image: "/Images/spinning.gif" }
+                                }
+                            )
+                        }
+                        
                     }
                     
                     
@@ -170,7 +177,7 @@ export const RealmsPage = () =>{
         const realmID = selectedRealm.realmID;
         if(realmID == undefined || realmID == null)
         {
-            console.log("realmID: " + realmID)
+        
             navigate("/realms")
         }else{
             socket.emit("deleteRealm", realmID, (callback)=>{
@@ -405,7 +412,7 @@ export const RealmsPage = () =>{
                         callback(false)
 
                     } else if ("realm" in response) {
-                        console.log(response)
+                   
                         const realm = response.realm
                         callback(true)
 

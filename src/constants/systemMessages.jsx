@@ -3,7 +3,6 @@ export const initDirectory = {
     id: 1,
     text: "Select local directory.",
     navigate: "/home/localstorage",
-    deleteOn: "localstorage",
     netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
 }
 
@@ -11,7 +10,6 @@ export const initStorage = {
     id: 2,
     text: "Start storage engine.",
     navigate: "/home/localstorage/init",
-    deleteOn: "configFile",
     netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
 }
 
@@ -43,5 +41,13 @@ export const noChanges = {
     text: "No changes...",
     navigate: null,
     deleteOn: "seconds:5",
+    netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
+}
+
+export const notConnected = {
+    id: 6,
+    text: "Not connected...",
+    navigate: null,
+    deleteOn: "seconds:2",
     netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
 }

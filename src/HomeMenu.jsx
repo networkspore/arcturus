@@ -242,6 +242,7 @@ const HomeMenu = ({ props}) => {
                 }
             })
             socket.emit("getRealms", (callback)=>{
+      
                 if(callback.success)
                 {
                    setRealms(callback.realms)
@@ -317,13 +318,13 @@ const HomeMenu = ({ props}) => {
                                         })
 
                                     }).catch((err) => {
-                                        console.log(err)
+                        
                                         addSystemMessage(initStorage)
                                         navigate("/network")
                                     })
                                 }
                             }).catch((err) => {
-                                console.log(err)
+                   
                                 addSystemMessage(initStorage)
                                 navigate("/network")
                             })
@@ -375,7 +376,7 @@ const HomeMenu = ({ props}) => {
 
 
     const setQuickBarDefaults = () => {
-       console.log("gettingQuickBarDefaults")
+    
         socket.emit("getQuickBar", (callback) => {
             if ("error" in callback) {
                 console.log(callback.error)
@@ -591,7 +592,7 @@ const HomeMenu = ({ props}) => {
                           
                         }
                     }else{
-                        console.log("QuickBar realmID: " +quickBar[i].realmID + " not found in realms")
+              
                     }
                 }
                 setRealmQuickBarItems(tmp)

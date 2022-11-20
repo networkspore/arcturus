@@ -8,7 +8,7 @@ import SelectBox from "../components/UI/SelectBox";
 import styles from "../css/home.module.css"
 
 
-const RealmInformation = (props = {}) =>{
+export const UpdateRealmInformation = (props = {}) =>{
 
     const accessRef = useRef();
     const descriptionRef = useRef();
@@ -320,4 +320,3 @@ const RealmInformation = (props = {}) =>{
     )
 }
 
-export default RealmInformation

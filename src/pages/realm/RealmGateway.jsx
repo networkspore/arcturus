@@ -7,7 +7,8 @@ import { ContactsList } from "../components/UI/ContactsList";
 import { ImageDiv } from "../components/UI/ImageDiv";
 import SelectBox from "../components/UI/SelectBox";
 import styles from "../css/home.module.css"
-import RealmInformation from "./RealmInformation";
+import { GatewayRoom } from "./GatewayRoom";
+import { UpdateRealmInformation } from "./UpdateRealmInformation";
 
 export const RealmGateway= (props = {}) =>{
 
@@ -74,10 +75,10 @@ export const RealmGateway= (props = {}) =>{
                     
                     if(length == 1)
                     {
-                        console.log("popping")
+                       
                        state.quickBar.pop()
                     }else{
-                        console.log("splicing")
+                 
                         state.quickBar.splice(index, 1)
                     }   
                 }
@@ -110,31 +111,33 @@ export const RealmGateway= (props = {}) =>{
             const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
             setSubDirectory(l)
 
-            console.log(l)
-            switch (l) {
-                case "/information":
-                    setShowIndex(0)
-                    break;
-                case "/hall":
-                    setShowIndex(1)
-                    break;
-                case "/pcs":
-                    setShowIndex(2);
-                    break;
-                case "/nps":
-                    setShowIndex(3)
-                    break;
-                case "/placeables":
-                    setShowIndex(4)
-                    break;
-                case "/textures":
-                    setShowIndex(5)
+            if(props.admin){
+                switch (l) {
+                    case "/information":
+                        setShowIndex(0)
+                        break;
+                    case "/hall":
+                        setShowIndex(1)
+                        break;
+                    case "/pcs":
+                        setShowIndex(2);
+                        break;
+                    case "/nps":
+                        setShowIndex(3)
+                        break;
+                    case "/placeables":
+                        setShowIndex(4)
+                        break;
+                    case "/textures":
+                        setShowIndex(5)
 
 
+                }
             }
         }else{
+
             setSubDirectory("")
-            setShowIndex(null)
+            setShowIndex(-1)
         }
     }, [props])
 
@@ -209,12 +212,11 @@ export const RealmGateway= (props = {}) =>{
 
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
-                    <ImageDiv about={"Select Image"} className={admin ? className : ""} netImage={{
+                    <ImageDiv width={130} height={ 130} about={"Select Image"} className={admin ? className : ""} netImage={{
                         image: currentRealm.realmID != null && "icon" in currentRealm.image ? currentRealm.image.icon : "/Images/spinning.gif",
                         backgroundColor: "#44444450",
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-                        width: 130,
-                        height: 130,
+                       
                     }} />
  
                     <div style={{ marginTop:20, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
@@ -236,21 +238,17 @@ export const RealmGateway= (props = {}) =>{
                 </div>
                         
                 <div style={{ paddingTop:35, width: 260, paddingLeft:"20px" }}>
-                    <div onClick={(e)=>{navigate("/realm/gateway/information")}} className={styles.result} style={{ display: "flex", alignItems:"center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                        <ImageDiv netImage={{ filter: subDirectory == "/information" ? "invert(100%)" : "invert(50%)",backgroundColor:"", image:"/Images/icons/information-circle-outline.svg"}} width={25} height={25} />
-                        
-                        <div style={{ paddingLeft: "10px", color: subDirectory == "/information" ? "white" : "" }} >
-                           Information
-                        </div>
-                    </div>
-                    <div onClick={(e) => { navigate("/realm/gateway/hall") }} className={styles.result} style={{ display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                        <ImageDiv netImage={{ filter: subDirectory == "/hall" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/chatbubbles-outline.svg" }} width={25} height={25} />
+                    <div style={{ height: 5 }}>&nbsp;</div>
+                    <div onClick={(e) => { navigate("/realm/gateway") }} className={styles.result}
+                        style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                        <ImageDiv netImage={{ filter: subDirectory == "" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/realm.png" }} width={25} height={25} />
 
-                        <div style={{ paddingLeft: "10px", color:subDirectory == "/hall" ? "white" : "" }} >
-                            Hall
+                        <div style={{ paddingLeft: "10px", color: subDirectory == "" ? "white" : "" }} >
+                            Gateway
                         </div>
                     </div>
                     {admin && <>
+                     
                     <div style={{
                             paddingTop:20,
                             textAlign: "center",
@@ -263,6 +261,14 @@ export const RealmGateway= (props = {}) =>{
                         <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
 
                         <div style={{height:5}}>&nbsp;</div>
+                        <div onClick={(e) => { navigate("/realm/gateway/information") }} className={styles.result}
+                            style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                            <ImageDiv netImage={{ filter: subDirectory == "/information" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/information-circle-outline.svg" }} width={25} height={25} />
+
+                            <div style={{ paddingLeft: "10px", color: subDirectory == "/information" ? "white" : "" }} >
+                                Information
+                            </div>
+                        </div>
                         <div onClick={(e) => { navigate("/realm/gateway/pcs") }} className={styles.result} 
                         style={{ padding:5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
                             <ImageDiv netImage={{ filter: subDirectory == "/pcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/man-outline.svg" }} width={25} height={25} />
@@ -305,206 +311,31 @@ export const RealmGateway= (props = {}) =>{
                
 
             </div>
-            {showIndex == 0 &&
-              <RealmInformation admin={admin} currentRealm={currentRealm}/>
+            {
+                showIndex == -1 &&
+                <GatewayRoom admin={admin} currentRealm={currentRealm} />
+            }
+            {admin && 
+                showIndex == 0  &&
+                <UpdateRealmInformation admin={admin} currentRealm={currentRealm}/>
             }
        </>
     )
 }
 
 /*
-  
-                   
-                <div style={{display:"flex", }}>
-                    
+ <div onClick={(e)=>{navigate("/realm/gateway/information")}} className={styles.result} style={{ display: "flex", alignItems:"center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                        <ImageDiv netImage={{ filter: subDirectory == "/information" ? "invert(100%)" : "invert(50%)",backgroundColor:"", image:"/Images/icons/information-circle-outline.svg"}} width={25} height={25} />
                         
-                            <div style={{ width:"100%", display: "flex", flexDirection: "column", flex:1, alignItems:"flex-start", height:"100%"}}>
-                                
-                                    <div style={{height:40}}>
-                                   
-                                    </div>
-                                    <div style={{display:"flex", height:150, }}>
-                                    <ImageDiv
-                                        width={100}
-                                        height={100}
-                                        about={"Select Image"}
-                                        style={{ textShadow: "2px 2px 2px black", }}
-                                        className={className}
-                                        netImage={{
-                                            opacity:.3,
-                                            scale: .3,
-                                            backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)",
-                                            borderRadius: 40,
-                                            backgroundColor: "",
-                                            image: "/Images/icons/add-circle-outline.svg",
-                                            filter:"invert(60%)",
-                                        }}
-                                    />
-                                    </div>
-                                <div style={{
-
-                                    textAlign:"center",
-                                    fontWeight: "bold",
-                                    width:"100%",
-                                    fontSize: "14px",
-                                    fontFamily: "WebPapyrus",
-                                    color: "#888888",
-                                    textShadow: "3px 3px 4px black",
-                                    paddingTop: "10px",
-                                    paddingBottom: "6px",
-
-                                }}>
-                                   Information
-                                </div>
-                                <div style={{
-
-                                    marginTop: "5px",
-                                    height: "1px",
-                                    width: "100%",
-                                    backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
-                                }} />
-                                    <div style={{ height: "100%", paddingTop: 5, width: "100%", backgroundColor: "#33333330" }}>
-                                       
-
-                                        
-                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ width: 15 }} />
-                                        <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            Game:
-                                        </div>
-                                        <div style={{ flex: .5 }}>
-                                            <input
-                                                placeholder={"Game type..."}
-                                                type={"text"} style={{
-                                                    textAlign: "left",
-                                                    outline: 0,
-                                                    border: 0,
-                                                    color: "white",
-                                                    width: 200,
-                                                    fontSize: "14px",
-                                                    backgroundColor: "#00000060",
-                                                    fontFamily: "webrockwell",
-                                                    padding: 4,
-                                                }}
-                                            />
-                                        </div>
-
-                                    </div>
-
-                                    <div style={{ display: "flex", width: "100%", paddingTop: 15, }} >
-                                        <div style={{ width: 15 }} />
-                                        <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            Membership:
-                                        </div>
-                                        <div style={{ flex: .5, color: "#ffffffA0", fontSize: 12 }}>
-                                            <SelectBox
-                                                ref={publishRef}
-                                                textStyle={{
-                                                    padding:4,
-                                                    backgroundColor: "#00000060",
-                                                    width: 200,
-                                                    color: "#ffffff",
-                                                    fontFamily: "Webrockwell",
-                                                    border: 0,
-                                                    fontSize: 14,
-                                                }}
-                                                optionsStyle={{
-
-                                                    backgroundColor: "#333333C0",
-                                                    paddingTop: 5,
-                                                    fontSize: 14,
-                                                    fontFamily: "webrockwell"
-                                                }}
-
-                                                placeholder="availability" options={[
-                                                    { value: "0", label: "Closed" },
-                                                    { value: "1", label: "Contacts Only" },
-                                                    { value: "2", label: "Public" }
-                                                ]} />
-                                        </div>
-                                    </div>
-                                        <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ width: 15 }} />
-                                            <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                Description:
-                                            </div>
-                                            <div style={{ flex: 1, color: "#ffffffA0", fontSize: 13 }}>
-                                                <textarea
-                                                    cols={45}
-                                                    rows={6}
-                                                    placeholder="Write a description..." 
-                                                    style={{ 
-                                                        resize: "none", 
-                                                        outline: 0, 
-                                                        width: "90%", 
-                                                        border: 0, 
-                                                        backgroundColor: "#00000060", 
-                                                        color: "white", 
-                                                        fontFamily: "Webrockwell" 
-                                                    }} ref={descriptionRef} />
-                                            </div>
-
-                                        </div>
-
-
-                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ width: 15 }} />
-                                        <div style={{ marginRight: 0, width: 120, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            Content Advisory:
-                                        </div>
-                                        <div style={{ flex: .5, color: "#ffffffA0", fontSize: 12 }}>
-                                            <SelectBox
-                                                ref={advisoryRef}
-                                                textStyle={{
-                                                    color: "#ffffff",
-                                                    fontFamily: "Webrockwell",
-                                                    border: 0,
-                                                    fontSize: 14,
-                                                }}
-
-                                                optionsStyle={{
-                                                    backgroundColor: "#333333C0",
-                                                    paddingTop: 5,
-                                                    fontSize: 14,
-                                                    fontFamily: "webrockwell"
-                                                }}
-
-                                                placeholder="advisory" options={[
-                                                    { value: -1, label: "None" },
-                                                    { value: 0, label: "General" },
-                                                    { value: 1, label: "Mature" },
-                                                    { value: 2, label: "Adult" }
-                                                ]} />
-
-                                        </div>
-                                    </div>
-                                   
-                                        <div style={{height:10}}/>
-                                    
-                                    </div>  
-                             
-                                
-                        </div >
-                            
+                        <div style={{ paddingLeft: "10px", color: subDirectory == "/information" ? "white" : "" }} >
+                           Information
+                        </div>
                     </div>
+                    <div onClick={(e) => { navigate("/realm/gateway/hall") }} className={styles.result} style={{ display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                        <ImageDiv netImage={{ filter: subDirectory == "/hall" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/chatbubbles-outline.svg" }} width={25} height={25} />
 
-                       
-                        <div style={{display:"flex", width:"100%"  }}>
-                            <div style={{ width: 150, }} />
-                            <div style={{ flex: 1, backgroundColor:"" }}>
-                                <div style={{height:150}}>&nbsp;</div>
-                               
-                                <div style={{width:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}> 
-                                    <div style={{ width: 200, } } />
-                                    
-                                    <ImageDiv width={120} style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }} onClick={onStartRealm} about="Enter" className={styles.bubble__item}  height={30} netImage={{backgroundColor:"",filter:"invert(60%)",image:"/Images/icons/earth-outline.svg"}}/>
-                                   
-                                    <div style={{ width: 200, }} />
-                                </div>
-                            </div>
-                       
-<div style={{ width: 150, }} >
-
-</div>
-                        </div >
-                        */
+                        <div style={{ paddingLeft: "10px", color:subDirectory == "/hall" ? "white" : "" }} >
+                            Hall
+                        </div>
+                    </div>
+                    */

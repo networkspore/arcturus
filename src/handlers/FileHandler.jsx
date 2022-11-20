@@ -17,6 +17,7 @@ export const FileHandler = ( props = {}) =>{
     const [active, setActive] = useState()
   
     const imagesFiles = useZust((state) => state.imagesFiles)
+    const updateImages = useZust((state) => state.updateImages)
     const objectFiles = useZust((state) => state.objectsFiles)
     const terrainFiles = useZust((state) => state.terrainFiles)
     const mediaFiles = useZust((state) => state.mediaFiles)
@@ -61,6 +62,7 @@ export const FileHandler = ( props = {}) =>{
                     addProcessing(request)
                     
                     executeFileCommand(request).then((result)=>{
+                        console.log(result)
                         request.callback(result)
                         removeProcessing(request)
                         removeFileRequest(request)
@@ -76,50 +78,81 @@ export const FileHandler = ( props = {}) =>{
 
 
 
-    async function executeFileCommand(request) {
-        const localResult = await checkLocal(request)
-        console.log(localResult)
-        switch (request.command) {
-            case "getRealmIcon":
-                
-                if ("error" in localResult) {
 
-                    return localResult
+    const executeFileCommand = (request) => {
+        return new Promise(resolve => {
+            checkLocal(request).then((localResult) => {
+                switch (request.command) {
+                    case "getRealmIcon":
 
-                } else {
+                        if (localResult != null) {
+                            resolve({ success: true, file: localResult, request: request })
+                        } else {
 
-                    if (localResult.success) {
-                        return localResult
-                    }else{
+                            checkPeers(request).then((peersResult) => {
+                                resolve({ error: "not implemented" })
+                            })
 
-                        checkPeers(request).then((peersResult)=>{
-                            return {error:"not implemented"}
-                        })
+                        }
 
-                    }
+                        break;
+                    case "getRealmImage":
+                        if (localResult != null) {
+                            //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
+
+                            getLocalImage(request, localResult).then((realmImageResult) => {
+                                resolve(realmImageResult)
+                            })
+                        } else {
+                            checkPeers(request).then((peersResult) => {
+                                resolve({ error: "not implemented" })
+                            })
+                        }
+                        break;
+
                 }
-                break;
-            default:
-                request.callback({ request: request, file: file })
-        }
+            })
+        })
+
     }
 
 
+    async function getLocalImage(request, localResult){
+        
+
+        const dataURL = await worker.getImageHandleDataURL(localResult.handle)
+        
+        const objNames = Object.getOwnPropertyNames(request.file)
+        let newFile = {}
+        objNames.forEach(name => {
+            if (name in localResult) {
+                newFile[name] = localResult[name]
+            } else {
+                newFile[name] = request.file[name]
+            }
+        });
+        newFile.value = dataURL
+
+        return { success: true, file: newFile, request: request }
+
+    }
+
 
     async function checkLocal(request) {
-
+      
         switch (request.file.mimeType) {
+            
             case "image":
                 const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
 
                 if (i > -1) {
-                    return {request:request, success: true, file: imagesFiles[i] }
+                    return imagesFiles[i]
                 } else {
-                    return {request:request, success: false }
+                    return null
                 }
                 break;
             default:
-                return {request:request, error: new Error("File type not supported.") }
+                return null
                 break;
         }
     }
@@ -127,7 +160,7 @@ export const FileHandler = ( props = {}) =>{
     
 
     async function checkPeers(request){
-        console.log("checking peers")
+      
         socket.emit("fileRequest", request, (callback)=>{
             if("error" in callback)
             {
