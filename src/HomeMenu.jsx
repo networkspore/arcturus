@@ -70,8 +70,8 @@ const HomeMenu = ({ props}) => {
 
 
     const toNav = useNavigate()
-    const currentRealm = useZust((state) => state.currentRealm)
-    const setCurrentRealm = useZust((state) => state.setCurrentRealm)
+    const currentRealmID = useZust((state) => state.currentRealmID)
+    const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
     const setConfigFile = useZust((state) => state.setConfigFile)
 
     const [showIndex, setShowIndex] = useState(false);
@@ -572,9 +572,9 @@ const HomeMenu = ({ props}) => {
                             tmp.push(
 
                                 <div key={i} onClick={()=>{
-                                    setCurrentRealm(realm)
+                                    setCurrentRealmID(realm.realmID)
                                     navigate("/realm/gateway")
-                                }} style={{ outline: 0 }} className={showIndex == 7 &&  currentRealm.realmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                                }} style={{ outline: 0 }} className={showIndex == 7 &&  currentRealmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
                                     <ImageDiv width={60} height={60} netImage={{opacity:.6, image: "/Images/spinning.gif", filter: "invert(100%)", scale: .75 }} />
                                 </div>
                             )
@@ -583,9 +583,9 @@ const HomeMenu = ({ props}) => {
                          
                             tmp.push(
                                 <div key={i} onClick={() => { 
-                                    setCurrentRealm(realm)
+                                    setCurrentRealmID(realm.realmID)
                                     navigate("/realm/gateway")
-                                }} style={{ outline: 0 }} className={showIndex == 7 && currentRealm.realmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
+                                }} style={{ outline: 0 }} className={showIndex == 7 && currentRealmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
                                     <ImageDiv width={60} height={60} netImage={{ backgroundColor:"", opacity: 1, image: realm.image.icon,  scale: 1 }} />
                                 </div>
                             )
@@ -603,7 +603,7 @@ const HomeMenu = ({ props}) => {
             setRealmQuickBarItems([])
         }
         
-    },[quickBar, realms, currentRealm, showIndex])
+    },[quickBar, realms, currentRealmID, showIndex])
 
     return (
         <>

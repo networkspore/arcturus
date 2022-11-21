@@ -81,7 +81,9 @@ export const FileHandler = ( props = {}) =>{
 
     const executeFileCommand = (request) => {
         return new Promise(resolve => {
-            checkLocal(request).then((localResult) => {
+
+            checkLocal(request).then((localResult) => { //check local files first
+                
                 switch (request.command) {
                     case "getRealmIcon":
 
@@ -112,29 +114,37 @@ export const FileHandler = ( props = {}) =>{
 
                 }
             })
+
         })
 
     }
 
 
-    async function getLocalImage(request, localResult){
+    async function getLocalImage(request, localFile){
         
+        try{
 
-        const dataURL = await worker.getImageHandleDataURL(localResult.handle)
+        
+        const dataURL = await worker.getImageHandleDataURL(localFile);
         
         const objNames = Object.getOwnPropertyNames(request.file)
         let newFile = {}
         objNames.forEach(name => {
-            if (name in localResult) {
-                newFile[name] = localResult[name]
-            } else {
-                newFile[name] = request.file[name]
-            }
+            newFile[name] = request.file[name]
         });
+        
+        const localNames = Object.getOwnPropertyNames(localFile)
+        
+        localNames.forEach(name => {
+            newFile[name] = localFile[name]
+        });
+        
         newFile.value = dataURL
 
         return { success: true, file: newFile, request: request }
-
+        }catch(err){
+            return { error: new Error("Cannot get image from file.")}
+        }
     }
 
 

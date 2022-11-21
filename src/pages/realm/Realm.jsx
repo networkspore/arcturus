@@ -15,7 +15,7 @@ export const Realm = () => {
     const [showIndex, setShowIndex] = useState(0)
     const [navState, setNavState] = useState(null)
     const [subDirectory, setSubDirectory] = useState("")
-    const currentRealm = useZust((state) => state.currentRealm)
+    const currentRealmID = useZust((state) => state.currentRealmID)
 
 
     const [admin, setAdmin] = useState(false)
@@ -25,7 +25,8 @@ export const Realm = () => {
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
     const setPage = useZust((state) => state.setPage)
-
+    const realms = useZust((state) => state.realms)
+    const updateRealmImage = useZust((state) => state.updateRealmImage)
 
     const [localRealm, setLocalRealm] = useState({
         realmID: null,
@@ -42,6 +43,18 @@ export const Realm = () => {
         config: null,
         realmType: null,
     })
+    useEffect(() => {
+        
+        if (currentRealmID != null) {
+            const index = realms.findIndex(r => r.realmID == currentRealmID)
+            const realm = realms[index]
+            if (!("value" in realm.image)) {
+                addFileRequest({ command: "getRealmImage", page: "realm", id: realm.realmID, file: realm.image, callback: updateRealmImage })
+            }
+            setAdmin(user.userID == currentRealmID)
+            setLocalRealm(realm)
+        }
+    }, [user, currentRealmID, realms])
 
     useEffect(() => {
         const cL = location.pathname;
@@ -98,13 +111,9 @@ export const Realm = () => {
         }
     },[configFile])
 
+   
 
-    useEffect(() => {
-        if (currentRealm != null) {
-            setAdmin(user.userID == currentRealm.userID)
-            setLocalRealm(currentRealm)
-        }
-    }, [user, currentRealm])
+
 
 
 
@@ -165,12 +174,12 @@ export const Realm = () => {
             </div>
         }
             
-        {showIndex == 0 &&
+        {showIndex == 0 && localRealm.realmID != null &&
             <RealmGateway admin={admin} currentRealm={localRealm} currentLocation={currentLocation}/>
         }
 
         {showIndex == 1 &&
-                 currentRealm.realmID != null &&
+                 currentRealmID != null &&
                 <>
                     <div style={{ width: "100%", height: "100%", display: page == null && realmScene != null ? "block" : "none" }}>
                         {page == null && realmScene != null &&

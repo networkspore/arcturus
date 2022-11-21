@@ -51,3 +51,12 @@ export const notConnected = {
     deleteOn: "seconds:2",
     netImage: { image: "/Images/icons/alert-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
 }
+
+
+export const errorRealmEnd = {
+    id: 7,
+    text: "Error ending realm...",
+    navigate: null,
+    deleteOn: "seconds:5",
+    netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
+}

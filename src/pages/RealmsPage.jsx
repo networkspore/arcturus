@@ -7,6 +7,7 @@ import BubbleList from "./components/UI/BubbleList";
 import styles from "./css/home.module.css"
 import { ImageDiv } from "./components/UI/ImageDiv";
 import produce from "immer";
+import { errorRealmEnd } from "../constants/systemMessages";
 
 
 export const RealmsPage = () =>{
@@ -16,7 +17,7 @@ export const RealmsPage = () =>{
     const location = useLocation();
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
-
+    const setCurrentRealm = useZust((state) => state.setCurrentRealm)
     const [showIndex, setShowIndex] = useState(0)
     const [subDirectory, setSubDirectory] = useState("")
 
@@ -33,6 +34,7 @@ export const RealmsPage = () =>{
         if(index == -1) state.realms.push(realm)
     }))
     
+    const addSystemMessage = useZust((state) => state.addSystemMessage)
 
     const addFileRequest = useZust((state) => state.addFileRequest)
 
@@ -60,30 +62,7 @@ export const RealmsPage = () =>{
     }, [location, configFile])
     
 
-    const updateRealmImage = (response) => useZust.setState(produce((state) => {
-        if ("error" in response) {
-            console.log('error')
-        } else {
-            if (response.success) {
-                const index = realms.findIndex(realm => realm.realmID == response.request.id);
-                const image = index != -1 ? state.realms[index].image : null;
-
-                if (index != -1) {
-                    const file = response.file;
-
-                    const fileProperties = Object.getOwnPropertyNames(file)
-
-                    fileProperties.forEach(property => {
-                        image[property] = file[property];
-                    });
-                    image.loaded = true;
-
-                    if (index != -1) state.realms[index].image = image;
-                }
-            }
-
-        }
-    }))
+    const updateRealmImage = useZust((state) => state.updateRealmImage)
 
     useEffect(()=>{
         if(realms != null){
@@ -127,6 +106,8 @@ export const RealmsPage = () =>{
             }else{
                 setRealmItems([])
             }
+        }else{
+            setRealmItems([])
         }
     },[realms])
 
@@ -160,15 +141,9 @@ export const RealmsPage = () =>{
         {
             const index = realms.findIndex(realm => realm.realmID == realmID)
 
-            if(index > -1)
-            {
-                if(length == 1)
-                {
-                    state.realms.pop();
-                }else{
-                    state.realms.splice(index, 1)
-                }
-            }
+            
+            state.realms.splice(index, 1)
+            
         }
     }))
 
@@ -177,12 +152,20 @@ export const RealmsPage = () =>{
         const realmID = selectedRealm.realmID;
         if(realmID == undefined || realmID == null)
         {
-        
+            setShowIndex(0)
             navigate("/realms")
         }else{
             socket.emit("deleteRealm", realmID, (callback)=>{
-                removeRealm(realmID)
-                navigate("/realms")
+                if("error" in callback){
+                    addSystemMessage(errorRealmEnd)
+                }else{
+                    if (callback.success) {
+                        removeRealm(realmID)
+                    }else{
+                        addSystemMessage(errorRealmEnd)
+                    }
+                }
+                
             })
         }
         
@@ -359,7 +342,10 @@ export const RealmsPage = () =>{
                         <>
                             <div style={{ flex: 0.02 }}>&nbsp;</div>
                             <div style={{ display: "flex", justifyContent: "end", alignItems: "center", flex:1,}}>
-                                <div about="Gateway" className={styles.tooltipCenter__item} onClick={(e) => { navigate("/realm/gateway", {state:{realm:selectedRealm}})}}  style={{padding:10, display: "flex", transform:"translateX(50%)" }}>
+                                <div about="Gateway" className={styles.tooltipCenter__item} onClick={(e) => { 
+                                    setCurrentRealm(selectedRealm)
+                                    navigate("/realm/gateway")
+                                    }}  style={{padding:10, display: "flex", transform:"translateX(50%)" }}>
                                     <ImageDiv style={{ filter:"drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)"}} width={55} height={55} netImage={{ scale: 1,  backgroundColor: "", image: "/Images/realm.png", filter: "invert(100%)" }} />
                                 </div>
                             </div>

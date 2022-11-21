@@ -10,36 +10,8 @@ import {Color, Texture } from 'three';
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
 
-   currentRealm: {
-      realmID: null,
-      realmName: "",
-      userID: null,
-      roomID: null,
-      realmPage: null,
-      realmIndex: null,
-      statusID: null,
-      accessID: null,
-      realmDescription: null,
-      advisoryID: null,
-      image: null,
-      config: null,
-      realmType: null,
-},
-   setCurrentRealm: (value = {
-      realmType:null,
-      realmID: null,
-      realmName: "",
-      userID: null,
-      roomID: null,
-      realmPage: null,
-      realmIndex: null,
-      statusID: null,
-      accessID: null,
-      realmDescription: null,
-      advisoryID: null,
-      image: null,
-      config: null,
-   }) => set({currentRealm: value}) ,
+   currentRealmID: null,
+   setCurrentRealmID: (value) => set({currentRealmID: value}) ,
   
    party:[],
    quickBar:[],
@@ -90,6 +62,30 @@ const useZust = create((set) => ({
    setRealms: (value = []) => set({realms:value}), 
    updateRealm: (value, i) => set(produce((state) => {
       state.realm[i] = value
+   })),
+   updateRealmImage: (response) => set(produce((state) => {
+      if ("error" in response) {
+         console.log('error')
+      } else {
+         if (response.success) {
+            const index = state.realms.findIndex(realm => realm.realmID == response.request.id);
+            const image = index != -1 ? state.realms[index].image : null;
+
+            if (index != -1) {
+               const file = response.file;
+
+               const fileProperties = Object.getOwnPropertyNames(file)
+
+               fileProperties.forEach(property => {
+                  image[property] = file[property];
+               });
+               image.loaded = true;
+
+               if (index != -1) state.realms[index].image = image;
+            }
+         }
+
+      }
    })),
    publishedFiles:[],
    setPublishedFiles: (value = []) => set({publishedImages: value}),

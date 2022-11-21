@@ -1,6 +1,7 @@
 import produce from "immer";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { PropertyMixer } from "three";
 import { status } from "../../constants/constants"
 import useZust from "../../hooks/useZust";
 import { ContactsList } from "../components/UI/ContactsList";
@@ -98,7 +99,7 @@ export const RealmGateway= (props = {}) =>{
 
 
     useEffect(() => {
-
+        console.log(currentRealm.image)
         setAdmin(props.admin)
         setCurrentRealm(props.currentRealm)
 

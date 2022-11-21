@@ -294,10 +294,15 @@ export async function getFileInfo(entry, dirHandle, type) {
     })
 }
 
-export async function getImageHandleDataURL(handle){
-  
-    const file = await handle.getFile()
-   
+export async function getImageHandleDataURL(localFile){
+    const crc = localFile.crc;
+
+    const idbImage = await get( crc + ".arcimage")
+
+    if(idbImage != undefined) return idbImage;
+
+    const file = await localFile.handle.getFile()
+
     const image = await createImageBitmap(file)
 
     var canvas = document.createElement('canvas'),
@@ -308,6 +313,16 @@ export async function getImageHandleDataURL(handle){
     ctx.drawImage(image, 0, 0);
 
     const dataURL = canvas.toDataURL();
+
+    set(crc + ".arcimage", dataURL)
+
+    //const imgDB = await get(".arcimage")
+
+    try{
+        update(".arcimage", arr => arr != undefined ? arr.push(crc + ".arcimage") : set(".arcimage", [crc + ".arcimage"]))
+    }catch(err){
+        console.log(err)
+    }
 
     return dataURL
     

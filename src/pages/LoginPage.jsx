@@ -133,6 +133,9 @@ import { get } from "idb-keyval";
     {
         if(!disable){
             setDisable(true);
+            
+            if(socket == null)
+            {
             const sock = io(socketIOhttp, { auth: { token: socketToken, user: { nameEmail: name_email, password: pass } }, transports: ['websocket'] });
             sock.on("disconnect",(error)=>{
                 alert("Could not connect. Check your password and try again.")
@@ -154,7 +157,9 @@ import { get } from "idb-keyval";
             
                 return true;
             })
-            
+            }else{
+                alert("Login in progress")
+            }
         }
     }
 
