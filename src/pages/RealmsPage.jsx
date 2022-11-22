@@ -17,7 +17,7 @@ export const RealmsPage = () =>{
     const location = useLocation();
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
-    const setCurrentRealm = useZust((state) => state.setCurrentRealm)
+    const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
     const [showIndex, setShowIndex] = useState(0)
     const [subDirectory, setSubDirectory] = useState("")
 
@@ -110,6 +110,39 @@ export const RealmsPage = () =>{
             setRealmItems([])
         }
     },[realms])
+
+    const onNewRealm = (realm, callback) => {
+
+        const newFile = {
+            mimeType: realm.image.mimeType,
+            name: realm.image.name,
+            crc: realm.image.crc,
+            size: realm.image.size,
+            type: realm.image.type,
+            lastModified: realm.image.lastModified,
+        }
+
+        socket.emit("createRealm", realm.realmName, newFile, selectedItem.page, selectedItem.index, (response) => {
+
+
+
+            if ("error" in response) {
+                callback(false)
+
+            } else if ("realm" in response) {
+
+                const realm = response.realm
+                callback(true)
+
+                addRealm(realm)
+                setCurrentRealmID(realm.realmID)
+                navigate("/realm/gateway")
+
+            }
+        })
+
+    }
+
 
     const onRealmChange = (r) =>{
         
@@ -343,7 +376,7 @@ export const RealmsPage = () =>{
                             <div style={{ flex: 0.02 }}>&nbsp;</div>
                             <div style={{ display: "flex", justifyContent: "end", alignItems: "center", flex:1,}}>
                                 <div about="Gateway" className={styles.tooltipCenter__item} onClick={(e) => { 
-                                    setCurrentRealm(selectedRealm)
+                                    setCurrentRealmID(selectedRealm.realmID)
                                     navigate("/realm/gateway")
                                     }}  style={{padding:10, display: "flex", transform:"translateX(50%)" }}>
                                     <ImageDiv style={{ filter:"drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)"}} width={55} height={55} netImage={{ scale: 1,  backgroundColor: "", image: "/Images/realm.png", filter: "invert(100%)" }} />
@@ -379,36 +412,7 @@ export const RealmsPage = () =>{
             
             
         { showIndex == 1 &&
-            <RealmCreatePage onNewRealm={(realm, callback)=>{
-                
-                const newFile = {
-                    mimeType: realm.image.mimeType,
-                    name: realm.image.name,
-                    crc: realm.image.crc,
-                    size: realm.image.size,
-                    type: realm.image.type,
-                    lastModified: realm.image.lastModified,
-                } 
-
-                socket.emit("createRealm", realm.realmName, newFile, selectedItem.page, selectedItem.index, (response) => {
-
-                    
-
-                    if ("error" in response) {
-                        callback(false)
-
-                    } else if ("realm" in response) {
-                   
-                        const realm = response.realm
-                        callback(true)
-
-                        addRealm(realm)
-                        navigate("/realm/gateway", { state: realm })
-
-                    }
-                })
-            
-            }}/>
+            <RealmCreatePage onNewRealm={onNewRealm}/>
         }
        
         </>

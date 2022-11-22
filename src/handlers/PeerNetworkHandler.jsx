@@ -46,9 +46,9 @@ export const PeerNetworkHandler = (props ={}) => {
     const onPeerOpen = (id) =>{
         setPeerOnline(true)
         console.log(id)
-        socket.emit("PeerStatus",(status.Online, id, (callback)=>{
-
-        }))
+        socket.emit("updateUserPeerID",id, (callback)=>{
+            console.log(callback)
+        })
     }
 
     const onPeerCall = (call) =>{
@@ -61,10 +61,12 @@ export const PeerNetworkHandler = (props ={}) => {
         setPeerOnline(false)
 
         if(!socket.disconnected){
-            if(socket!= null && configFile.value != null){
-                socket.emit("peerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
-
-                }))
+            if(socket!= null ){
+                if(!socket.disconnected){
+                    socket.emit("updateUserPeerID", "", (callback) => {
+                        console.log(callback)
+                    })
+                }
             }
         }
 

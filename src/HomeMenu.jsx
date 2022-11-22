@@ -12,7 +12,7 @@ import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 import { RealmsPage } from "./pages/RealmsPage";
 
 import { SystemMessagesMenu } from "./SystemMessagesMenu";
-import { get } from "idb-keyval";
+import { get, update } from "idb-keyval";
 
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
 
@@ -357,12 +357,12 @@ const HomeMenu = ({ props}) => {
 
     useEffect(() => {
 
-        if (configFile.value != null) {
+        if (user.userID > 0, configFile.value != null) {
             const config = configFile.value;
 
             setFolderDefaults(config).then((promise) => {
                 
-                setQuickBarDefaults()
+                setQuickBarDefaults(user.userID)
                 
                 navigate(onComplete)  
                
@@ -372,53 +372,90 @@ const HomeMenu = ({ props}) => {
             setQuickBar([]);
         }
 
-    }, [configFile])
+    }, [configFile, user])
 
 
-    const setQuickBarDefaults = () => {
-    
-        socket.emit("getQuickBar", (callback) => {
-            if ("error" in callback) {
-                console.log(callback.error)
-            } else {
-                if (callback.success) {
-                    var tmpValue = callback.quickBar;
-                    if (tmpValue != null && tmpValue != "") {
+    const setQuickBarDefaults = (userID) => {
+        get(userID + ".arcquickBar").then((idbQuickBar)=>{
+            if (idbQuickBar != undefined && idbQuickBar != "")
+            {
+             
+                try {
+                    const qBar = JSON.parse(idbQuickBar)
 
-                        try {
-                            const tmpQBar = JSON.parse(tmpValue)
-
-                            if (Array.isArray(tmpQBar)) {
-                                setQuickBar(tmpQBar);
-                             
-                            } else {
-                                console.log("Quick bar is corrupt")
-                          
-                               
-                            }
-
-                        } catch (err) {
-                            console.log(err)
-                          
+                    if (Array.isArray(qBar)) {
                         
-                        }
+                        setQuickBar(tmpQBar);
+
+                    } else {
+                        console.log("Quick bar is corrupt")
+
+
                     }
+
+                } catch (err) {
+                    console.log(err)
+
+
                 }
+                
             }
-           
         })
-  
+     
+            
+        
     }
+    const prevQuickBar = useRef({ value: null })
 
-
-
+    useEffect(() => {
+        const userID = user.userID
+        if(userID > 0)
+        {
+            if (prevQuickBar.current.value == null) {
+                prevQuickBar.current.value = true
+            } else {
+                if(quickBar.length > 0)
+                {
+                    let saveList = [];
+                    quickBar.forEach(qRealm => {
+                        let r = {}
+                        const realmNames = Object.getOwnPropertyNames(qRealm)
+                        realmNames.forEach(name => {
+                            if(name != "image"){
+                                r[name] = qRealm[name]
+                            }else{
+                                r.image = {}
+                            }
+                        });
+                        const imgNames = Object.getOwnPropertyNames(qRealm.image)
+                        
+                        imgNames.forEach(name => {
+                            if(name != "value" && name != "icon" && name != "handle"){
+                                r.image[name] = qRealm.image[name]
+                            }
+                        });
+                        saveList.push(r)
+                    });
+                    const json = JSON.stringify(saveList)
+              
+                    update(userID + ".arcquickBar", (qBar) => {
+                        if (qBar == undefined) {
+                            set(userID + ".arcquickBar", json)
+                        } else {
+                            qBar = json
+                        }
+                    })
+                
+                }
+                
+            }
+        }else{
+            prevQuickBar.current.value = null
+        }
+        
+    }, [quickBar, user])
     
     
-
-    const addImageFile = (file) => useZust.setState(produce((state)=>{
-        state.imagesFiles.push(file)
-    }))
-
 
 
     async function setFolderDefaults(config) {

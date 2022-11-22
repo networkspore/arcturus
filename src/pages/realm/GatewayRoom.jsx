@@ -50,7 +50,7 @@ export const GatewayRoom = (props = {}) =>{
 
     useEffect(()=>{
         if(currentRealm.realmID != null){
-       
+           
 
         }
     },[currentRealm])

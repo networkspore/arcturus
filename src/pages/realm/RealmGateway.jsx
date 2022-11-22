@@ -43,7 +43,7 @@ export const RealmGateway= (props = {}) =>{
 
     const className = styles.bubble__item;
     const activeClassName =  styles.bubbleActive__item;
-    const prevQuickBar = useRef({ value: null })
+  
 
     const [isQuickBar, setIsQuickBar] = useState(false)
     const quickBar = useZust((state) => state.quickBar)
@@ -99,7 +99,7 @@ export const RealmGateway= (props = {}) =>{
 
 
     useEffect(() => {
-        console.log(currentRealm.image)
+    
         setAdmin(props.admin)
         setCurrentRealm(props.currentRealm)
 
@@ -144,18 +144,7 @@ export const RealmGateway= (props = {}) =>{
 
 
 
-    useEffect(() => {
-        if (prevQuickBar.current.value == null) {
-            prevQuickBar.current.value = true
-        } else {
 
-            const json = JSON.stringify(quickBar)
-            if (json != null) {
-                socket.emit("setQuickBar", json)
-            }
-        }
-
-    }, [quickBar])
 
     useEffect(()=>{
         if (Array.isArray(quickBar)) {

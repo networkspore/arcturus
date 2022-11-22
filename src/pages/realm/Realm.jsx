@@ -5,6 +5,7 @@ import { RealmGateway } from "./RealmGateway";
 import styles from "../css/home.module.css"
 import { Canvas } from "@react-three/fiber";
 import useZust from "../../hooks/useZust";
+import { errorRealmEnter, noGatewayEnter} from "../../constants/systemMessages";
 
 
 export const Realm = () => {
@@ -27,6 +28,8 @@ export const Realm = () => {
     const setPage = useZust((state) => state.setPage)
     const realms = useZust((state) => state.realms)
     const updateRealmImage = useZust((state) => state.updateRealmImage)
+    const socket = useZust((state) => state.socket)
+    const addSystemMessage = useZust((state) => state.addSystemMessage)
 
     const [localRealm, setLocalRealm] = useState({
         realmID: null,
@@ -51,10 +54,33 @@ export const Realm = () => {
             if (!("value" in realm.image)) {
                 addFileRequest({ command: "getRealmImage", page: "realm", id: realm.realmID, file: realm.image, callback: updateRealmImage })
             }
-            setAdmin(user.userID == currentRealmID)
+           
             setLocalRealm(realm)
         }
     }, [user, currentRealmID, realms])
+
+    useEffect(() =>{
+    
+        if(currentRealmID != null)
+        {
+            socket.emit("enterRealmGateway", currentRealmID, (realmJoined)=>{
+                if("error" in realmJoined)
+                {
+                    console.log(realmJoined)
+                    addSystemMessage(errorRealmEnter)
+                }else{
+                    if(realmJoined.success){
+                        setAdmin(realmJoined.admin)
+                        //messages users
+                    }else{
+                        addSystemMessage(noGatewayEnter)
+                    }
+                }
+                
+            })
+        }
+      
+    },[currentRealmID])
 
     useEffect(() => {
         const cL = location.pathname;
