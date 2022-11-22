@@ -9,6 +9,7 @@ export const ChatBox = (props ={}) => {
     const msgTextRef = useRef();
     const chatDivRef = useRef()
     const parentDivRef = useRef();
+    const textAreaDiv = useRef()
 
     const chatListenerID = useId()
 
@@ -120,15 +121,20 @@ export const ChatBox = (props ={}) => {
                 height: chatHeight }}>
                 {chat}
             </div>
-            <div style={{flex:1 }}>
+            <div height={10}>&nbsp;</div>
+            <div ref={textAreaDiv} style={{flex:1, alignItems:"center" }}>
                 <textarea 
                     ref={msgTextRef}
                     onBlur={(e) => {
                         setShowChat(false);
                         setBorder(inactiveBorder)
+                        msgTextRef.current.rows = 1
                     }}
                     onFocus={(e)=>{
                         setBorder(activeBorder)
+
+                    
+                            msgTextRef.current.rows = 8
                     }} 
                     onKeyDown={(e) => {
                         if (e.key == "Enter") onMessageSend(e)
@@ -140,7 +146,7 @@ export const ChatBox = (props ={}) => {
                         backgroundColor: "#00000070", 
                         paddingRight: 20, 
                         textAlign: textAlign,
-                        width:bounds.width,
+                        width:"90%",
                         fontFamily:"webrockwell" ,
                         fontSize: 14,
                         padding:10,

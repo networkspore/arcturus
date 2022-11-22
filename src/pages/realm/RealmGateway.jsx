@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { PropertyMixer } from "three";
 import { status } from "../../constants/constants"
 import useZust from "../../hooks/useZust";
-import { ContactsList } from "../components/UI/ContactsList";
 import { ImageDiv } from "../components/UI/ImageDiv";
 import SelectBox from "../components/UI/SelectBox";
 import styles from "../css/home.module.css"
@@ -22,6 +21,11 @@ export const RealmGateway= (props = {}) =>{
 
 
     const [admin, setAdmin] = useState(false)
+    const [messages, setMessages] = useState([])
+    const [realmUsers, setRealmUsers] = useState([])
+    const [gatewayUsers, setGatewayUsers] = useState([])
+    const [realmMember, setRealmMember] = useState(false)
+
     const [currentRealm, setCurrentRealm] = useState({
         realmID: null,
         realmName: "",
@@ -36,7 +40,7 @@ export const RealmGateway= (props = {}) =>{
         image: null,
         config: null,
         realmType: null,
-})
+    })
     const [subDirectory, setSubDirectory] = useState("")
 
     const [showIndex, setShowIndex] = useState(null)
@@ -49,7 +53,9 @@ export const RealmGateway= (props = {}) =>{
     const quickBar = useZust((state) => state.quickBar)
     const setQuickBar = useZust((state) => state.setQuickBar)
     const quickBarAdd = (realm) => useZust.setState(produce((state) => {
-        if (state.quickBar != null) {
+        if (!(Array.isArray( state.quickBar))) {
+            state.quickBar = [realm]
+        }else{
             const length = state.quickBar.length
 
             if (length > 0) {
@@ -57,15 +63,16 @@ export const RealmGateway= (props = {}) =>{
                 if (index == -1) {
                     state.quickBar.splice(0, 0, realm)
                 }
-            }else{
+            } else {
                 state.quickBar.push(realm)
             }
-        }else{
-            state.quickBar = [realm]
         }
     }))
+
     const quickBarRemove = (realmID) => useZust.setState(produce((state)=>{
-        if(state.quickBar != null){
+        if (!(Array.isArray(state.quickBar))) {
+            state.quickBar = []
+        } else {
             const length = state.quickBar.length
             console.log(length)
             if(length > 0)
@@ -100,8 +107,6 @@ export const RealmGateway= (props = {}) =>{
 
     useEffect(() => {
     
-        setAdmin(props.admin)
-        setCurrentRealm(props.currentRealm)
 
         const currentLocation = props.currentLocation
         const directory = "/realm/gateway";
@@ -140,10 +145,31 @@ export const RealmGateway= (props = {}) =>{
             setSubDirectory("")
             setShowIndex(-1)
         }
-    }, [props])
+    }, [props.currentLocation])
 
+    useEffect(()=>{
 
+       setMessages(props.messages)
+ 
+    },[props.messages])
 
+    useEffect(()=>{
+        setAdmin(props.admin)
+        setCurrentRealm(props.currentRealm)
+    },[props.admin, props.currentRealm])
+    
+    useEffect(()=>{
+        setRealmUsers(props.realmUsers)
+    },[props.realmUsers])
+    
+
+    useEffect(()=>{
+        setGatewayUsers(props.gatewayUsers)
+    },[props.gatewayUsers])
+
+    useEffect(()=>{
+        setRealmMember(props.realmMember)
+    },[props.realmMember])
 
 
     useEffect(()=>{
@@ -303,7 +329,7 @@ export const RealmGateway= (props = {}) =>{
             </div>
             {
                 showIndex == -1 &&
-                <GatewayRoom admin={admin} currentRealm={currentRealm} />
+                <GatewayRoom admin={admin} realmMember={realmMember} currentRealm={currentRealm} messages={messages} gatewayUsers={gatewayUsers} realmUsers={realmUsers}/>
             }
             {admin && 
                 showIndex == 0  &&

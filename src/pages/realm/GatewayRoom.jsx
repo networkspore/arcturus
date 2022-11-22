@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { errorSaving, noChanges, notConnected, saved } from "../../constants/systemMessages";
 import useZust from "../../hooks/useZust";
 import { ChatBox } from "../components/UI/ChatBox";
+import { ContactsBox } from "./ContactsBox";
+
 import { ImageDiv } from "../components/UI/ImageDiv";
 import SelectBox from "../components/UI/SelectBox";
 import styles from "../css/home.module.css"
@@ -40,24 +42,37 @@ export const GatewayRoom = (props = {}) =>{
     const className = styles.bubble__item;
     const activeClassName = styles.bubbleActive__item;
 
-    const [joinedRoom, setJoinedRoom] = useState(false);
     const [admin, setAdmin] = useState(false)
+    const [messages, setMessages] = useState([])
+    const [realmUsers, setRealmUsers] = useState([])
+    const [gatewayUsers, setGatewayUsers] = useState([])
+    const [realmMember, setRealmMember] = useState(false)
 
-    useEffect(()=>{
-       setAdmin(props.Admin)
+    useEffect(() => {
+        setAdmin(props.admin)
         setCurrentRealm(props.currentRealm)
-    },[props])
-
-    useEffect(()=>{
-        if(currentRealm.realmID != null){
-           
-
-        }
-    },[currentRealm])
-
- 
+    }, [props.admin, props.currentRealm])
 
 
+    useEffect(() => {
+
+        setMessages(props.messages)
+
+    }, [props.messages])
+
+
+    useEffect(() => {
+       
+        setRealmUsers(props.realmUsers)
+    }, [props.realmUsers])
+
+
+    useEffect(() => {
+        setGatewayUsers(props.gatewayUsers)
+    },[props.gatewayUsers])
+    useEffect(() => {
+        setRealmMember(props.realmMember)
+    }, [props.realmMember])
 
     return(
         <>
@@ -109,19 +124,22 @@ export const GatewayRoom = (props = {}) =>{
                             <div style={{height:"100%"}}>
                                  &nbsp;     
                             </div>
-                            <ChatBox roomID={currentRealm.roomID}/>
+                            <ChatBox chatHeight={300} roomID={currentRealm.roomID} messages={messages}/>
 
                         </div>
-                        <div style={{ flex:.7}}>
+                        <div style={{ flex: .5, display: "flex", flexDirection: "column",  }}>
                             <div style={{ height: "100%" }}>
-                                &nbsp;
+                                <ContactsBox style={{ backgroundColor: "#44444450", backgroundImage: "linear-gradient#0000005 100%,#cccccc10 5%)", }} 
+                                className={styles.result} contacts={gatewayUsers}/>
                             </div>
-                           
+                            {(realmMember || admin) &&
+                                <ContactsBox className={styles.result} contacts={realmUsers} />
+                            }
                         </div>
                     </div>
                     <div style={{
                         display: "flex",
-                        height: "50px",
+                        height: "60px",
                     }}>&nbsp;</div>
         </div>
         }

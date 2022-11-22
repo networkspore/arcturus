@@ -12,15 +12,19 @@ export const Realm = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
-
+    const [currentLocation, setCurrentLocation] = useState("/realm/gateway")
     const [showIndex, setShowIndex] = useState(0)
-    const [navState, setNavState] = useState(null)
-    const [subDirectory, setSubDirectory] = useState("")
     const currentRealmID = useZust((state) => state.currentRealmID)
-
+    
 
     const [admin, setAdmin] = useState(false)
-    const [currentLocation, setCurrentLocation] = useState("/realm/gateway")
+    const [realmMember, setRealmMember] = useState(false)
+    const [inRealm, setInRealm] = useState(false)
+    const [realmUsers, setRealmUsers] = useState([])
+    const [gatewayUsers, setGatewayUsers] = useState([])
+    const [gatewayMessages, setGatewayMessages] = useState([])
+    
+
 
     const user = useZust((state) => state.user)
     const pageSize = useZust((state) => state.pageSize)
@@ -31,7 +35,7 @@ export const Realm = () => {
     const socket = useZust((state) => state.socket)
     const addSystemMessage = useZust((state) => state.addSystemMessage)
 
-    const [localRealm, setLocalRealm] = useState({
+    const [currentRealm, setCurrentRealm] = useState({
         realmID: null,
         realmName: "",
         userID: null,
@@ -55,23 +59,29 @@ export const Realm = () => {
                 addFileRequest({ command: "getRealmImage", page: "realm", id: realm.realmID, file: realm.image, callback: updateRealmImage })
             }
            
-            setLocalRealm(realm)
+            setCurrentRealm(realm)
         }
     }, [user, currentRealmID, realms])
+
+   
+   
 
     useEffect(() =>{
     
         if(currentRealmID != null)
         {
-            socket.emit("enterRealmGateway", currentRealmID, (realmJoined)=>{
-                if("error" in realmJoined)
+            socket.emit("enterRealmGateway", currentRealmID, (enteredGateway)=>{
+                if ("error" in enteredGateway)
                 {
-                    console.log(realmJoined)
+                    console.log(enteredGateway)
                     addSystemMessage(errorRealmEnter)
                 }else{
-                    if(realmJoined.success){
-                        setAdmin(realmJoined.admin)
-                        //messages users
+                    if (enteredGateway.success){
+                        setAdmin(enteredGateway.admin)
+                        setGatewayUsers(enteredGateway.gatewayUsers) 
+                        setRealmUsers(enteredGateway.realmUsers)
+                        setGatewayMessages(enteredGateway.gatewayMessages)
+                        setRealmMember(enteredGateway.realmMember)
                     }else{
                         addSystemMessage(noGatewayEnter)
                     }
@@ -94,8 +104,7 @@ export const Realm = () => {
 
         const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
 
-        setSubDirectory(sD)
-
+      
         switch (sD) {
             case "/disabled":
                 setShowIndex(-1)
@@ -200,8 +209,16 @@ export const Realm = () => {
             </div>
         }
             
-        {showIndex == 0 && localRealm.realmID != null &&
-            <RealmGateway admin={admin} currentRealm={localRealm} currentLocation={currentLocation}/>
+        {showIndex == 0 && currentRealm.realmID != null &&
+            <RealmGateway 
+                admin={admin} 
+                currentRealm={currentRealm} 
+                currentLocation={currentLocation}
+                realmUsers={realmUsers}
+                gatewayUsers={gatewayUsers}
+                messages={gatewayMessages}
+                realmMember={realmMember}
+            />
         }
 
         {showIndex == 1 &&

@@ -12,7 +12,7 @@ import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 import { RealmsPage } from "./pages/RealmsPage";
 
 import { SystemMessagesMenu } from "./SystemMessagesMenu";
-import { get, update } from "idb-keyval";
+import { get, update, set } from "idb-keyval";
 
 import { ImageDiv } from "./pages/components/UI/ImageDiv";
 
