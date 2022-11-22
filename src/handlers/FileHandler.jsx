@@ -18,7 +18,7 @@ export const FileHandler = ( props = {}) =>{
   
     const imagesFiles = useZust((state) => state.imagesFiles)
     const updateImages = useZust((state) => state.updateImages)
-    const objectFiles = useZust((state) => state.objectsFiles)
+    const modelsFiles = useZust((state) => state.modelsFiles)
     const terrainFiles = useZust((state) => state.terrainFiles)
     const mediaFiles = useZust((state) => state.mediaFiles)
 

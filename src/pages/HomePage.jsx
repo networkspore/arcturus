@@ -21,7 +21,7 @@ export const HomePage = (props ={}) => {
                  
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
-    const objectsDirectory = useZust((state) => state.objectsDirectory);
+    const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
     const pageSize = useZust((state) => state.pageSize)
@@ -187,14 +187,14 @@ export const HomePage = (props ={}) => {
                             </div>
                         </NavLink>
                     }
-                    {objectsDirectory.handle != null &&
-                        <NavLink className={styles.result}  to={"/home/localstorage/objects"}>
-                                    <div style={{ color: location.pathname == "/home/localstorage/objects" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                    {modelsDirectory.handle != null &&
+                        <NavLink className={styles.result}  to={"/home/localstorage/models"}>
+                                    <div style={{ color: location.pathname == "/home/localstorage/models" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                 <div>
                                     <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
                                 </div>
                                 <div style={{ paddingLeft: "10px" }} >
-                                    3D Objects
+                                    Models
                                 </div>
                             </div>
                         </NavLink>

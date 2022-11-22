@@ -44,11 +44,11 @@ const HomeMenu = ({ props}) => {
 
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
-    const setObjectsDirectory = useZust((state) => state.setObjectsDirectory);
+    const setModelsDirectory = useZust((state) => state.setModelsDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
     const setImagesFiles = useZust((state) => state.setImagesFiles)
-    const setObjectsFiles = useZust((state) => state.setObjectsFiles)
+    const setModelsFiles = useZust((state) => state.setModelsFiles)
     const setTerrainFiles = useZust((state) => state.setTerrainFiles)
     const setMediaFiles = useZust((state) => state.setMediaFiles)
 
@@ -114,14 +114,24 @@ const HomeMenu = ({ props}) => {
         state.files = value;
     }))
 
-    const setSocket = useZust((state) => state.setSocket)
-    
+   
+
     const [directory, setDirectory] = useState("")
 
     const setPage = useZust((state) => state.setPage)
+    const addFileRequest = useZust((state) => state.addFileRequest)
+    const realms = useZust((state) => state.realms)
+
+    const setSocket = useZust((state) => state.setSocket)
+    const page = useZust((state) => state.page)
+
+    const setQuickBar = useZust((state) => state.setQuickBar)
+    const quickBar = useZust((state) => state.quickBar)
 
     const [onComplete, setOnComplete] = useState("/network")
 
+    const [realmQuickBarItems, setRealmQuickBarItems] = useState(null)
+  
     useEffect(() => {
         let currentLocation = location.pathname;
 
@@ -352,8 +362,8 @@ const HomeMenu = ({ props}) => {
         }
     }, [user])
 
-    const setQuickBar = useZust((state) => state.setQuickBar)
-    const quickBar = useZust((state) => state.quickBar)
+
+   
 
     useEffect(() => {
 
@@ -362,10 +372,14 @@ const HomeMenu = ({ props}) => {
 
             setFolderDefaults(config).then((promise) => {
                 
-                setQuickBarDefaults(user.userID)
-                
-                navigate(onComplete)  
-               
+                if(promise == true){
+                    setQuickBarDefaults(user.userID)
+                    
+                    navigate(onComplete)  
+                }else{
+                    addSystemMessage(initStorage)
+                    navigate("/home/localstorage/")
+                }    
             })
 
         }else{
@@ -376,16 +390,21 @@ const HomeMenu = ({ props}) => {
 
 
     const setQuickBarDefaults = (userID) => {
-        get(userID + ".arcquickBar").then((idbQuickBar)=>{
-            if (idbQuickBar != undefined && idbQuickBar != "")
+
+        const qbarIdbName = userID + ".arcquickBar";
+ 
+        get(qbarIdbName).then((idbQuickBar)=>{
+         
+
+            if (idbQuickBar != undefined)
             {
-             
+          
                 try {
                     const qBar = JSON.parse(idbQuickBar)
 
                     if (Array.isArray(qBar)) {
                         
-                        setQuickBar(tmpQBar);
+                        setQuickBar(qBar);
 
                     } else {
                         console.log("Quick bar is corrupt")
@@ -405,55 +424,8 @@ const HomeMenu = ({ props}) => {
             
         
     }
-    const prevQuickBar = useRef({ value: null })
 
-    useEffect(() => {
-        const userID = user.userID
-        if(userID > 0)
-        {
-            if (prevQuickBar.current.value == null) {
-                prevQuickBar.current.value = true
-            } else {
-                if(quickBar.length > 0)
-                {
-                    let saveList = [];
-                    quickBar.forEach(qRealm => {
-                        let r = {}
-                        const realmNames = Object.getOwnPropertyNames(qRealm)
-                        realmNames.forEach(name => {
-                            if(name != "image"){
-                                r[name] = qRealm[name]
-                            }else{
-                                r.image = {}
-                            }
-                        });
-                        const imgNames = Object.getOwnPropertyNames(qRealm.image)
-                        
-                        imgNames.forEach(name => {
-                            if(name != "value" && name != "icon" && name != "handle"){
-                                r.image[name] = qRealm.image[name]
-                            }
-                        });
-                        saveList.push(r)
-                    });
-                    const json = JSON.stringify(saveList)
-              
-                    update(userID + ".arcquickBar", (qBar) => {
-                        if (qBar == undefined) {
-                            set(userID + ".arcquickBar", json)
-                        } else {
-                            qBar = json
-                        }
-                    })
-                
-                }
-                
-            }
-        }else{
-            prevQuickBar.current.value = null
-        }
-        
-    }, [quickBar, user])
+
     
     
 
@@ -461,58 +433,62 @@ const HomeMenu = ({ props}) => {
     async function setFolderDefaults(config) {
         const engineKey = config.engineKey;
     
+        try{
+            const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
+
+            const granted = await getPermissionAsync(imageHandle)
+            
+
+
+            const images = granted ?  await worker.getFirstDirectoryFiles(imageHandle, "image", config.folders.images.fileTypes) : null;
+
+            
+
+            const modelsHandle =  config.folders.models.default ? await localDirectory.handle.getDirectoryHandle("models", { create: true }) : await get("models" + engineKey);
+
+            const modelsGranted = await getPermissionAsync(modelsHandle)
+
+
+            const models = modelsGranted ? await worker.getFirstDirectoryFiles(modelsHandle, "model", config.folders.models.fileTypes) : null;
+            
+
+            const terrainHandle = config.folders.terrain.default ? await localDirectory.handle.getDirectoryHandle("terrain", { create: true }) : await get("terrain" + engineKey);
+
+            const terrainGranted = await getPermissionAsync(terrainHandle)
+
+
+            const terrain = terrainGranted ? await worker.getFirstDirectoryFiles(terrainHandle,"terrain", config.folders.terrain.fileTypes) : null;
+            
+            const mediaHandle = config.folders.media.default ? await localDirectory.handle.getDirectoryHandle("media", { create: true }) : await get("media" + engineKey);
+
+            const mediaGranted = await getPermissionAsync(mediaHandle)
+
+
+            const media = mediaGranted ? await worker.getFirstDirectoryFiles(mediaHandle,"media", config.folders.media.fileTypes) : null;
+
         
-        const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
+            
+            if (images != null) {
+                setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
+                setImagesFiles(images.files)
 
-        const granted = await getPermissionAsync(imageHandle)
-        
-
-
-        const images = granted ?  await worker.getFirstDirectoryFiles(imageHandle, "image", config.folders.images.fileTypes) : null;
-
-        
-
-        const objectsHandle = config.folders.objects.default ? await localDirectory.handle.getDirectoryHandle("objects", { create: true }) : await get("objects" + engineKey);
-
-        const objectsGranted = await getPermissionAsync(objectsHandle)
-
-
-        const objects = objectsGranted ? await worker.getFirstDirectoryFiles(objectsHandle, "model", config.folders.objects.fileTypes) : null;
-        
-
-        const terrainHandle = config.folders.terrain.default ? await localDirectory.handle.getDirectoryHandle("terrain", { create: true }) : await get("terrain" + engineKey);
-
-        const terrainGranted = await getPermissionAsync(terrainHandle)
-
-
-        const terrain = terrainGranted ? await worker.getFirstDirectoryFiles(terrainHandle,"terrain", config.folders.terrain.fileTypes) : null;
-           
-        const mediaHandle = config.folders.media.default ? await localDirectory.handle.getDirectoryHandle("media", { create: true }) : await get("media" + engineKey);
-
-        const mediaGranted = await getPermissionAsync(mediaHandle)
-
-
-        const media = mediaGranted ? await worker.getFirstDirectoryFiles(mediaHandle,"media", config.folders.media.fileTypes) : null;
-
-      
-        
-        if (images != null) {
-            setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
-            setImagesFiles(images.files)
-
-        }
-        if(objects != null )
-        {
-            setObjectsDirectory({ name: objectsHandle.name, handle: objectsHandle, directories: objects.directories })
-            setObjectsFiles(objects.files)
-        }
-        if (terrain != null) {
-            setTerrainDirectory({ name: terrainHandle.name, handle: terrainHandle, directories: terrain.directories })
-            setTerrainFiles(terrain.files)
-        }
-        if (media != null) {
-            setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories })
-            setMediaFiles(media.files)
+            }
+            if(models != null )
+            {
+                setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
+                setModelsFiles(models.files)
+            }
+            if (terrain != null) {
+                setTerrainDirectory({ name: terrainHandle.name, handle: terrainHandle, directories: terrain.directories })
+                setTerrainFiles(terrain.files)
+            }
+            if (media != null) {
+                setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories })
+                setMediaFiles(media.files)
+            }
+        }catch(err){
+            console.log(err)
+            return false
         }
         return  true;
     }
@@ -537,11 +513,6 @@ const HomeMenu = ({ props}) => {
 
     
 
-
-
-
-    const page = useZust((state)=>state.page)
-   
    
 
 
@@ -561,9 +532,6 @@ const HomeMenu = ({ props}) => {
 
 
 
-    const [realmQuickBarItems, setRealmQuickBarItems] = useState(null)
-    const addFileRequest = useZust((state) => state.addFileRequest)
-    const realms = useZust((state) => state.realms)
 
     const updateRealmImage = (response) => useZust.setState(produce((state) => {
      
@@ -584,7 +552,6 @@ const HomeMenu = ({ props}) => {
                     fileProperties.forEach(property => {
                         image[property] = file[property];
                     });
-                    image.loaded = true;
 
                     if (index != -1) state.realms[index].image = image;
                 }

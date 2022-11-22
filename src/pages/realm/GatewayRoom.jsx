@@ -130,10 +130,10 @@ export const GatewayRoom = (props = {}) =>{
                         <div style={{ flex: .5, display: "flex", flexDirection: "column",  }}>
                             <div style={{ height: "100%" }}>
                                 <ContactsBox style={{ backgroundColor: "#44444450", backgroundImage: "linear-gradient#0000005 100%,#cccccc10 5%)", }} 
-                                className={styles.result} contacts={gatewayUsers}/>
+                                contacts={gatewayUsers}/>
                             </div>
                             {(realmMember || admin) &&
-                                <ContactsBox className={styles.result} contacts={realmUsers} />
+                                <ContactsBox contacts={realmUsers} />
                             }
                         </div>
                     </div>

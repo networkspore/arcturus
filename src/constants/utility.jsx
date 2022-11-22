@@ -196,6 +196,7 @@ export async function getFirstDirectoryFiles(dirHandle, type, fileTypes = {}) {
 export async function getDirectoryFiles(dirHandle, type, fileTypes = [], pushFile, pushDirectory) {
 
     const push = pushFile;
+    const pushDir = pushDirectory; 
 
     for await (const entry of dirHandle.values()) {
 
@@ -216,13 +217,14 @@ export async function getDirectoryFiles(dirHandle, type, fileTypes = [], pushFil
 
             
         } else if (entry.kind == 'directory') {
-            pushDirectory(entry)
-            getDirectoryFiles(entry, type, fileTypes, push, pushDirectory).then((result) => {
+            pushDir(entry)
+            await getDirectoryFiles(entry, type, fileTypes, push, pushDir).then((result) => {
 
             })
         }
 
     }
+    return true;
 
 }
 
@@ -234,10 +236,13 @@ export async function getFileInfo(entry, dirHandle, type) {
             file.arrayBuffer().then((arrayBuffer) => {
                 
                 crc32FromArrayBuffer(arrayBuffer, (crc) => {
+                    
                     if (type == "image") {
                         get(crc + ".arcicon").then((iconInIDB) => {
+                           
                             if(iconInIDB != undefined)
                             {
+                            
                                 const dataURL = iconInIDB;
                                 resolve({
                                     directory: dirHandle,
@@ -251,6 +256,7 @@ export async function getFileInfo(entry, dirHandle, type) {
                                     handle: entry
                                 })
                             }else{
+                           
                                 getThumnailFile(file, crc).then((dataURL) => {
                                     resolve({
                                         directory: dirHandle,
@@ -388,7 +394,7 @@ export const generateCode = (words) =>{
         
         let word = WordArray.random(randInt(20, 30)).toString()
 
-        console.log(word)
+        
         if(Array.isArray(words))
         {
             words.forEach(element => {

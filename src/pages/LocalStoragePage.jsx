@@ -12,6 +12,7 @@ import { InitStoragePage } from './InitStoragePage';
 import SelectBox from './components/UI/SelectBox';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { getFileInfo, getPermission, getPermissionAsync, readFileJson } from '../constants/utility';
+import { initStorage } from '../constants/systemMessages';
 
 export const LocalStoragePage = () => {
 
@@ -21,20 +22,17 @@ export const LocalStoragePage = () => {
 
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
-    const objectsDirectory = useZust((state) => state.objectsDirectory);
+    const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
-    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
-    const setImagesDirectory = useZust((state) => state.setImagesDirectory);
-    const setObjectsDirectory = useZust((state) => state.setObjectsDirectory);
-
-    const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
     const terrainFiles = useZust((state) => state.terrainFiles);
     const imagesFiles = useZust((state) => state.imagesFiles);
-    const objectsFiles = useZust((state) => state.objectsFiles);
+    const modelsFiles = useZust((state) => state.modelsFiles);
     const texturesFiles = useZust((state) => state.textureFiles);
     const mediaFiles = useZust((state) => state.mediaFiles);
+
+    const addSystemMessage = useZust((state) => state.addSystemMessage)
 
 
     const socket = useZust((state) => state.socket)
@@ -109,7 +107,7 @@ export const LocalStoragePage = () => {
     
 
     useEffect(()=>{
-        console.log(localDirectory)
+
         if(localDirectory.handle != null)
         {
             getPermission(localDirectory.handle, (verified)=>{
@@ -135,8 +133,8 @@ export const LocalStoragePage = () => {
                        
                         setShowIndex(2)
                         break;
-                    case "/objects":
-                        setCurrentFiles(objectsFiles)
+                    case "/models":
+                        setCurrentFiles(modelsFiles)
                         setShowIndex(2)
                         break;
                     case "/terrain":
@@ -190,7 +188,7 @@ export const LocalStoragePage = () => {
   
         try{
             dirHandle.handle.getFileHandle("arcturus.config").then((handle) => {
-
+                console.log(handle)
                 if (handle != null && handle != undefined) {
                     getFileInfo(handle, value.handle).then((file) => {
 
@@ -212,25 +210,20 @@ export const LocalStoragePage = () => {
                                                 file.value = json[user.userName];
                                                 file.fileID = callback.fileID;
 
-                                                if (!("error" in callback)) {
-                                                    file.fileID = callback.fileID;
-                                                    if (callback.success) {
+                                                
+                                                file.fileID = callback.fileID;
+                                                if (callback.success) {
 
-                                                        file.storageID = callback.storageID;
+                                                    file.storageID = callback.storageID;
 
 
-                                                        navigate("/loading", { state: { configFile: file, navigate: "/network" } })
+                                                    navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
 
-                                                    } else {
-
-                                                        navigate("home/localstorage/init", { state: { configFile: file } })
-                                                    }
                                                 } else {
 
-
-                                                    addSystemMessage(initStorage)
-                                                    navigate("/home/localstorage/init")
+                                                    navigate("home/localstorage/init", { state: { configFile: file } })
                                                 }
+                                              
                                             } else {
                                                 console.log(jsonResult.error)
 
@@ -264,7 +257,7 @@ export const LocalStoragePage = () => {
     
 
 
-    const turnOffLocalStorage = () =>{
+    const turnOffLocalStorage = (nav = "/home/localstorage") =>{
        
         
         
@@ -273,17 +266,18 @@ export const LocalStoragePage = () => {
 
         del(configFile.name + user.userID)
        
-        setConfigFile({ value: null, name: "", handle: null });
+        setConfigFile();
 
         setTerrainDirectory();
 
         setImagesDirectory();
 
-        setObjectsDirectory();
+       setModelsDirectory();
 
         setMediaDirectory();
+        setCurrentFiles([])
 
-        navigate("/home/localstorage")
+        navigate(nav)
         
     }
 
@@ -479,8 +473,8 @@ export const LocalStoragePage = () => {
                 {showIndex == 0 && configFile.handle != null &&
                     
                         <FileList fileView={{type:"icons",direction:"column", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
-                                { to: "/home/localstorage/images", name: "images", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
-                                { to: "/home/localstorage/objects", name: "objects", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
+                                { to: "/home/localstorage/models", name: "models", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 { to: "/home/localstorage/init", name: configFile.name, type: "Config", crc: configFile.crc, lastModified: configFile.lastModified, size: configFile.size, netImage: { backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)"  }},
@@ -488,10 +482,14 @@ export const LocalStoragePage = () => {
                   
                 }
                 {showIndex == 1 &&
-                    <InitStoragePage close={()=>{
-                        setShowIndex(0)
-                    }} />
-                }
+                    <InitStoragePage 
+                        close={()=>{
+                            setShowIndex(0)
+                        }} resetLocalStorage={()=>{
+                            turnOffLocalStorage("/home/localstorage/init")
+                        }}
+                    />
+                    }
             </div>
         </div>
        

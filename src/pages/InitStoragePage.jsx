@@ -10,29 +10,35 @@ import produce from "immer";
 import SelectBox from "./components/UI/SelectBox"
 import { set } from "idb-keyval";
 import { generateCode, getFileInfo } from "../constants/utility";
+import { access, constants } from "../constants/constants";
 
 export const InitStoragePage = (props = {}) => {
 
     const location = useLocation()
     const P2PRef = useRef();
     const ergoRef = useRef();
-    const sharingRef = useRef();
+  
 
     const localDirectory = useZust((state) => state.localDirectory)
     const setConfigFile = useZust((state) => state.setConfigFile)
     const configFile = useZust((state) => state.configFile)
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
-    const objectsDirectory = useZust((state) => state.objectsDirectory);
-    const texturesDirectory = useZust((state) => state.texturesDirectory);
+    const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
+
+
+    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
+    const setImagesDirectory = useZust((state) => state.setImagesDirectory);
+    const setModelsDirectory = useZust((state) => state.setModelsDirectory);
+    const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
 
     const [engineKey, setEngineKey] = useState("Generate a key")
 
     const [terrainDefault, setTerrainDefault] = useState(true);
     const [imagesDefault, setImagesDefault] = useState(true);
-    const [objectsDefault, setObjectsDefault] = useState(true);
+    const [modelsDefault, setModelsDefault] = useState(true);
     const [texturesDefault, setTexturesDefault] = useState(true);
     const [mediaDefault, setMediaDefault] = useState(true);
 
@@ -79,38 +85,49 @@ export const InitStoragePage = (props = {}) => {
         if(stateConfig != null) {
             setStateConfig(isState)
         }else{
+            
+            
+            if (configFile.value != null) {
+               try{
 
-            if (configFile.value == null) {
-                
-                setFirstRun(true)
-                generateEngineKey()
-                P2PRef.current.setValue(true);
-                sharingRef.current.setValue("published");
-                ergoRef.current.setValue(false);
-            } else {
+                    setFirstRun(false)
+                    const config = configFile.value;
+                    setEngineKey(config.engineKey)
+                    P2PRef.current.setValue(config.peer2peer)
+                    ergoRef.current.setValue(config.ergo)
+                    const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.models.default) || !(configFile.value.folders.terrain.default) || !(configFile.value.folders.media.default));
 
-                setFirstRun(false)
-                const config = configFile.value;
-                console.log(config)
-                setEngineKey(config.engineKey)
-                sharingRef.current.setValue(config.sharing)
-                P2PRef.current.setValue(config.peer2peer)
-                ergoRef.current.setValue(config.ergo)
-                const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.objects.default) || !(configFile.value.folders.terrain.default) || !(configFile.value.folders.media.default));
+                    setDefaultFolders(def)
 
-                setDefaultFolders(def)
+                    setCustomFolders(configFile.value.folders)
 
-                setCustomFolders(configFile.value.folders)
+                }catch(err){
+                    localDirectory.handle.removeEntry("arcturus.config").then((deleted)=>
+                    {
+                        props.resetLocalStorage()
+                    }).catch((err)=>{
+                        console.log(err)
+                        props.resetLocalStorage()
+                    })
+                    
+                }
 
-                
-
+            }else{
+                setFirstRunConfig()
             }
         }
         
 
     }, [location,stateConfig])
 
-
+  
+    const setFirstRunConfig = () =>{
+        setFirstRun(true)
+        generateEngineKey()
+        P2PRef.current.setValue(true);
+    
+        ergoRef.current.setValue(false);
+    }
 
 
     const removeSystemMessage = (id) => useZust.setState(produce((state) => {
@@ -152,25 +169,25 @@ export const InitStoragePage = (props = {}) => {
         })
     }
 
-    async function setupConfigFile(callback){
+    const setupConfigFile = () =>{
+       return new Promise(resolve =>{
         getLocalPermissions(()=>{
-
+  
             localDirectory.handle.getFileHandle("arcturus.config", { create: true }).then((fileHandle)=>{
-                
+        
                 fileHandle.createWritable().then((configFileStream)=>{
-                   
+         
                     const config = {
                         engineKey: engineKey,
                         peer2peer: P2PRef.current.getValue,
                         ergo: ergoRef.current.getValue,
-                        sharing: sharingRef.current.getValue,
                         folders:{
                             images: { name: !imagesDefault ? customFolders.images : imagesDirectory.name, 
                                 default: imagesDefault, 
-                                fileTypes: ["apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
+                                fileTypes: ["webp","apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
                             },
-                            objects: { name: !objectsDefault ? customFolders.objects : objectsDirectory.name, 
-                                default: objectsDefault,
+                            models: { name: !modelsDefault ? customFolders.models : modelsDirectory.name, 
+                                default: modelsDefault,
                                 fileTypes: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"]
                             },
                             terrain: { name: !terrainDefault ? customFolders.terrain : terrainDirectory.name, 
@@ -188,11 +205,13 @@ export const InitStoragePage = (props = {}) => {
                     userConfig[user.userName] = config;
 
                     configFileStream.write(JSON.stringify(userConfig)).then((value)=>{
+            
                         configFileStream.close().then((closed)=>{
+                            console.log()
                             localDirectory.handle.getFileHandle("arcturus.config").then((newHandle) => {
-                                
+                                console.log("config got")
                                 getFileInfo(newHandle).then((fileInfo) => {
-
+                                
                                     const newConfig = fileInfo;
 
                                     newConfig.value = config
@@ -205,8 +224,8 @@ export const InitStoragePage = (props = {}) => {
                                     if (!imagesDefault) {
                                         set("images" + engineKey, customFolders.images)
                                     }
-                                    if (!objectsDefault) {
-                                        set("objects" + engineKey, customFolders.objects)
+                                    if (!modelsDefault) {
+                                        set("models" + engineKey, customFolders.models)
                                     }
                                     if (!terrainDefault) {
                                         set("terrain" + engineKey, customFolders.terrain)
@@ -224,19 +243,19 @@ export const InitStoragePage = (props = {}) => {
                                     } 
                                     if(firstRun)
                                     {
-                                  
+                                        console.log("firstrun")
                                         socket.emit("createStorage", newFile, engineKey, (created) => {
                                             if (!("error" in created)) {
                                                 if(created.success){
                                                     newConfig.fileID = created.fileID;
                                                     newConfig.storageID = created.storageID;
 
-                                                    return {success:true, config:newConfig}
+                                                    resolve( {success:true, config:newConfig})
                                                 }else{
-                                                    return { success: false }
+                                                    resolve( { success: false })
                                                 }
                                             } else {
-                                                return {error: created.error}
+                                                resolve( {error: created.error})
                                             }
                                         })
                                     }else{
@@ -244,12 +263,12 @@ export const InitStoragePage = (props = {}) => {
                                         socket.emit("updateStorageConfig",configFile.fileID, newFile, (updated)=>{
                                             if (!("error" in updated)) {
                                                 if(updated.success){
-                                                    return { success: true, config: configFile }
+                                                    resolve( { success: true, config: configFile })
                                                 }else{
-                                                    return {success:false}
+                                                    resolve( {success:false})
                                                 }
                                             } else {
-                                                return { error: updated.error }
+                                                resolve( { error: updated.error })
                                             }
                                         })
                                     }
@@ -257,12 +276,12 @@ export const InitStoragePage = (props = {}) => {
 
                                 }).catch((err) => {
                                     console.log(err)
-                                    return { error: err  }
+                                    resolve({ error: err })
                                 })
 
                             }).catch((err) => {
                                 console.log(err)
-                                return { error: err }
+                                resolve({ error: err })
                             })
                         });
 
@@ -271,13 +290,13 @@ export const InitStoragePage = (props = {}) => {
                 })
             }).catch((err)=>{
                 console.error(err)
-                callback(false)
+                resolve({ error: err })
             })
             
            
         })
         
-        
+       })
     }
 
 
@@ -289,8 +308,9 @@ export const InitStoragePage = (props = {}) => {
             console.log("submitting")
     
             setValid(false)
-            setupConfigFile.then(result=>{
+            setupConfigFile().then(result=>{
                     setValid(true);
+                    console.log(result)
                     if(!("error" in result)){
                         if(result.success)
                         {
@@ -348,7 +368,7 @@ export const InitStoragePage = (props = {}) => {
 
     }
 
-    const [customFolders, setCustomFolders] = useState({images:null, objects:null,terrain:null,media:null})
+    const [customFolders, setCustomFolders] = useState({images:null, models:null,terrain:null,media:null})
 
     const onUseConfig = (e) =>{
         if(stateConfig != null){
@@ -570,36 +590,6 @@ export const InitStoragePage = (props = {}) => {
                                     </div>
 
                                     <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            File Sharing:
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-
-                                            <SelectBox
-                                                ref={sharingRef}
-                                                textStyle={{
-                                                    color: "#ffffff",
-                                                    fontFamily: "Webrockwell",
-                                                    border: 0,
-                                                    fontSize: 14,
-                                                }}
-                                                optionsStyle={{
-
-                                                    backgroundColor: "#333333C0",
-                                                    paddingTop: 5,
-                                                    fontSize: 14,
-                                                    fontFamily: "webrockwell"
-                                                }}
-
-                                                placeholder="File Sharing" options={[
-                                                    { value: "published", label: "Published Files Only" },
-                                                    { value: "disabled", label: "Disabled" },
-
-                                                ]} />
-                                        </div>
-                                    
-                                    </div>
-                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                         <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                             Custom Folders:
                                         </div>
@@ -672,7 +662,7 @@ export const InitStoragePage = (props = {}) => {
                                             </div>
                                             <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    3D Objects Folder:
+                                                    Models Folder:
                                                 </div>
                                                 <div style={{ flex: 1 }}>
 
@@ -684,16 +674,16 @@ export const InitStoragePage = (props = {}) => {
 
                                                             setCustomFolders(
                                                                 produce((state) => {
-                                                                    state.objects = { name: name, handle: dirHandle };
+                                                                    state.models = { name: name, handle: dirHandle };
                                                                 })
                                                             )
 
-                                                            setObjectsDefault(false)
+                                                            setModelsDefault(false)
                                                         } catch (error) {
                                                             if (error == DOMException.ABORT_ERR) {
 
                                                             }
-                                                            setObjectsDefault(true)
+                                                            setModelsDefault(true)
                                                         }
                                                     }}
 
@@ -705,20 +695,20 @@ export const InitStoragePage = (props = {}) => {
                                                             textAlign: "left",
                                                             border: "0px",
                                                             outline: 0,
-                                                            color: objectsDefault ? "#ffffff80" : "white",
+                                                            color: modelsDefault ? "#ffffff80" : "white",
                                                             fontFamily: "webrockwell"
                                                         }} >
-                                                        {objectsDirectory.name}
+                                                        {modelsDirectory.name}
                                                     </div>
 
                                                 </div>
 
-                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setObjectsDefault(prev => !prev) }} >
+                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setModelsDefault(prev => !prev) }} >
                                                     <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                         default:
                                                     </div>
                                                     <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                        <div className={objectsDefault ? styles.checked : styles.check} />
+                                                        <div className={modelsDefault ? styles.checked : styles.check} />
                                                     </div>
                                                 </div>
 

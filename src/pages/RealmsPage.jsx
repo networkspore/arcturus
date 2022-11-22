@@ -19,7 +19,7 @@ export const RealmsPage = () =>{
     const configFile = useZust((state) => state.configFile)
     const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
     const [showIndex, setShowIndex] = useState(0)
-    const [subDirectory, setSubDirectory] = useState("")
+  
 
     const [selectedRealm, setSelectedRealm] = useState(null)
 
@@ -181,7 +181,7 @@ export const RealmsPage = () =>{
     }))
 
     const onEndRealmYes = (e) =>{
-        setShowIndex(null)
+      
         const realmID = selectedRealm.realmID;
         if(realmID == undefined || realmID == null)
         {
@@ -197,8 +197,13 @@ export const RealmsPage = () =>{
                     }else{
                         addSystemMessage(errorRealmEnd)
                     }
+                    
                 }
-                
+       
+                setSelectedRealm(null)
+                setCurrentRealmID(null)
+                setSelectedItem(null)
+                navigate("/realms")
             })
         }
         

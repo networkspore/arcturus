@@ -34,6 +34,7 @@ export const Realm = () => {
     const updateRealmImage = useZust((state) => state.updateRealmImage)
     const socket = useZust((state) => state.socket)
     const addSystemMessage = useZust((state) => state.addSystemMessage)
+    const addFileRequest = useZust((state) => state.addFileRequest)
 
     const [currentRealm, setCurrentRealm] = useState({
         realmID: null,
@@ -180,7 +181,7 @@ export const Realm = () => {
                     Realms
                 </div>
                 <div style={{ fontFamily: "webrockwell", color: "white", padding: 40, fontSize: 16, textAlign: "center" }}>
-                    Realms require the peer-to-peer network to be enabled.
+                        Realms require the peer-to-peer network to be enabled.
                 </div>
                 <div style={{ fontFamily: "webrockwell", color: "#BBBBBB", paddingBottom: 30, fontSize: 13, textAlign: "center" }}>
                     Would you like to enable peer-to-peer?

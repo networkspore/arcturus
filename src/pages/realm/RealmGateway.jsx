@@ -1,6 +1,7 @@
+import { update, set } from "idb-keyval";
 import produce from "immer";
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { PropertyMixer } from "three";
 import { status } from "../../constants/constants"
 import useZust from "../../hooks/useZust";
@@ -9,6 +10,8 @@ import SelectBox from "../components/UI/SelectBox";
 import styles from "../css/home.module.css"
 import { GatewayRoom } from "./GatewayRoom";
 import { UpdateRealmInformation } from "./UpdateRealmInformation";
+import { flushSync } from 'react-dom';
+
 
 export const RealmGateway= (props = {}) =>{
 
@@ -185,11 +188,12 @@ export const RealmGateway= (props = {}) =>{
     const onStartRealm = (e) =>{
         navigate("/realm")
     }
-
+    const needsUpdate = useRef({value:false})
     const onToggleQuickBar = (e) =>{
-    
-        const length = quickBar.length;
 
+     
+        const length = quickBar.length;
+        needsUpdate.current.value = true;
         if(length == 0)
         {
             setQuickBar([currentRealm])
@@ -202,9 +206,70 @@ export const RealmGateway= (props = {}) =>{
             }else{
                 quickBarRemove(currentRealm.realmID)
             }
+     
         }
-       
+        
     }
+
+    useEffect(()=>{
+        if(needsUpdate.current.value == true)
+        {
+            saveQuickBar(user.userID)
+        }
+    },[quickBar, user])
+
+
+    const saveQuickBar = (userID) =>{
+        needsUpdate.current.value == false
+        
+        if (quickBar.length > 0) {
+            let saveList = [];
+            quickBar.forEach(qRealm => {
+                let r = {}
+                const realmNames = Object.getOwnPropertyNames(qRealm)
+                realmNames.forEach(name => {
+                    if (name != "image") {
+                        r[name] = qRealm[name]
+                    } else {
+                        r.image = {}
+                    }
+                });
+                const imgNames = Object.getOwnPropertyNames(qRealm.image)
+
+                imgNames.forEach(name => {
+
+                    if (!(name == "value" || name == "handle" || name == "directory")) {
+                 
+                        r.image[name] = qRealm.image[name]
+                    }
+                });
+                saveList.push(r)
+            });
+            const json = JSON.stringify(saveList)
+
+            const qbarIdbName = userID + ".arcquickBar";
+       
+
+            set(qbarIdbName, json)
+
+
+
+            /*  update(userID + ".arcquickBar", (qBar) => {
+
+                    if (qBar == undefined) {
+                    } else {
+                        qBar = json
+                    }
+                })*/
+
+        } else {
+            update(userID + ".arcquickBar", (quickBarUpater) => {
+                quickBarUpater = '[]'
+            })
+        }
+
+            
+        }
 
 
 

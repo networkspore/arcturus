@@ -70,9 +70,9 @@ export const ContactsBox = (props = {}) => {
             contacts.forEach((contact) => {
                 console.log(contact)
                 contactRows.push(
-                    <div className={styles.result} style={{
+                    <div key={contact.userID} className={styles.result} style={{
                         padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
-                    }}>  
+                    }}  >  
                        
                     < ImageDiv width={30} height={30} netImage={{
                         filter:"icon" in contact.image ? "" : "invert(100%)" , 
@@ -82,7 +82,7 @@ export const ContactsBox = (props = {}) => {
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
                     }}/>
                     <div style={{width:10}}> &nbsp;</div>
-                        <div clsssName={styles.result} style={{fontFamily:"WebPapyrus", fontSize:16, display:"flex", alignItems:"center"}}>
+                        <div style={{fontFamily:"WebPapyrus", fontSize:16, display:"flex", alignItems:"center"}}>
                         {contact.userName}
                     </div>
                    

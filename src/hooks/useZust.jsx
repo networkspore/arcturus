@@ -79,7 +79,6 @@ const useZust = create((set) => ({
                fileProperties.forEach(property => {
                   image[property] = file[property];
                });
-               image.loaded = true;
 
                if (index != -1) state.realms[index].image = image;
             }
@@ -95,8 +94,8 @@ const useZust = create((set) => ({
    imagesDirectory: {  name: "images", handle: null, directories: [] },
    setImagesDirectory: (value = {  name: "images", handle: null, directories: [] }) => set({ imagesDirectory: value }),
 
-   objectsDirectory: {  name: "objects", handle: null },
-   setObjectsDirectory: (value = {  name: "objects", handle: null }) => set({ objectsDirectory: value }),
+   modelsDirectory: {  name: "models", handle: null },
+   setModelsDirectory: (value = {  name: "models", handle: null }) => set({ modelsDirectory: value }),
 
    terrainDirectory: {  name: "terrain", handle: null },
    setTerrainDirectory: (value = {  name: "terrain", handle: null }) => set({ terrainDirectory: value }),
@@ -116,8 +115,8 @@ const useZust = create((set) => ({
       }
    })),
 
-   objectsFiles: [],
-   setObjectsFiles: (value = []) => set({ objectsFiles: value }),
+   modelsFiles: [],
+   setModelsFiles: (value = []) => set({ modelsFiles: value }),
 
    terrainFiles: [],
    setTerrainFiles: (value = []) => set({ terrainFiles: value }),

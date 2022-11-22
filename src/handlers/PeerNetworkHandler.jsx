@@ -64,7 +64,7 @@ export const PeerNetworkHandler = (props ={}) => {
             if(socket!= null ){
                 if(!socket.disconnected){
                     socket.emit("updateUserPeerID", "", (callback) => {
-                        console.log(callback)
+                        
                     })
                 }
             }
