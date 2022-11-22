@@ -60,3 +60,19 @@ export const errorRealmEnd = {
     deleteOn: "seconds:5",
     netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
 }
+
+export const errorRealmEnter = {
+    id: 8,
+    text: "Error entering realm...",
+    navigate:null,
+    deleteOn: "seconds:5",
+    netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
+}
+
+export const noGatewayEnter = {
+    id: 9,
+    text: "This realm is not open at this time...",
+    navigate: null,
+    deleteOn: "seconds:5",
+    netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
+}
