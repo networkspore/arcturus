@@ -29,6 +29,7 @@ import { Realm } from "./pages/realm/Realm";
 import { useRef } from "react";
 
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
+import { SocketHandler } from "./handlers/socketHandler";
 
  const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -701,8 +702,10 @@ const HomeMenu = ({ props}) => {
                                 <PeerNetworkHandler />
                         
                                 <FileHandler />
+                             
                             </>
                         }
+                        <SocketHandler />
                         <div onClick={onProfileClick} style={{
                             fontFamily: "WebPapyrus",
                             color: "#c7cfda",

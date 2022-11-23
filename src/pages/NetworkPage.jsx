@@ -214,6 +214,7 @@ export const NetworkPage = () => {
     const onConfirmingContact = (contact) => {
         console.log(contact)
     }
+    
     const onContactClick = (contact) => {
         const prevUserID = userMenu.userID;
      

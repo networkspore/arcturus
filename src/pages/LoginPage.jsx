@@ -129,37 +129,34 @@ import { get } from "idb-keyval";
         login(data.loginName, pass);
     }
     
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
+
     function login(name_email = "", pass ="")
     {
         if(!disable){
-            setDisable(true);
-            
-            if(socket == null)
-            {
-            const sock = io(socketIOhttp, { auth: { token: socketToken, user: { nameEmail: name_email, password: pass } }, transports: ['websocket'] });
-            sock.on("disconnect",(error)=>{
-                alert("Could not connect. Check your password and try again.")
-              setDisable(false)
-            })
-            sock.on("loggedIn", (user, contacts, requests) =>{
-              
-                if(data.loginRemember){
-               
+            setDisable(true)
+          
+            setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback:(response)=>{
+            setDisable(false)
+            if(response.success){
+                const user = response.user
+                const contacts = response.contacts
+                const requests = response.requests
+
+                if (data.loginRemember) {
+
                     setCookie("login", { useCookie: true, name: name_email, pass: pass })
                 }
-                setUser(user)
-                setContacts(contacts)
-                setContactRequests(requests)
-                setSocket(sock);
-                setConnected(true)
-                
 
-            
-                return true;
-            })
-            }else{
-                alert("Login in progress")
-            }
+                    setUser(user)
+                    setContacts(contacts)
+                    setContactRequests(requests)
+
+                    setConnected(true)
+                }else{
+                    alert("Check your password and try again.")
+                }
+            }})    
         }
     }
 

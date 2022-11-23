@@ -119,7 +119,7 @@ export const GatewayRoom = (props = {}) =>{
                  
                         height:"100%"
                         }}>
-                        <div style={{flex:.7}}>&nbsp;</div>
+                        <div style={{flex:.5}}>&nbsp;</div>
                         <div style={{ flex: 1, display:"flex", flexDirection:"column" }}>
                             <div style={{height:"100%"}}>
                                  &nbsp;     
@@ -135,7 +135,9 @@ export const GatewayRoom = (props = {}) =>{
                             {(realmMember || admin) &&
                                 <ContactsBox contacts={realmUsers} />
                             }
+                            <div style={{ height: 120 }}>&nbsp;</div>
                         </div>
+                        
                     </div>
                     <div style={{
                         display: "flex",

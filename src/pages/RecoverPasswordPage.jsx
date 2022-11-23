@@ -349,7 +349,7 @@ export const RecoverPasswordPage = (props = {}) => {
                         paddingLeft: "0px",
                       
                     }}
-                        class={( pass.length > 7 && confirm == pass) ? styles.OKButton : ""}
+                        className={( pass.length > 7 && confirm == pass) ? styles.OKButton : ""}
 
                     > Confirm </div>
 

@@ -213,18 +213,9 @@ const useZust = create((set) => ({
    setUser: (u = { LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '' }) => set({user: u}),
    socket: null,
    setSocket: (sock = null) => set({ socket: sock }),
-   socketListeners: [],
-   addSocketListener: (value) => set(produce((state) => {
-      if(Array.isArray(socketListeners)){
-         const index = state.socketListeners.findIndex(listener => listener.id == value.id)
-
-         if (index == -1) {
-            state.socketListeners.push(
-               value
-            )
-         }
-      }
-   })),
+  
+   socketCmd:{cmd:null, params:{},callback:() => null},
+   setSocketCmd: (value = { cmd: null, params: {}, callback: ()=> null }) => set({socketCmd: value}),
    setUserLoggedIn: (loggedIn = false) => set(produce(state => { state.user.LoggedIn = loggedIn})),
    setUserID: (userID = '') => set(produce(state => { state.user.userID = userID })),
    setUserName: (userName = '') => set(produce(state => { state.user.userName = userName})),
