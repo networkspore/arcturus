@@ -11,6 +11,8 @@ import styles from "../css/home.module.css"
 import { GatewayRoom } from "./GatewayRoom";
 import { UpdateRealmInformation } from "./UpdateRealmInformation";
 import { flushSync } from 'react-dom';
+import { RealmAssets } from "./RealmAssets";
+import { ImagePicker } from "../components/UI/ImagePicker";
 
 
 export const RealmGateway= (props = {}) =>{
@@ -28,6 +30,7 @@ export const RealmGateway= (props = {}) =>{
     const [realmUsers, setRealmUsers] = useState([])
     const [gatewayUsers, setGatewayUsers] = useState([])
     const [realmMember, setRealmMember] = useState(false)
+    const [showImagePicker, setShowImagePicker] = useState(false)
 
     const [currentRealm, setCurrentRealm] = useState({
         realmID: null,
@@ -121,23 +124,23 @@ export const RealmGateway= (props = {}) =>{
             setSubDirectory(l)
 
             if(props.admin){
-                switch (l) {
-                    case "/information":
+                switch (currentLocation) {
+                    case "/realm/gateway/information":
                         setShowIndex(0)
                         break;
-                    case "/hall":
+                    case "/realm/gateway/assets":
                         setShowIndex(1)
                         break;
-                    case "/pcs":
+                    case "/realm/gateway/assets/pcs":
                         setShowIndex(2);
                         break;
-                    case "/nps":
+                    case "/realm/gateway/assets/npcs":
                         setShowIndex(3)
                         break;
-                    case "/placeables":
+                    case "/realm/gateway/assets/placeables":
                         setShowIndex(4)
                         break;
-                    case "/textures":
+                    case "/realm/gateway/assets/textures":
                         setShowIndex(5)
 
 
@@ -148,7 +151,12 @@ export const RealmGateway= (props = {}) =>{
             setSubDirectory("")
             setShowIndex(-1)
         }
+        
     }, [props.currentLocation])
+/*
+    useEffect(()=>{
+        console.log(showIndex)
+    },[showIndex])*/
 
     useEffect(()=>{
 
@@ -293,7 +301,9 @@ export const RealmGateway= (props = {}) =>{
 
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
-                    <ImageDiv width={130} height={ 130} about={"Select Image"} className={admin ? className : ""} netImage={{
+                    <ImageDiv onClick={(e)=>{
+                       setShowIndex(10)
+                    }} width={130} height={ 130} about={"Select Image"} className={admin ? className : ""} netImage={{
                         image: currentRealm.realmID != null && "icon" in currentRealm.image ? currentRealm.image.icon : "/Images/spinning.gif",
                         backgroundColor: "#44444450",
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
@@ -350,41 +360,52 @@ export const RealmGateway= (props = {}) =>{
                                 Information
                             </div>
                         </div>
-                        <div onClick={(e) => { navigate("/realm/gateway/pcs") }} className={styles.result} 
-                        style={{ padding:5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                            <ImageDiv netImage={{ filter: subDirectory == "/pcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/man-outline.svg" }} width={25} height={25} />
+                        <div onClick={(e) => { navigate("/realm/gateway/assets") }} className={styles.result}
+                            style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                            <ImageDiv netImage={{ filter: subDirectory == "/assets" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/albums-outline.svg" }} width={25} height={25} />
 
-                            <div style={{ paddingLeft: "10px", color: subDirectory == "/pcs" ? "white" : "" }} >
-                                Playable Characters
+                            <div style={{ paddingLeft: "10px", color: subDirectory == "/assets" ? "white" : "" }} >
+                                Assets
                             </div>
                         </div>
+                        
+                        <div style={{marginLeft:10}} >
+                            <div onClick={(e) => { navigate("/realm/gateway/assets/pcs") }} className={styles.result} 
+                            style={{ padding:5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/pcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/man-outline.svg" }} width={25} height={25} />
 
-                        <div onClick={(e) => { navigate("/realm/gateway/npcs") }} className={styles.result} 
-                        style={{ 
-                            padding:5,
-                            display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                            <ImageDiv netImage={{ filter: subDirectory == "/npcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/paw-outline.svg" }} width={25} height={25} />
-
-                            <div style={{ paddingLeft: "10px", color: subDirectory == "/npcs" ? "white" : "" }} >
-                                Non-Playable Characters 
+                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/pcs" ? "white" : "" }} >
+                                    Playable Characters
+                                </div>
                             </div>
-                        </div>
 
-                        <div onClick={(e) => { navigate("/realm/gateway/placeables") }} className={styles.result} style={{
-                            padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                            <ImageDiv netImage={{ filter: subDirectory == "/placeables" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/cube-outline.svg" }} width={25} height={25} />
+                            <div onClick={(e) => { navigate("/realm/gateway/assets/npcs") }} className={styles.result} 
+                            style={{ 
+                                padding:5,
+                                display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/npcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/paw-outline.svg" }} width={25} height={25} />
 
-                            <div style={{ paddingLeft: "10px", color: subDirectory == "/placeables" ? "white" : "" }} >
-                                Placeable Models
+                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/npcs" ? "white" : "" }} >
+                                    Non-Playable Characters 
+                                </div>
                             </div>
-                        </div>
 
-                        <div onClick={(e) => { navigate("/realm/gateway/textures") }} className={styles.result} style={{
-                            padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                            <ImageDiv netImage={{ filter: subDirectory == "/textures" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/images-outline.svg" }} width={25} height={25} />
+                            <div onClick={(e) => { navigate("/realm/gateway/assets/placeables") }} className={styles.result} style={{
+                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/placeables" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/cube-outline.svg" }} width={25} height={25} />
 
-                            <div style={{ paddingLeft: "10px", color: subDirectory == "/textures" ? "white" : "" }} >
-                                Textures
+                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/placeables" ? "white" : "" }} >
+                                    Placeable Models
+                                </div>
+                            </div>
+
+                            <div onClick={(e) => { navigate("/realm/gateway/assets/textures") }} className={styles.result} style={{
+                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/textures" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/images-outline.svg" }} width={25} height={25} />
+
+                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/textures" ? "white" : "" }} >
+                                    Textures
+                                </div>
                             </div>
                         </div>
                     </>}
@@ -392,13 +413,19 @@ export const RealmGateway= (props = {}) =>{
                
 
             </div>
-            {
-                showIndex == -1 &&
+            {showIndex == -1 &&
                 <GatewayRoom admin={admin} realmMember={realmMember} currentRealm={currentRealm} messages={messages} gatewayUsers={gatewayUsers} realmUsers={realmUsers}/>
             }
             {admin && 
                 showIndex == 0  &&
-                <UpdateRealmInformation admin={admin} currentRealm={currentRealm}/>
+                <UpdateRealmInformation  currentRealm={currentRealm}/>
+            }
+            {admin && 
+                showIndex == 1 &&
+                <RealmAssets />
+            }
+            {admin && showIndex == 10 &&
+                <ImagePicker />
             }
        </>
     )

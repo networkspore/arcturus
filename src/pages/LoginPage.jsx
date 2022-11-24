@@ -135,9 +135,10 @@ import { get } from "idb-keyval";
     {
         if(!disable){
             setDisable(true)
-          
+            console.log("logging IN")
             setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback:(response)=>{
-            setDisable(false)
+                console.log("response")
+                setDisable(false)
             if(response.success){
                 const user = response.user
                 const contacts = response.contacts

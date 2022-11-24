@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { errorSaving, noChanges, notConnected, saved } from "../../constants/systemMessages";
 import useZust from "../../hooks/useZust";
 import { ChatBox } from "../components/UI/ChatBox";
-import { ContactsBox } from "./ContactsBox";
+import { ContactsBox } from "../components/UI/ContactsBox";
 
 import { ImageDiv } from "../components/UI/ImageDiv";
 import SelectBox from "../components/UI/SelectBox";
@@ -48,6 +48,8 @@ export const GatewayRoom = (props = {}) =>{
     const [gatewayUsers, setGatewayUsers] = useState([])
     const [realmMember, setRealmMember] = useState(false)
 
+    const [showLeft, setShowLeft] = useState(false)
+
     useEffect(() => {
         setAdmin(props.admin)
         setCurrentRealm(props.currentRealm)
@@ -70,9 +72,14 @@ export const GatewayRoom = (props = {}) =>{
     useEffect(() => {
         setGatewayUsers(props.gatewayUsers)
     },[props.gatewayUsers])
+
     useEffect(() => {
         setRealmMember(props.realmMember)
     }, [props.realmMember])
+
+    const onMessageSend = (msgTxt, callback) =>{
+        callback(true)
+    }
 
     return(
         <>
@@ -90,7 +97,7 @@ export const GatewayRoom = (props = {}) =>{
         }}>
             <div style={{
    
-                textAlign: "center",
+              display:"flex",
                 width: "100%",
                 paddingTop: "18px",
                 fontFamily: "WebRockwell",
@@ -99,50 +106,42 @@ export const GatewayRoom = (props = {}) =>{
                 color: "#cdd4da",
                 textShadow: "2px 2px 2px #101314",
                 backgroundImage: "linear-gradient(#131514, #000304EE )",
-
+                alignItems:"center",
+                justifyContent:"center"
             }}>
-                {currentRealm.realmName + " "}Gateway
+                        <div style={{flex: 1, display: "flex", alignItems: "center", justifyContent:"center"}}> {currentRealm.realmName + " "}Gateway</div>
+                        <div style={{ flex: 1,  maxWidth: 250,}}>&nbsp;</div>
             </div>
-            <div style={{
-                display: "flex",
-                height: "50px",
-                backgroundImage: "linear-gradient(to bottom, #10131470,#10131430,#00000000 )", 
-
-                alignItems: "center",
-                marginLeft: "10px",
-                marginRight: "10px",
-                paddingLeft: "10px"
-            }}>
-            </div>
+           
                     <div style={{ 
                         display: "flex",
                  
                         height:"100%"
                         }}>
-                        <div style={{flex:.5}}>&nbsp;</div>
-                        <div style={{ flex: 1, display:"flex", flexDirection:"column" }}>
-                            <div style={{height:"100%"}}>
-                                 &nbsp;     
-                            </div>
-                            <ChatBox chatHeight={300} roomID={currentRealm.roomID} messages={messages}/>
-
+                        {showLeft ?
+                             <div style={{flex:  .5 }}>&nbsp;</div>
+                             :
+                             <div style={{width:50}}> &nbsp;</div>
+                        }
+                        <div style={{marginLeft:30, minWidth:300, flex: 1, display:"flex", flexDirection:"column" }}>
+                         
+                            <ChatBox onMessageSend={onMessageSend} 
+                                chatHeight={pageSize.height - 200} roomID={currentRealm.roomID} messages={messages}/>
+                            <div style={{ height: 80, }}>&nbsp;</div>
                         </div>
-                        <div style={{ flex: .5, display: "flex", flexDirection: "column",  }}>
+                        <div style={{flex:1, marginTop:30, marginRight:10, maxWidth:250, display: "flex", flexDirection: "column", overflow:"hidden", 
+                            backgroundImage:"linear-gradient(to right, #00000050, #cccccc08)" }}>
                             <div style={{ height: "100%" }}>
-                                <ContactsBox style={{ backgroundColor: "#44444450", backgroundImage: "linear-gradient#0000005 100%,#cccccc10 5%)", }} 
-                                contacts={gatewayUsers}/>
+                                <ContactsBox 
+                                    contacts={gatewayUsers}
+                                />
                             </div>
-                            {(realmMember || admin) &&
-                                <ContactsBox contacts={realmUsers} />
-                            }
-                            <div style={{ height: 120 }}>&nbsp;</div>
+                           
+                            <div style={{ height: 120, }}>&nbsp;</div>
                         </div>
                         
                     </div>
-                    <div style={{
-                        display: "flex",
-                        height: "60px",
-                    }}>&nbsp;</div>
+                 
         </div>
         }
         </>

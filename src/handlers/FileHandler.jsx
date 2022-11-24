@@ -6,6 +6,7 @@ import produce from "immer"
 import { get } from "idb-keyval"
 
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
+import { useRef } from "react"
 
 const createWorker = createWorkerFactory(() => import('../constants/utility'));
 
@@ -17,38 +18,44 @@ export const FileHandler = ( props = {}) =>{
     const [active, setActive] = useState()
   
     const imagesFiles = useZust((state) => state.imagesFiles)
-    const updateImages = useZust((state) => state.updateImages)
+
     const modelsFiles = useZust((state) => state.modelsFiles)
     const terrainFiles = useZust((state) => state.terrainFiles)
     const mediaFiles = useZust((state) => state.mediaFiles)
 
+    const updateImages = useZust((state) => state.updateImages)
+
     const socket = useZust((state) => state.socket)
 
     const fileRequest = useZust((state) => state.fileRequest)
-    const updateFileRequest = useZust((state) => state.updateFileRequest)
-    const downloads = useZust((state) => state.downloads)
+    //const updateFileRequest = useZust((state) => state.updateFileRequest)
+    //const downloads = useZust((state) => state.downloads)
 
-    const addDownload = useZust((state) => state.addDownload)
+    //const addDownload = useZust((state) => state.addDownload)
 
-    const [processing, setProcessing] = useState([])
+    const processing = useRef({value:[]})
 
-    const addProcessing = (request) => setProcessing(produce((state)=>{
-        state.push(request);
-    }))
+    const addProcessing = (request) => {
+        const index = processing.current.value.findIndex(item => item.page == request.page && item.id == request.id)
+        
+        if(index ==-1 ) {
+            processing.current.value.push(request);
+            return true;
+        }
+        return false;
+    }
 
-    const removeProcessing = (request) => setProcessing(produce((state)=>{
-        const index = state.findIndex(item => item.page == request.page && item.id == request.id)
+    const removeProcessing = (request) => {
+       const index = processing.current.value.findIndex(item => item.page == request.page && item.id == request.id)
 
-        if(index > -1)
-        {
-            if(state.length == 1)
-            {
-                state.pop()
-            }else{
-                state.splice(index,1)
+        if (index > -1) {
+            if (processing.current.value.length == 1) {
+                processing.current.value.pop()
+            } else {
+                processing.current.value.splice(index, 1)
             }
         }
-    }))
+    }
 
     const removeFileRequest = useZust((state)=> state.removeFileRequest)
 
@@ -56,20 +63,18 @@ export const FileHandler = ( props = {}) =>{
         if(fileRequest != null && fileRequest.length > 0){
             
             fileRequest.forEach((request, i) => {
-                const index = processing.findIndex(item => item.page == request.page && item.id == request.id)
-
-                if( index == -1 ){
-                    addProcessing(request)
+                
+                if( addProcessing(request)){
                     
                     executeFileCommand(request).then((result)=>{
-                        console.log(result)
+                       console.log(result)
                         request.callback(result)
                         removeProcessing(request)
                         removeFileRequest(request)
                     })           
                    
                 }else{
-                    
+                    console.log("request is still processing")
                 }
             });
 
@@ -103,6 +108,7 @@ export const FileHandler = ( props = {}) =>{
                             //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
 
                             getLocalImage(request, localResult).then((realmImageResult) => {
+                                updateImages(imageResult.file)
                                 resolve(realmImageResult)
                             })
                         } else {
@@ -111,6 +117,23 @@ export const FileHandler = ( props = {}) =>{
                             })
                         }
                         break;
+                    case "getImage":
+                        if (localResult != null) {
+                            //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
+
+                            getLocalImage(request, localResult).then((imageResult) => {
+
+                                updateImages(imageResult.file)
+                             
+                                resolve(imageResult)
+                            })
+                        } else {
+                            checkPeers(request).then((peersResult) => {
+                                resolve({ error: "not implemented" })
+                            })
+                        }
+                        break;
+
 
                 }
             })
@@ -191,7 +214,7 @@ export const FileHandler = ( props = {}) =>{
     return (
         <>
             {
-                processing != null && processing.length > 0 &&
+                processing.current.value.length > 0 &&
                 <ImageDiv onClick={(e) => {
                     navigate("/home/peernetwork/transfers")
                 }} width={25} height={30} netImage={{ image: "/Images/icons/file-tray-stacked.svg", scale: .7, filter: "invert(100%)" }} />

@@ -24,7 +24,7 @@ export const ImageDiv = (props = {}) => {
         borderRadius: "20px"
     })
 
-    const onClick = "onClick" in props ? props.onClick : null
+ 
 
   
 
@@ -121,7 +121,7 @@ export const ImageDiv = (props = {}) => {
    }
 
     return (
-        <div about={props.about} className={props.className} ref={divRef} onClick={onClick} style={style}>
+        <div about={props.about} className={props.className} ref={divRef} onClick={props.onClick} style={style}>
             {imgURL != null && imgURL != "" ? <img src={imgURL} style={imgStyle} /> : ""}
         </div>
     )

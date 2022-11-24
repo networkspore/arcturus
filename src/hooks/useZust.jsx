@@ -108,7 +108,7 @@ const useZust = create((set) => ({
    setImagesFiles: (value = []) => set({imagesFiles:value}),
    updateImages: (value) => set(produce((state)=>{
       const index = state.imagesFiles.findIndex(image => image.crc == value.crc);
-
+    
       if(index > -1)
       {
          state.imagesFiles[index] = value;

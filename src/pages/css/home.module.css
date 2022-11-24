@@ -815,11 +815,48 @@
 	color: #666666;
 	transition: background 0.3s;
 	box-shadow: 0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710;
-
+	opacity:.9;
 }
 
 .bubble__item:hover {
+	opacity:1;
+	background: #ffffff05;
+	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
+}
+.bubbleButtonActive {
+	cursor: pointer;
+	z-index: 1;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: white;
+	opacity: 1;
+	background: #ffffff09;
+	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
+}
+.bubbleButton {
+	cursor: pointer;
+	z-index: 1;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+	box-shadow: 0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710;
+	opacity: .9;
+}
 
+.bubbleButton:hover {
+	color:white;
+	opacity: 1;
 	background: #ffffff05;
 	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
 	filter: drop-shadow(0px 0px 3px #ffffff30);
@@ -855,7 +892,7 @@
 	opacity: 0;
 	/* can't click  */
 	visibility: hidden;
-	transition: opacity 1s;
+
 }
 
 /* show tooltip if hover on menu item */

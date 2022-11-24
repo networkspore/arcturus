@@ -322,14 +322,7 @@ export async function getImageHandleDataURL(localFile){
 
     set(crc + ".arcimage", dataURL)
 
-    //const imgDB = await get(".arcimage")
-
-    try{
-        update(".arcimage", arr => arr != undefined ? arr.push(crc + ".arcimage") : set(".arcimage", [crc + ".arcimage"]))
-    }catch(err){
-        console.log(err)
-    }
-
+  
     return dataURL
     
 }

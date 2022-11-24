@@ -684,12 +684,10 @@ const HomeMenu = ({ props}) => {
 
             }
             <div style={{
-                position: "fixed", top: 0, right: 0, height: 35, width:200,
-                backgroundColor: "black"
-            }}>
-                <div style={{ display: "flex" }}>
+                position: "fixed", top: 0, right: 0, display:"flex", alignItems:"center", width: 200, height: 35, backgroundColor: "black",}}>
+                <div style={{ display: "flex",  }}>
 
-                    <div style={{ paddingTop: "6px", display: "flex", cursor: "pointer", backgroundColor: "black" }} >
+                    <div style={{ display: "flex", alignItems: "center", cursor: "pointer", backgroundColor: "black" }} >
                         <div onClick={(e) => {
                             toNav("/network")
                         }}>

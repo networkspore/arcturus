@@ -76,3 +76,19 @@ export const noGatewayEnter = {
     deleteOn: "seconds:5",
     netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
 }
+
+export const errorSelectingImage = {
+    id:10,
+    text: "Error selecting this image.",
+    navigate: null,
+    deleteOn: "seconds:3",
+    netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
+}
+
+export const errorRealmCreate = {
+    id:20,
+    text: "Could not create this realm.",
+    navigate: null,
+    deleteOn: "seconds:3",
+    netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
+}

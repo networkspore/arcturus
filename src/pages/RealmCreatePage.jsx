@@ -7,7 +7,7 @@ import FileList from "./components/UI/FileList";
 import { useEffect } from "react";
 import SelectBox from "./components/UI/SelectBox";
 import produce from "immer";
-import { initDirectory, initStorage } from "../constants/systemMessages";
+import { errorRealmCreate, errorSelectingImage, initDirectory, initStorage } from "../constants/systemMessages";
 
 export const RealmCreatePage = (props = {}) =>{
     
@@ -16,33 +16,17 @@ export const RealmCreatePage = (props = {}) =>{
     const pageSize = useZust((state) => state.pageSize)
     const socket = useZust((state) => state.socket)
     const configFile = useZust((state) => state.configFile)
-    const publishedImages = useZust((state) => state.publishedImages)
     const imagesFiles = useZust((state) => state.imagesFiles)
     const localDirectory = useZust((state) => state.localDirectory)
+    const imagesDirectory = useZust((state) => state.imagesDirectory)
+    const addSystemMessage = useZust((state) => state.addSystemMessage)
 
     const [imageSelected, setImageSelected] = useState(null); 
     const [realmName, setRealmName] = useState("")
     const [imageSearch, setImageSearch] = useState("")
-    const imagesDirectory = useZust((state) => state.imagesDirectory)
     const [directoryOptions, setDirectoryOptions] = useState([])
     const [currentDirectory, setCurrentDirectory] = useState("")
-    
-    const addSystemMessage = (msg) => useZust.setState(produce((state) => {
-        let found = false;
-        if (state.systemMessages.length > 0) {
-            state.systemMessages.forEach(message => {
-                if (message.id == msg.id) {
-                    found = true;
-                }
-            });
-        }
-
-        if (!found) {
-            state.systemMessages.push(
-                msg
-            )
-        }
-    }))
+    const [submitting, setSubmitting] = useState(false)
 
     useEffect(()=>{
         if(localDirectory.handle != null){
@@ -50,13 +34,13 @@ export const RealmCreatePage = (props = {}) =>{
            
             if(config == null)
             {
-                alert("Storage engine not running.")
+
                 addSystemMessage(initStorage)
                 navigate("/realms")
             }
             
         }else{
-            alert("Local storage required for realm creation.")
+         
             addSystemMessage(initDirectory)
             navigate("/realms")
         }
@@ -155,37 +139,31 @@ export const RealmCreatePage = (props = {}) =>{
 
             }else{
                 setImageSelected(null)
-                alert("No crc in image. Unable to use this image in realm.")
+                addSystemMessage(errorSelectingImage)
             }
         }else{
-            alert("Image undefined.")
+            addSystemMessage(errorSelectingImage)
         }
     }
 
-    const [submitting, setSubmitting] = useState(false)
 
     async function handleSubmit (e) {
       
-            if ("crc" in imageSelected) {
-                if (!submitting){
-                    setSubmitting(true)
-                    setTimeout(() => {
+        if (!submitting){
+            setSubmitting(true)
+            setTimeout(() => {
+                setSubmitting(false)
+                handleChange(e)
+            }, 3);
+            props.onNewRealm({realmName:realmName, image:imageSelected}, (success)=>{
+                    if(!success)
+                    {
                         setSubmitting(false)
-                        handleChange(e)
-                    }, 3);
-                    props.onNewRealm({realmName:realmName, image:imageSelected}, (success)=>{
-                            if(!success)
-                            {
-                                setSubmitting(false)
-                                alert("Unable to create realm.")
-                            }
-                    })
-                }
-            }else{
-                alert("The image is not valid. Please reload local storage")
-            }
-    
-     
+                        addSystemMessage(errorRealmCreate)
+                    }
+            })
+        }
+         
     }
 
 
@@ -396,7 +374,7 @@ export const RealmCreatePage = (props = {}) =>{
                                     activeClassName={styles.bubbleActive__item} 
                                     onChange={onImageSelected} 
                                     filter={{ name: imageSearch, directory: currentDirectory }} 
-                                    fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100 } }} 
+                                    fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100, scale:1.2 } }} 
                                     files={imagesFiles} 
                                 />
                             </div>

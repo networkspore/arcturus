@@ -13,10 +13,10 @@ export const ChatBox = (props ={}) => {
 
     const chatListenerID = useId()
 
-    const activeBorder = "5px ridge #ffffff20";
+    const activeBorder = "5px ridge #ffffff10";
     const inactiveBorder = "5px solid #ffffff08"
 
-    const [showChat, setShowChat] = useState(false)
+    const [focused, setFocused] = useState(false)
     const [hideChat, setHideChat] = useState(false)
     const [chat, setChat] = useState([])
     const [bounds, setBounds] = useState({width:300})
@@ -88,84 +88,106 @@ export const ChatBox = (props ={}) => {
     }
 
     function onMessageSend(e){
-        
-        if (socket.connected) {
-            const msgTxt = msgTextRef.current.value;
-            if (joinedRoom && msgTxt != "") {
+    
+        const msgTxt = msgTextRef.current.value;
+    
+        if (msgTxt != "") {
 
-                //   msgText.current.disabled = true;
-                socket.emit("sendGatewayMsg", roomID,  msgTxt, (sent, stored) => {
-                    //       msgText.current.disabled = false;
-                    msgTextRef.current.value = "";
-                });
-            } else {
-
-            }
+            //   msgText.current.disabled = true;
+            props.onMessageSend( msgTxt, (sent) => {
+                //       msgText.current.disabled = false;
+                msgTextRef.current.value = "";
+          
+            })
         } else {
-            addSystemMessage(notConnected)
-            return { error: new Error("Not Connected") }
+
         }
 
-
     }
+    useEffect(()=>{
+        if(focused)
+        {
+            
+            msgTextRef.current.rows = 8
+        }else{
+            msgTextRef.current.rows = 1
+        }
+    }, [focused])
 
     return(
         <div ref={parentDivRef} style={{flex:1, display:"flex", flexDirection:"column", }}>
             <div ref={chatDivRef} style={{ 
-                position: hideChat ? "fixed" : "block", 
+                display:"flex",
+                flexDirection:"column", 
                 textAlign: "left", 
                 color: "white", 
                 overflowY: "scroll", 
              
                 width: hideChat ? bounds.width : "100%", 
-                height: chatHeight }}>
+                height: "100%" }}>
                 {chat}
             </div>
             <div height={10}>&nbsp;</div>
-            <div ref={textAreaDiv} style={{flex:1, alignItems:"center" }}>
-                <textarea 
+            <div ref={textAreaDiv} style={{display:"flex", flex:1, alignItems:"end", justifyContent:"end" }}>
+              
+                <textarea className={ focused ? styles.bubbleButtonActive : styles.bubbleButton}
                     ref={msgTextRef}
                     onBlur={(e) => {
-                        setShowChat(false);
+                        setFocused(false);
                         setBorder(inactiveBorder)
-                        msgTextRef.current.rows = 1
+                       
                     }}
                     onFocus={(e)=>{
+                        setFocused(true)
                         setBorder(activeBorder)
-
-                    
-                            msgTextRef.current.rows = 8
+                   
                     }} 
                     onKeyDown={(e) => {
-                        if (e.key == "Enter") onMessageSend(e)
+                        if ( e.ctrlKey == true) {
+                            if (e.key == "Enter") {
+                                msgTextRef.current.value += "\r\n"
+                            }
+                        }else{
+                            if (e.key == "Enter") {
+                                e.preventDefault()
+                                onMessageSend(e)
+                            }
+                        }
                     }} type="text"  
                     style={{ 
                         resize: "none",
-                        border: border,
+                        border: 0,
                         outline:0,
                         backgroundColor: "#00000070", 
-                        paddingRight: 20, 
+                       width: "90%",
                         textAlign: textAlign,
-                        width:"90%",
                         fontFamily:"webrockwell" ,
                         fontSize: 14,
                         padding:10,
                         color:"#ffffff"
                     }} />
-
+                    { focused &&
+                <div className={styles.bubbleButton} style={{display:"flex", fontFamily:"webpapyrus", alignItems:"center", justifyContent:"center", border:border, 
+                        position: "absolute", width: 80, height: 20, backgroundColor: "#000000dd", transform: "translate(-25%,40%)", }}>
+                    Send
+                </div>}
+             
+                <div style={{flex:focused ? .8 : 1}}>&nbsp;</div>
+            
             </div>
+           
         </div>
     )
 }
 
 /* <div onClick={(e) => {
-            setShowChat(true);
+            setFocused(true);
         }} style={{
             display: "flex",
             flexDirection:"column",
             flex:1, backgroundColor: "#33333350",
         }}>
-            <div style={{ display: showChat ? "none" : "flex", width: "100%" }} className={styles.disclaimer}>
+            <div style={{ display: focused ? "none" : "flex", width: "100%" }} className={styles.disclaimer}>
                 <div style={{ overflow: "hidden", marginLeft: "5%", width: "100%" }}>
 
                     <div style={{ width: "10px" }}></div>

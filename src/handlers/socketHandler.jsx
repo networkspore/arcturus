@@ -11,31 +11,29 @@ export const SocketHandler = (props = {}) => {
     const setSocket = useZust((state) => state.setSocket)
     const socketCmd = useZust((state) => state.socketCmd)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
-    const [loggedIn, setLoggedIn] = useState({name_email:null, password:null, userSocket:null})
+    const loggedIn = useRef({value:false})
 
 
 
     useEffect(()=>{ 
-        if(user.userID > 0)
+        if(!(user.userID > 0))
         {
-            setLoggedIn(true)
-        }else{
-            setLoggedIn(false)
+            loggedIn.current.value = false;
         }
     }, [user.userID])
 
 
     useEffect(()=>{
         
-        console.log(socket)
+       
       
     },[socket])
 
     const sock = useRef({value:null})
 
     useEffect(() =>{
-        console.log(loggedIn)
-        if(!loggedIn)
+        
+        if(!loggedIn.current.value)
         {
             if(socketCmd.cmd == "login")
             {
@@ -44,16 +42,17 @@ export const SocketHandler = (props = {}) => {
                     sock.current.value =  io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
                 
                     sock.current.value.on("connect", ()=>{
+                       
                         if(sock.current.value != null){
                             sock.current.value.emit("login", socketCmd.params, (response)=>{
                                 if("success" in response && response.success){
                                     setSocket(sock.current.value)
-                                    setLoggedIn(true)
+                                    loggedIn.current.value = true
                                     socketCmd.callback(response)
-                                    sock.current.value = null
                                 }else{
                                     sock.current.value.disconnect()
                                     sock.current.value = null;
+                                    loggedIn.current.value = fakse
                                 }
                                 setSocketCmd()
                             })
@@ -69,7 +68,7 @@ export const SocketHandler = (props = {}) => {
                     break;
             }
         }
-    },[socketCmd, loggedIn])
+    },[socketCmd])
 
     return (
         <></>

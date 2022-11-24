@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import useZust from "../../hooks/useZust";
-import styles from "../css/home.module.css"
-import { ImageDiv } from "../components/UI/ImageDiv";
+import useZust from "../../../hooks/useZust";
+import styles from "../../css/home.module.css"
+import { ImageDiv } from "./ImageDiv";
 
 export const ContactsBox = (props = {}) => {
 

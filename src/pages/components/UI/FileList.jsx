@@ -69,7 +69,7 @@ const FileList = (props = {}, ref) => {
 
     const [selectedCrc, setSelectedCrc] = useState(null);
     const [files, setFiles] = useState([]);
-    const [fileView, setFileView] = useState({type:"details",direction:"row", iconSize:{width:100,height:100}})
+    const [fileView, setFileView] = useState({type:"details",direction:"row", iconSize:{width:100,height:100, scale:1}})
 
     useEffect(() => {
 
@@ -96,11 +96,29 @@ const FileList = (props = {}, ref) => {
 
 
     useEffect(() => {
-  
+
         var array = [];
         const filter = ("filter" in props) ? props.filter : {name:"", directory:""}
-     
+        let rows = null 
+    
         if (files != null && divRef.current) {
+            const bounds = divRef.current != null ? divRef.current.getBoundingClientRect() : null
+
+            const numColumns = fileView.direction == "row" ? bounds != null ? Math.floor(bounds.width / fileView.iconSize.width) : null : null;
+            const numRows = numColumns != null ? numColumns != 0 ? Math.ceil(files.length / numColumns) : 1 : null
+            rows = numColumns != null && numRows != null ? new Array(numRows) : null
+
+            if(rows != null)
+            {
+                for(let i = 0; i < rows.length ; i++)
+                {
+                    rows[i] = new Array(numColumns)
+                }
+            }
+
+            const scale = "scale" in fileView.iconSize ? fileView.iconSize.scale : 1
+            const backgroundColor = "backgroundColor" in fileView.iconSize ? fileView.iconSize.backgroundColor : ""
+            const backgroundImage = "backgroundImage" in fileView.iconSize ? fileView.iconSize.backgroundImage : ""
        
             files.forEach((file, i) => {
                 const iName = file.name + "";
@@ -120,7 +138,7 @@ const FileList = (props = {}, ref) => {
                     const lowerName = iName.toLowerCase();
                     const lowerFilterName = filter.name.toLowerCase();
                     show = lowerName.includes(lowerFilterName)
-                    console.log(lowerName +  " " + lowerFilterName)
+   
                 }
             
 
@@ -135,43 +153,66 @@ const FileList = (props = {}, ref) => {
                     const iHandle = file.handle;
                     const iIcon = ("icon" in file) ? file.icon : null;
                     const mimeType = ("mimeType" in file) ? file.mimeType : "";
-
-                    
-
-                   
-
-                    let iImage = "netImage" in file ? iIcon == null ? file.netImage : { scale: "scale" in netImage ? netImage.scale : 1, backgroundImage: "backgroundImage" in netImage ? file.netImage.backgroundImage : "", backgroundColor: "backgroundColor" in netImage ? file.netImage.backgroundColor : "", filter: "filter" in netImage ? file.netImage.filter : "", image: iIcon } : iIcon == null ? { image:"/Images/icons/document-outline.svg", filter:"invert(100%)"} : {scale: 1, image:iIcon};
-
-                    
-
-
-            
+                
+                    let iImage = {
+                        scale: scale,
+                        backgroundColor: backgroundColor,
+                        backgroundImage: backgroundImage,
+                        image: iIcon == null ? "/Images/icons/document-outline.svg" : iIcon,
+                        borderRadius:15
+                    }
+                 
                     switch(fileView.type)
                     {
                         case "icons":
                             switch(fileView.direction)
                             {
-                                case "list":
-                                default:
-                                    iImage.backgroundColor = ""
-                                    iImage.scale = 1.2;
-                                    array.push(
-                               
-                                        <ImageDiv key={i}
-                                            style={{margin:10, overflow:"hidden"}}
+                                case "row":
+                                    if(rows != null)
+                                    {
+                                        const rowIndex = Math.floor(i/numColumns)
+                                        const columnIndex = Math.round((( i / numColumns ) % 1) * numColumns)
+                                       
+                                     
+                                      
+                                          rows[rowIndex][columnIndex] = <ImageDiv key={i}
+                                            style={{ margin: 10, overflow: "hidden" }}
                                             about={iName}
                                             onClick={(e) => {
                                                 if (iTo == null) {
                                                     setSelectedIndex(i)
                                                 } else {
                                                     navigate(iTo)
+                                                }
+                                            }}
+                                            className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className}
+                                            height={fileView.iconSize.width}
+                                            width={fileView.iconSize.height}
+                                            netImage={iImage}
+                                        />
+                                    }
+                                break;
+                                case "list":
+                                default:
+                             
+                                    iImage.scale = 1;
+                                    array.push(
+                                        <div key={i} style={{borderRadius:15, margin:25, padding:0, overflow:"hidden"}} about={iName} className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className} >
+                                        <ImageDiv 
+                                            style={{ overflow:"hidden"}}
+                                       
+                                            onClick={(e) => {
+                                                if (iTo == null) {
+                                                    setSelectedIndex(i)
+                                                } else {
+                                                    navigate(iTo)
                                                 }}} 
-                                            className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className} 
+                                           
                                             height={fileView.iconSize.width} 
                                             width={fileView.iconSize.height} 
                                             netImage={iImage} 
                                         />
-                              
+                                        </div>
                                         
                                     )
 
@@ -210,10 +251,21 @@ const FileList = (props = {}, ref) => {
             })
             
         }
+        if(rows != null)
+        {
+            array = []
+            for(let i = 0; i < rows.length ; i ++)
+            {
+                array.push(
+                    <div key={i} style={{display:"flex"}}>
+                        {rows[i]}
+                    </div>
+                )
+            }
+        }
+        setList( array)
 
-        setList(array)
-
-    }, [files, selectedIndex, props])
+    }, [files, selectedIndex, props, fileView])
 
     useEffect(() => {
 
@@ -271,7 +323,7 @@ const FileList = (props = {}, ref) => {
                 lastIndex.current.index = selectedIndex;
 
                 onChange(selectedIndex);
-                console.log("onchange")
+             
             }
         }
 
