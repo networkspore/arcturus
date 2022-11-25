@@ -106,8 +106,17 @@ import { get } from "idb-keyval";
     function onLostPassword(event){
         if (!disable) {
             setDisable(true);
-            setSocket(io(socketIOhttp, { auth: { token: socketToken, user: { nameEmail: 'anonymous' } }, transports: ['websocket'] }))
-            navigate("/recoverpassword")
+            setSocketCmd({
+                anonymous: true,
+                cmd: "login", params: { nameEmail: "anonymous" }, callback: (response) => {
+                    if (!("error" in response)) {
+                        if (response.success) {
+                            navigate("/recoverpassword")
+                        }
+                    }
+
+                }
+            })
         }
     }
 
@@ -116,8 +125,19 @@ import { get } from "idb-keyval";
 
         if (!disable) {
             setDisable(true);
-            setSocket(io(socketIOhttp, { auth: { token: socketToken, user: { nameEmail: 'anonymous' } }, transports: ['websocket'] }))
-            navigate("/welcome")
+            setSocketCmd({anonymous:true,
+                cmd: "login", params: { nameEmail: "anonymous" }, callback: (response) => {
+                if(!("error" in response)){
+                    if(response.success)
+                    {
+                         navigate("/welcome")
+                    }
+                }
+               
+            }})
+            
+            
+          
         }
         
         

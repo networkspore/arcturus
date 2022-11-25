@@ -111,7 +111,7 @@ const WelcomePage = () => {
                 navigate("/welcome")
             } else {
                 alert("User created, Please log in.")
-                navigate('/')
+                window.location.replace("/")
             }
 
         }});
@@ -227,7 +227,7 @@ const WelcomePage = () => {
 
                             }}
                                 className={styles.CancelButton}
-                                onClick={(e) => { navigate("/")}} >
+                                onClick={(e) => { window.location.replace("/")}} >
                                 Cancel
                             </div>
 

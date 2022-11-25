@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-import { useNavigate } from 'react-router-dom';
-
 
 import useZust from "../hooks/useZust";
 
@@ -205,7 +203,7 @@ return (
 
                 }}
                     className={styles.CancelButton}
-                    onClick={(e) => { navigate("/") }} >
+                    onClick={(e) => { window.location.replace("/")}} >
                     Cancel
                 </div>
 

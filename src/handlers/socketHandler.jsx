@@ -36,7 +36,7 @@ export const SocketHandler = (props = {}) => {
         
         if(!loggedIn.current.value)
         {
-            if (socketCmd.cmd == login && !(("anonymous") in socketCmd)) {
+            if (socketCmd.cmd == "login" && !(("anonymous") in socketCmd)) {
                     
                 if (sock.current.value == null && tryCount.current.value < 5)
                 {
@@ -75,41 +75,62 @@ export const SocketHandler = (props = {}) => {
                     })
                 }
             }else{
-                switch (socketCmd.cmd) {
-                    case "checkRefCode":
-                        sock.current.value.emit("checkRefCode", socketCmd.params.refCode, (response) => {
-                            socketCmd.callback(response)
+              
+                if (sock.current.value == null && socketCmd.cmd == "login") {
+                    sock.current.value = io(socketIOhttp, { auth: { token: socketToken }, transports: ['websocket'] });
+
+                    sock.current.value.on("connect", () => {
+                        socketCmd.callback({success:true})
+                        sock.current.value.on("disconnect", (res) => {
+                            switch (res) {
+                                case "io server disconnect":
+                                    window.location.replace("/")
+                                    break;
+
+                            }
                         })
-                        break;
-                    case "checkUserName":
-                        sock.current.value.emit("checkUserName", socketCmd.params.text, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-           
-                    case "checkEmail":
-                        sock.current.value.emit("checkEmail", socketCmd.params.text, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-                    case "updateUserPassword":
-                        sock.current.value.emit("updateUserPassword", socketCmd.params, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-                    case "sendRecoveryEmail":
-                        sock.current.value.emit("sendRecoveryEmail", socketCmd.params.email, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-                    case 'createUser':
-                        sock.current.value.emit("createUser", socketCmd.params.user, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-                    default:
-                        socketCmd.callback({error: new Error("Not Implemented")})
-            }
+                    })
+                }else if(sock.current.value != null){
+                
+                    switch (socketCmd.cmd) {
+                        case "checkRefCode":
+                            sock.current.value.emit("checkRefCode", socketCmd.params.refCode, (response) => {
+                                socketCmd.callback(response)
+                            })
+                            break;
+                        case "checkUserName":
+                            sock.current.value.emit("checkUserName", socketCmd.params.text, (response) => {
+                                socketCmd.callback(response)
+                            })
+                            break;
+            
+                        case "checkEmail":
+                            sock.current.value.emit("checkEmail", socketCmd.params.text, (response) => {
+                                socketCmd.callback(response)
+                            })
+                            break;
+                        case "updateUserPassword":
+                            sock.current.value.emit("updateUserPassword", socketCmd.params, (response) => {
+                                socketCmd.callback(response)
+                            })
+                            break;
+                        case "sendRecoveryEmail":
+                            sock.current.value.emit("sendRecoveryEmail", socketCmd.params.email, (response) => {
+                                socketCmd.callback(response)
+                            })
+                            break;
+                        case 'createUser':
+                            sock.current.value.emit("createUser", socketCmd.params.user, (response) => {
+                                socketCmd.callback(response)
+                            })
+                            break;
+                        default:
+                            socketCmd.callback({error: new Error("Not Implemented")})
+                    }
+
+                }else{
+                    socketCmd.callback({ error: "not connected" })
+                }
             }
             
             

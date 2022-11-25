@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import { useNavigate } from 'react-router-dom';
+
 
 
 import useZust from "../hooks/useZust";
@@ -28,18 +28,11 @@ export const RecoverPasswordPage = (props = {}) => {
     const [confirm, setConfirm] = useState("")
 
 
-    const navigate = useNavigate();
 
     const [attempts, setAttempts] = useState(0)
 
     const refEmailCodeInput = useRef()
 
-    useEffect(()=>{
-        if(socket == null)
-        {
-            navigate("/")
-        }
-    },[])
 
 
     function handleChange(e) {
@@ -101,7 +94,7 @@ export const RecoverPasswordPage = (props = {}) => {
         if(attempts > 4)
         {
             alert("Error: Your password could not be updated.")
-            navigate("/")
+            window.location.replace("/")
         }else{
             if ( pass == confirm && pass != "" )
             {
@@ -114,8 +107,9 @@ export const RecoverPasswordPage = (props = {}) => {
 
                         if(callback.success)
                         {
-                            navigate("/")
+                            
                             alert("Your password has been updated.")
+                            window.location.replace("/")
                         }else{
                             alert("The information you have provided does not match our records.")
                             setAttempts(prev => prev++)
@@ -333,7 +327,7 @@ export const RecoverPasswordPage = (props = {}) => {
 
                     }}
                         className={styles.CancelButton}
-                        onClick={(e) => { navigate("/") }} >
+                        onClick={(e) => { window.location.replace("/") }} >
                         Cancel
                     </div>
 
