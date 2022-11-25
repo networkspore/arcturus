@@ -61,7 +61,7 @@ const HomeMenu = ({ props}) => {
     const pageSize = useZust((state) => state.pageSize);
 
     const user = useZust((state) => state.user);
-    const socket = useZust((state) => state.socket);
+ 
 
     const configFile = useZust((state) => state.configFile)
 
@@ -98,7 +98,7 @@ const HomeMenu = ({ props}) => {
 
     const realms = useZust((state) => state.realms)
 
-    const setSocket = useZust((state) => state.setSocket)
+  
     const page = useZust((state) => state.page)
 
     const setQuickBar = useZust((state) => state.setQuickBar)
@@ -194,7 +194,7 @@ const HomeMenu = ({ props}) => {
 
             switch (currentLocation) {
                 case '/login':
-                    setSocket(null)
+                  
                     setShowIndex(1)
                     break;
                 case '/welcome':
@@ -204,7 +204,7 @@ const HomeMenu = ({ props}) => {
                     setShowIndex(5)
                     break;
                 default:
-                    navigate("/login")
+                   navigate("/login")
                     break;
             }
         }
@@ -635,7 +635,7 @@ const HomeMenu = ({ props}) => {
                             toNav("/network")
                         }}>
                             <ImageDiv width={30} height={30} netImage={{
-                                image: socket != null && user.userID > 0 ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
+                                image: user.userID > 0 ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
                                 filter: userPeerID != "" ? "drop-shadow(0px 0px 3px #faa014)" : "" }} />
                         </div>
                         {user.userID > 0 &&
@@ -654,7 +654,7 @@ const HomeMenu = ({ props}) => {
                             paddingTop: "5px",
                             paddingLeft: "10px",
                             paddingRight: "10px"
-                        }}> {socket != null && user.userID > 0 ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
+                        }}> { user.userID > 0 ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
                     </div>
 
                 </div>

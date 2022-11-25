@@ -17,8 +17,9 @@ export const PeerNetworkHandler = (props ={}) => {
 
     const peerConnection = useZust((state) => state.peerConnection);
     const setPeerConnection = useZust((state) => state.setPeerConnection);
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-    const socket = useZust((state) => state.socket)
+
     
     const openPeerConnection = (onOpen =onPeerOpen, onCall = onPeerCall, onClose = onPeerClose, onDisconnect = onPeerDisconnect, onError = onPeerError) => useZust.setState(produce((state) => {
         state.peerConnection = new Peer()
