@@ -73,7 +73,7 @@ export const Realm = () => {
         {
             setSocketCmd({
                 cmd: "enterRealmGateway", params: { realmID: currentRealmID }, callback: (enteredGateway) => {
-        
+                   
                 if ("error" in enteredGateway)
                 {
                     console.log(enteredGateway)

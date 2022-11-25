@@ -209,7 +209,8 @@ export const SocketHandler = (props = {}) => {
                     })
                     break;
                 case "enterRealmGateway":
-                    sock.current.value.emit("enterRealmGateway", socketCmd.params.realmiD, (response) => {
+                   
+                    sock.current.value.emit("enterRealmGateway", socketCmd.params.realmID, (response) => {
                         socketCmd.callback(response)
                     })
                     break;
