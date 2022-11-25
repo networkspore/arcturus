@@ -17,14 +17,7 @@ const WelcomePage = () => {
 
     const navigate = useNavigate();
 
-    const setSocket = useZust((state) => state.setSocket)
-    const socket = useZust((state) => state.socket);
-    const user = useZust((state) => state.user);
-    const setUser = useZust((state) => state.setUser);
-
-    const setRedirect = useZust((state) => state.setLoading);
-    const redirect = useZust((state) => state.loading);
-
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const setWelcomePage = useZust((state) => state.setWelcomePage);
     const [newEmail, setEmail] = useState(""); 
@@ -38,23 +31,18 @@ const WelcomePage = () => {
 
     const [valid, setValid] = useState(false);
 
-    const [showpage, setShowpage] = useState(false)
-    
 
     useEffect(() => {
         setWelcomePage();
 
         setCurrent(1);
         return () => {
-            setSocket(null)
+            setSocketCmd({
+                anonymous: true,
+                cmd: "logout", params: { }, callback: null
+            })
         }
     }, [])
-
-    useEffect(() => {
-        if (socket == null) {
-            navigate("/")
-        }
-    },[socket])
 
 
     function handleChange(e) {
@@ -65,14 +53,16 @@ const WelcomePage = () => {
            
             if (/.+@.+\.[A-Za-z]+$/.test(value))
            {
-               socket.emit("checkEmail", value, (callback)=> {
-                   if(callback)
-                   {
-                        setEmail(value);
-                   }else{
-                       setEmail("");
-                   }
-               })
+                setSocketCmd({
+                    anonymous: true,
+                    cmd: "checkEmail", params: { text: value }, callback: (callback) => {
+                        if (!callback) {
+                            setEmail(value);
+                        } else {
+                            setEmail("");
+                        }
+                    }
+                })
             }else{
                 setEmail("");
             }
@@ -80,7 +70,10 @@ const WelcomePage = () => {
 
         if(name == "ref"){
             if (value.length > 7) {
-                socket.emit("checkRefCode", value, (callback)=>{
+                setSocketCmd({
+                    anonymous: true,
+                    cmd: "checkRefCode", params: { refCode: value }, callback: (callback) => {
+
                     if(callback > 0)
                     {
                         setValid(prev => true);
@@ -88,7 +81,7 @@ const WelcomePage = () => {
                     }else{
                         if (valid) setValid(prev => false);
                     }
-                });
+                }});
             }else{
                
                 if(valid)setValid(prev => false);
@@ -109,7 +102,10 @@ const WelcomePage = () => {
 
     const createUser = (newUser) =>{
         newUser.userRefID = refID;
-        socket.emit('createUser', newUser, (response) => {
+        setSocketCmd({
+            anonymous: true,
+            cmd: 'createUser', params: {user: newUser }, callback: (response) => {
+
             if (!response.create) {
                 alert(response.msg);
                 navigate("/welcome")
@@ -118,7 +114,7 @@ const WelcomePage = () => {
                 navigate('/')
             }
 
-        });
+        }});
     }
    
 

@@ -21,7 +21,7 @@ const NewUserPage = (props = {}) => {
 
     const callback = props.createUser;
 
-    const socket = props.socket;
+ 
 
     const [name, setName] = useState("");
     const [confirm, setConfirm] = useState(false);
@@ -35,14 +35,18 @@ const NewUserPage = (props = {}) => {
     const [nameAvailable, setNameAvailable] = useState(true);
 
 
-
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     function handleChange(e) {
         const { name, value } = e.target;
 
         if (name == "name") {
             if (value.length > 2) {
-                socket.emit("checkUserName", value, (callback) => {
+
+
+                setSocketCmd({anonymous:"true",
+                    cmd: "checkUserName", params: {text: value  }, callback: (callback) => {
+
                     if (callback) {
                         setName(value)
                         setNameAvailable(pre => true);
@@ -50,7 +54,7 @@ const NewUserPage = (props = {}) => {
                         setName("")
                         setNameAvailable(pre => false);
                     }
-                })
+                }})
             } else {
                 setName("")
             }

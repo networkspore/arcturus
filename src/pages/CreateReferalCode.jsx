@@ -10,6 +10,7 @@ import styles from './css/home.module.css'
 
 export const CreateReferalCode = (props = {}) => {
 
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
     const codeRef = useRef();
 
     const pageSize = useZust((state) => state.pageSize)
@@ -37,15 +38,14 @@ export const CreateReferalCode = (props = {}) => {
        
         if(code != "" && codeAvailable)
         {
-            socket.emit('createRefCode', code , (created, result)=>{
-                
-                if(created){
-                    addCode(result)
+            setSocketCmd({
+                cmd: 'createRefCode', params: {code:code}, callback: (response) => {
+           
+                if(response.success){
+                    addCode(response.code)
                   
-                }else{
-                    alert("Creation failed. Tray again later.")
                 }
-            }) 
+            }}) 
             
         }
     }
@@ -122,13 +122,15 @@ export const CreateReferalCode = (props = {}) => {
 
 
     useEffect(()=>{
-        socket.emit("getUserReferalCodes", (result) =>{
+        setSocketCmd({
+            cmd: "getUserReferalCodes", params: {  }, callback: (result) => {
+       
             if(result.success)
             {
                 
                   setAvailableCodes(result.result)
             }
-        })
+        }})
     },[])
     
     return (

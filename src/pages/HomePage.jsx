@@ -43,7 +43,7 @@ export const HomePage = (props ={}) => {
 
 
     const onLogoutClick = (e) => {
-        props.logOut();
+        window.location.replace("/")
     
     }
 

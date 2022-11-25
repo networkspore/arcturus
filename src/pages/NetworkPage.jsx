@@ -55,7 +55,7 @@ export const NetworkPage = () => {
     const [acknowledgeContact, setAcknowledgeContact] = useState(null)
 
     const contactRequests = useZust((state) => state.contactRequests)
-
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
     const contacts = useZust((state) => state.contacts)
 
     const setContacts = (c) => useZust.setState(produce((state)=>{
@@ -87,13 +87,14 @@ export const NetworkPage = () => {
         
         if(value.length > 2)
         {
-            socket.emit('searchPeople', value, user.userID, (response) => {
+
+            setSocketCmd({
+                cmd: 'searchPeople', params: { text: value + ""  }, callback: (response) => {
+            
                 setPeopleFound(response);
            
-            })
-           /*socket.emit("searchCampaigns", value, user.userID, (response) => {
-               setCampaignsFound(response);
-            }) */
+            }})
+       
         }else{
             setPeopleFound(produce((state) => {state = []}))
             //setCampaignsFound(produce((state) => { state = [] }))
@@ -120,7 +121,9 @@ export const NetworkPage = () => {
         {
             let contact = requestContact;
             let msg = messageRef.current.value;
-            socket.emit("requestContact", contact.userID, msg, (complete) => {
+            setSocketCmd({
+                cmd: "requestContact", params: { contactUserID: contact.userID, msg:msg }, callback: (complete) => {
+
                 const msg = complete.msg;
                 if (complete.requested == true){
                     contact["status"] = { statusID: 3, statusName: "confirming" };
@@ -134,7 +137,7 @@ export const NetworkPage = () => {
                 }
                 messageRef.current.value = "";
 
-            })
+            }})
             
         }
     }
@@ -291,8 +294,8 @@ export const NetworkPage = () => {
 
     const onAcknowledgeContact = (response) => {
         const contactID = acknowledgeContact.userID;
-
-        socket.emit("acknowledgeContact", response, contactID, (result)=>{
+        setSocketCmd({
+            cmd: "acknowledgeContact", params: { response: response, contactID: contactID }, callback: (result) => {
             if(result.success){
                 console.log(result)
             }else{
@@ -300,7 +303,7 @@ export const NetworkPage = () => {
                 alert("Unable to acknowledge contact. Try again later.")
             }
             
-        })
+        }})
         setAcknowledgeContact(null)
     } 
 

@@ -19,7 +19,7 @@ export const UpdateRealmInformation = (props = {}) =>{
     const pageSize = useZust((state) => state.pageSize)
     const realms = useZust((state) => state.realms)
     const user = useZust((state) => state.user)
-    const socket = useZust((state) => state.socket)
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
 
@@ -79,8 +79,9 @@ export const UpdateRealmInformation = (props = {}) =>{
             advisoryID: advisoryID,
             realmType: realmType
         }
+        setSocketCmd({
+            cmd: "updateRealmInformation", params: { information: information }, callback: (callback) => {
 
-        socket.emit("updateRealmInformation", information, (callback) => {
             if("error" in callback)
             {
                 addSystemMessage(errorSaving)
@@ -96,7 +97,7 @@ export const UpdateRealmInformation = (props = {}) =>{
                     addSystemMessage( noChanges)
                 }
             }
-        })
+        }})
       
     }
 

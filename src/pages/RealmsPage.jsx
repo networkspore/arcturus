@@ -19,7 +19,7 @@ export const RealmsPage = () =>{
     const configFile = useZust((state) => state.configFile)
     const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
     const [showIndex, setShowIndex] = useState(0)
-  
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const [selectedRealm, setSelectedRealm] = useState(null)
 
@@ -121,10 +121,10 @@ export const RealmsPage = () =>{
             type: realm.image.type,
             lastModified: realm.image.lastModified,
         }
+        setSocketCmd({
+            cmd: "createRealm", params: {realmName: realm.realmName,file: newFile,page: selectedItem.page,index: selectedItem.index, }, callback: (response) => {
 
-        socket.emit("createRealm", realm.realmName, newFile, selectedItem.page, selectedItem.index, (response) => {
-
-
+        
 
             if ("error" in response) {
                 callback(false)
@@ -139,7 +139,7 @@ export const RealmsPage = () =>{
                 navigate("/realm/gateway")
 
             }
-        })
+        }})
 
     }
 
@@ -188,7 +188,8 @@ export const RealmsPage = () =>{
             setShowIndex(0)
             navigate("/realms")
         }else{
-            socket.emit("deleteRealm", realmID, (callback)=>{
+            setSocketCmd({
+                cmd: "deleteRealm", params: {realmID: realmID }, callback: (callback) => {
                 if("error" in callback){
                     addSystemMessage(errorRealmEnd)
                 }else{
@@ -204,7 +205,7 @@ export const RealmsPage = () =>{
                 setCurrentRealmID(null)
                 setSelectedItem(null)
                 navigate("/realms")
-            })
+            }})
         }
         
     }

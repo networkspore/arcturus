@@ -15,7 +15,7 @@ export const Realm = () => {
     const [currentLocation, setCurrentLocation] = useState("/realm/gateway")
     const [showIndex, setShowIndex] = useState(0)
     const currentRealmID = useZust((state) => state.currentRealmID)
-    
+    const setSocketCmd = useZust((state) => state.setSocketCmd)    
 
     const [admin, setAdmin] = useState(false)
     const [realmMember, setRealmMember] = useState(false)
@@ -71,7 +71,9 @@ export const Realm = () => {
     
         if(currentRealmID != null)
         {
-            socket.emit("enterRealmGateway", currentRealmID, (enteredGateway)=>{
+            setSocketCmd({
+                cmd: "enterRealmGateway", params: { realmID: currentRealmID }, callback: (enteredGateway) => {
+        
                 if ("error" in enteredGateway)
                 {
                     console.log(enteredGateway)
@@ -88,7 +90,7 @@ export const Realm = () => {
                     }
                 }
                 
-            })
+            }})
         }
       
     },[currentRealmID])

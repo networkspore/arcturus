@@ -24,7 +24,9 @@ export const PeerNetworkPage = () => {
     const localDirectory = useZust((state) => state.localDirectory)
 
     const peerConnection = useZust((state)=> state.peerConnection)
-    const peerOnline = useZust((state) => state.peerOnline)
+    const userPeerID = useZust((state) => state.userPeerID)
+
+    
  
     const configFile = useZust((state) => state.configFile)
 
@@ -131,7 +133,7 @@ export const PeerNetworkPage = () => {
                     }} about={peerConnection == null ? "Start" : "Turn off"} className={styles.tooltip__item} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
 
                         <img src='/Images/icons/power-outline.svg' width={25} height={25} style={{ 
-                            filter: peerConnection == null ? "Invert(25%)" : peerOnline ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)"
+                            filter: peerConnection == null ? "Invert(25%)" : userPeerID != "" ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)"
                         }} />
 
                     </div>
@@ -169,7 +171,7 @@ export const PeerNetworkPage = () => {
                                 paddingTop: "3px",
                                 paddingRight:"5px"
                                 }}>
-                                <img src={peerOnline ? '/Images/icons/cloud-outline.svg' : "/Images/icons/cloud-offline-outline.svg" } style={{
+                                <img src={userPeerID != "" ? '/Images/icons/cloud-outline.svg' : "/Images/icons/cloud-offline-outline.svg" } style={{
                                     width:"20px",
                                     height:"20px",
                                     filter: peerConnection == null ? "Invert(25%)" : "invert(100%)"
@@ -228,7 +230,7 @@ export const PeerNetworkPage = () => {
                     </div>         
                 }
                
-                    {showIndex == 2 && peerOnline &&
+                    {showIndex == 2 && 
                         <PeerNetworkMenu />
                     }
                     {showIndex == 1 &&

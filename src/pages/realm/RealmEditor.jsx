@@ -58,8 +58,6 @@ export const RealmEditor = (props = {}) =>{
     const [layers, setLayers] = useState(null);
 
  
-
-    const socket = useZust((state) => state.socket)
  
     const pageSize = useZust((state) => state.pageSize)
     const mode = useZust((state) => state.mode);
@@ -235,7 +233,7 @@ export const RealmEditor = (props = {}) =>{
 
     const onSelectTexture  = (e) =>{
         e.prevent = true;
-        socket.emit("getTextures", 1, (textures)=>{
+      /*  socket.emit("getTextures", 1, (textures)=>{
             if(textures != null)
             {
                 if(textures.length > 0)
@@ -263,7 +261,7 @@ export const RealmEditor = (props = {}) =>{
                 }
             }
             
-        })
+        })*/
     }
 
 

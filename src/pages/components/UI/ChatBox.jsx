@@ -46,7 +46,7 @@ export const ChatBox = (props ={}) => {
         if(roomID != null){
             if(!joinedRoom)
             {
-             //   socket.emit("joinRoom")
+         
             }
         }
     },[roomID])

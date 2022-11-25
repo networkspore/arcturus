@@ -34,8 +34,9 @@ export const LocalStoragePage = () => {
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
 
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-    const socket = useZust((state) => state.socket)
+
 
     const location = useLocation();
 
@@ -76,30 +77,9 @@ export const LocalStoragePage = () => {
         const granted = await getPermissionAsync(localDirectory.handle)
         if(!granted) return false;
 
-        const fileHandle = await localDirectory.handle.getFileHandle("arturus.config");
-        if(fileHandle == null || fileHandle == undefined){ 
-            turnOffLocalStorage();
-            alert("Config file missing.")
-            navigate("/localstorage/init")  
-            return false;
-        }
-
-        const config = configFile.value;
-
-        if (config == null){
-            turnOffLocalStorage();
-            navigate("/localstorage/init")
-            return false;
-        }
-        const file = await getFileInfo(fileHandle, localDirectory.handle)
-
-        const engineKey = configFile.value.engineKey
-
-        socket.emite("checkFileCRC", file.crc, (valid)=>{
+        await handleFirst(localDirectory.handle)
             
-        })
-            
-       
+        return true
     }
 
 
@@ -194,7 +174,8 @@ export const LocalStoragePage = () => {
 
 
 
-                        socket.emit("checkStorageCRC", file.crc, (callback) => {
+                        setSocketCmd({
+                            cmd: "checkStorageCRC", params: { crc: file.crc }, callback: (callback) => {
                             if ("error" in callback) {
                                 addSystemMessage(initStorage)
                                 navigate("/home/localstorage/init")
@@ -237,7 +218,7 @@ export const LocalStoragePage = () => {
                                     navigate("/home/localstorage/init")
                                 }
                             }
-                        })
+                        }})
 
                     }).catch((err) => {
                         console.log(err)

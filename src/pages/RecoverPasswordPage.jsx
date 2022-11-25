@@ -17,8 +17,7 @@ export const RecoverPasswordPage = (props = {}) => {
     const enableColor = "#FFFFFF";
 
 
-    const socket = useZust((state) => state.socket)
- 
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -48,7 +47,9 @@ export const RecoverPasswordPage = (props = {}) => {
 
         if (name == "name") {
             if (value.length > 2) {
-                socket.emit("checkUserName", value, (callback) => {
+                setSocketCmd({anonymous: true,
+                    cmd: "checkUserName", params: { text:value }, callback: (callback) => {
+               
                     if (!callback) {
                         setName(value)
                  
@@ -56,7 +57,7 @@ export const RecoverPasswordPage = (props = {}) => {
                         setName("")
             
                     }
-                })
+                }})
             } else {
                 setName("")
             }
@@ -65,13 +66,15 @@ export const RecoverPasswordPage = (props = {}) => {
         if (name == "email") {
 
             if (/.+@.+\.[A-Za-z]+$/.test(value)) {
-                socket.emit("checkEmail", value, (callback) => {
+                setSocketCmd({
+                    anonymous: true,
+                    cmd: "checkEmail", params: { text: value }, callback: (callback) => {
                     if (!callback) {
                         setEmail(value);
                     } else {
                         setEmail("");
                     }
-                })
+                }})
             } else {
                 setEmail("");
             }
@@ -105,8 +108,10 @@ export const RecoverPasswordPage = (props = {}) => {
                 if (emailCode != "" )
                 {
                     var shapass = sha256(pass).toString();
+                    setSocketCmd({
+                        anonymous: true,
+                        cmd: "updateUserPassword", params: { email: email, code: emailCode, password: shapass }, callback: (callback) => {
 
-                    socket.emit("updateUserPassword", { email:email, code: emailCode, password: shapass }, (callback) => {
                         if(callback.success)
                         {
                             navigate("/")
@@ -115,7 +120,7 @@ export const RecoverPasswordPage = (props = {}) => {
                             alert("The information you have provided does not match our records.")
                             setAttempts(prev => prev++)
                         }
-                    })
+                    }})
 
                 }else{
                     alert("Recovery code required.")
@@ -140,7 +145,10 @@ export const RecoverPasswordPage = (props = {}) => {
           
             if(email.length > 6){
                 setEmailSent(true)
-                socket.emit("sendRecoveryEmail", email, (callback)=>{
+                setSocketCmd({
+                    anonymous: true,
+                    cmd: "sendRecoveryEmail", params: { email: email}, callback: (callback) => {
+
                     if(callback.success){
                         setEmailSent(true)
                   
@@ -149,7 +157,7 @@ export const RecoverPasswordPage = (props = {}) => {
                         setEmailSent(false);
                         alert( "Unable to send code. " + callback.error)
                     }
-                })
+                }})
             }else{
                 setEmailSent(false)
                 alert("Please enter an email address.")

@@ -88,8 +88,8 @@ const useZust = create((set) => ({
    })),
    publishedFiles:[],
    setPublishedFiles: (value = []) => set({publishedImages: value}),
-   peerOnline:false,
-   setPeerOnline:(value = false) => set({peerOnline:value}),
+   userPeerID:"",
+   setUserPeerID:(value = "") => set({userPeerID:value}),
 
    imagesDirectory: {  name: "images", handle: null, directories: [] },
    setImagesDirectory: (value = {  name: "images", handle: null, directories: [] }) => set({ imagesDirectory: value }),

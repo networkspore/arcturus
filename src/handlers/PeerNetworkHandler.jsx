@@ -12,8 +12,8 @@ export const PeerNetworkHandler = (props ={}) => {
     const navigate = useNavigate()
 
     const configFile = useZust((state) => state.configFile)
-    const peerOnline = useZust((state) => state.peerOnline)
-    const setPeerOnline = useZust((state) => state.setPeerOnline)
+    const userPeerID = useZust((state) => state.userPeerID)
+    const setUserPeerID = useZust((state) => state.setUserPeerID)
 
     const peerConnection = useZust((state) => state.peerConnection);
     const setPeerConnection = useZust((state) => state.setPeerConnection);
@@ -44,11 +44,11 @@ export const PeerNetworkHandler = (props ={}) => {
     }
 
     const onPeerOpen = (id) =>{
-        setPeerOnline(true)
-        console.log(id)
-        socket.emit("updateUserPeerID",id, (callback)=>{
+        setUserPeerID(id)
+        setSocketCmd({
+            cmd:"updateUserPeerID", params: {userPeerID:id}, callback: (callback) => {
             console.log(callback)
-        })
+        }})
     }
 
     const onPeerCall = (call) =>{
@@ -58,34 +58,25 @@ export const PeerNetworkHandler = (props ={}) => {
     const onPeerClose = () =>{
         console.log("peer connection closing")
         setPeerConnection(null)
-        setPeerOnline(false)
+       
+        setUserPeerID("")
 
-        if(!socket.disconnected){
-            if(socket!= null ){
-                if(!socket.disconnected){
-                    socket.emit("updateUserPeerID", "", (callback) => {
-                        
-                    })
-                }
+        setSocketCmd({
+            cmd: "updateUserPeerID", params: { userPeerID: "" }, callback: (callback) => {
+                console.log(callback)
             }
-        }
+        })
 
     }
 
     const onPeerDisconnect = () =>{
-        setPeerOnline(false)
+        setUserPeerID("")
         
-        if(!socket.disconnected){
-            
-            socket.emit("PeerStatus", (status.Offline, configFile.value.engineKey, (callback) => {
-
-            }))
-
-            if(configFile.value != null){
-                
-                peerReconnect()
-            }
+        if(configFile.value != null){
+            console.log("disconnect reconnect?")
+          //  peerReconnect()
         }
+        
     }
 
     const peerReconnect = () =>{
@@ -127,7 +118,7 @@ export const PeerNetworkHandler = (props ={}) => {
                 onPeerClose()
             }
         }else{
-            if (peerConnection != null || peerOnline) {
+            if (peerConnection != null || userPeerID != "") {
                 onPeerClose()
             }
             
@@ -137,7 +128,7 @@ export const PeerNetworkHandler = (props ={}) => {
     useEffect(() => {
       
         if(peerConnection == null){
-            setPeerOnline(false)
+            if(userPeerID != "") setUserPeerID("")
         }
 
        
@@ -150,7 +141,7 @@ export const PeerNetworkHandler = (props ={}) => {
     return (
         <>
           {
-            ! peerOnline && 
+                userPeerID == "" && 
                 <ImageDiv onClick={(e)=>{
                     navigate("/home/peernetwork")
                 }} width={25} height={30} netImage={{ image: "/Images/icons/cloud-offline-outline.svg", scale:.7, filter:"invert(100%)" }} /> 

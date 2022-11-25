@@ -243,8 +243,9 @@ export const InitStoragePage = (props = {}) => {
                                     } 
                                     if(firstRun)
                                     {
-                                        console.log("firstrun")
-                                        socket.emit("createStorage", newFile, engineKey, (created) => {
+                                        setSocketCmd({
+                                            cmd: "createStorage", params: {file:newFile, key:engineKey}, callback: (created) => {
+
                                             if (!("error" in created)) {
                                                 if(created.success){
                                                     newConfig.fileID = created.fileID;
@@ -257,10 +258,11 @@ export const InitStoragePage = (props = {}) => {
                                             } else {
                                                 resolve( {error: created.error})
                                             }
-                                        })
+                                        }})
                                     }else{
-                                        
-                                        socket.emit("updateStorageConfig",configFile.fileID, newFile, (updated)=>{
+                                        setSocketCmd({
+                                            cmd: "updateStorageConfig", params: { fileID: configFile.fileID, file: newFile }, callback: (updated) => {
+
                                             if (!("error" in updated)) {
                                                 if(updated.success){
                                                     resolve( { success: true, config: configFile })
@@ -270,7 +272,7 @@ export const InitStoragePage = (props = {}) => {
                                             } else {
                                                 resolve( { error: updated.error })
                                             }
-                                        })
+                                        }})
                                     }
 
 
@@ -374,8 +376,9 @@ export const InitStoragePage = (props = {}) => {
         if(stateConfig != null){
             const fileID = stateConfig.fileID;
             const storageKey = stateConfig.value.engineKey;
-
-           socket.emit("useConfig", fileID, engineKey,  (callback)=>{
+            setSocketCmd({
+                cmd: "useConfig", params: { fileID: fileID, key: storageKey }, callback: (callback) => {
+           
                 if(!("error" in callback)){
                     const storageID = callback.storageID;
                     const config = stateConfig;
@@ -387,7 +390,7 @@ export const InitStoragePage = (props = {}) => {
                     alert("This config file could not be loaded.")
                     navigate("/localstorage")
                 }
-            })
+            }})
         }else{
             alert("This config file could not be loaded.")
             navigate("/localstorage")

@@ -222,20 +222,7 @@ export const FileHandler = ( props = {}) =>{
 
     async function checkPeers(request){
       
-        socket.emit("fileRequest", request, (callback)=>{
-            if("error" in callback)
-            {
-                return { request: request, error: new Error("File type not supported.") }
-            }else{
-                if(callback.success)
-                {
-                    const peers = callback.peers;
-                    for(let i = 0; i < peers.length ; i++){
-                        
-                    }
-                }
-            }
-        })
+       
     }
 
 

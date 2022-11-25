@@ -22,7 +22,6 @@ import { FileHandler } from "./handlers/FileHandler";
 
 import { LoadingPage } from "./LoadingPage";
 
-
 import { getFileInfo, getPermission, readFileJson, getPermissionAsync } from "./constants/utility";
 import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
 import { Realm } from "./pages/realm/Realm";
@@ -40,9 +39,8 @@ const HomeMenu = ({ props}) => {
     const worker = useWorker(createWorker)
 
     const location = useLocation()
-    const peerOnline = useZust((state) => state.peerOnline)
-    const setPeerOnline = useZust((state) => state.setPeerOnline)
-    const setUser = useZust((state) => state.setUser)
+    const userPeerID = useZust((state) => state.userPeerID)
+
 
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
@@ -54,7 +52,8 @@ const HomeMenu = ({ props}) => {
     const setTerrainFiles = useZust((state) => state.setTerrainFiles)
     const setMediaFiles = useZust((state) => state.setMediaFiles)
 
-   
+
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const [showMenu, setShowMenu] = useState(false) 
  
@@ -84,33 +83,8 @@ const HomeMenu = ({ props}) => {
 
     const localDirectory = useZust((state) => state.localDirectory)
 
-    const setAutoLogin = useZust((state) => state.setAutoLogin)
-    
-    const socketOff = (value) => useZust.setState(produce((state)=>{
-        state.socket.off(value)
-    }))
-
-    const socketOn = (value, listener) => useZust.setState(produce((state) => {
-        state.socket.on(value, listener)
-    }))
-
-    const disconnectSocket = () => useZust.setState(produce((state) => {
-        if(state.socket!= null){
-            state.socket.disconnect();
-        }
-    }))
-
-    const setSystemMessages = useZust((state)=> state.setSystemMessages)
-
-    const logout = () => {
-        setAutoLogin(false);
-        setUser();
-        setConfigFile();
-        setSocket(null)
-        setPeerOnline(false)
-        setShowMenu(false)
-        setSystemMessages([])
-    }
+  
+  
     const setLocalDirectory = useZust((state) => state.setLocalDirectory)
     const setFiles = (value) => useZust.setState(produce((state) => {
         state.files = value;
@@ -238,28 +212,20 @@ const HomeMenu = ({ props}) => {
 
 
     }, [location, user])
-    const prevUserID = useRef({value:null})
+
     useEffect(() => {
 
-        if (user.userID > 0 && user.userID != prevUserID.current.value) {
-            prevUserID.current.value = user.userID;
-
-            socketOff("disconnect")
-            socketOn("disconnect", (res) => {
-                switch (res) {
-                    case "io server disconnect":
-                        logout()
-                        break;
-
+        if (user.userID > 0) {
+  
+            setSocketCmd({cmd: "getRealms", params: {}, callback: (response) => {
+                if(!("error" in response)){
+                    if (response.success) {
+                        setRealms(response.realms)
+                    }
                 }
-            })
-            socket.emit("getRealms", (callback)=>{
+            }})
       
-                if(callback.success)
-                {
-                   setRealms(callback.realms)
-                }
-            })
+        
 
             get("localDirectory" + user.userID).then((value) => {
 
@@ -277,8 +243,9 @@ const HomeMenu = ({ props}) => {
                                     getFileInfo(handle, value.handle).then((file)=>{
 
 
-                                        
-                                        socket.emit("checkStorageCRC", file.crc, (callback) => {
+                                        setSocketCmd({
+                                            cmd: "checkStorageCRC", params: { crc: file.crc }, callback: (callback) => {
+                                            
                                             if("error" in callback)
                                             {
                                                 addSystemMessage(initStorage)
@@ -327,7 +294,7 @@ const HomeMenu = ({ props}) => {
                                                     navigate("/network")
                                                 }
                                             }
-                                        })
+                                        }})
 
                                     }).catch((err) => {
                         
@@ -359,8 +326,6 @@ const HomeMenu = ({ props}) => {
                 navigate("/network")
             })
             
-        }else{
-            prevUserID.current.value = null;
         }
     }, [user])
 
@@ -608,7 +573,7 @@ const HomeMenu = ({ props}) => {
             <NetworkPage  />
         }
         {showIndex == 4 &&
-            <HomePage  logOut={logout}  />
+            <HomePage  />
         }
         {showIndex == 5 &&
             <RecoverPasswordPage  />
@@ -671,7 +636,7 @@ const HomeMenu = ({ props}) => {
                         }}>
                             <ImageDiv width={30} height={30} netImage={{
                                 image: socket != null && user.userID > 0 ? "/Images/logo.png" : "/Images/logout.png", width:25, height:25, 
-                                filter: peerOnline ? "drop-shadow(0px 0px 3px #faa014)" : "" }} />
+                                filter: userPeerID != "" ? "drop-shadow(0px 0px 3px #faa014)" : "" }} />
                         </div>
                         {user.userID > 0 &&
                             <>

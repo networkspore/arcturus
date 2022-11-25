@@ -11,19 +11,13 @@ export const ProfilePage = (props = {}) =>{
     
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
-    const socket = useZust((state) => state.socket)
+
 
     const [profileInfo, setProfileInfo] = useState(null);
     const nav = useNavigate();
 
     const [showIndex, setShowIndex] = useState(0);
-    
-    useEffect(() => {
-        if(socket!= null){
-        socket.emit("getProfileInfo", (info)=>{
-        })}
-
-    }, [])
+ 
 
 
     function onCancelClick(e) {

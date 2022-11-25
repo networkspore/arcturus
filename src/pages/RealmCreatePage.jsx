@@ -93,20 +93,22 @@ export const RealmCreatePage = (props = {}) =>{
             setCurrentDirectory("")
         }
     }
- 
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const handleChange = (e) =>{
         const { name, value } = e.target;
 
         if (name == "realmName") {
             if (value.length > 2) {
-                socket.emit("checkRealmName", value, (callback) => {
+                setSocketCmd({
+                    cmd: "checkRealmName", params: {text: value}, callback: (callback) => {
+               
                     if (callback) {
                         setRealmName(value)
                     } else {
                         setRealmName("")
                     }
-                })
+                }})
             } else {
                 setRealmName("")
         
