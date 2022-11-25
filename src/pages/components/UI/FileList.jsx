@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useId } from "react";
 import { ImageDiv } from "./ImageDiv";
 import styles from "../../css/home.module.css"
 import { useNavigate } from "react-router-dom";
 import produce from "immer";
+import useZust from "../../../hooks/useZust";
 
 
 
@@ -11,7 +12,8 @@ const FileList = (props = {}, ref) => {
     if (props == null) props = {};
     const onChange = "onChange" in props ? props.onChange : null;
 
-   
+    
+    const fileListID = useId()
   
     const divRef = useRef()
     const navigate = useNavigate()
@@ -93,7 +95,7 @@ const FileList = (props = {}, ref) => {
         }
     },[props.fileView])
 
-
+    
 
     useEffect(() => {
 
@@ -106,7 +108,7 @@ const FileList = (props = {}, ref) => {
 
             const numColumns = fileView.direction == "row" ? bounds != null ? Math.floor(bounds.width / fileView.iconSize.width) : null : null;
             const numRows = numColumns != null ? numColumns != 0 ? Math.ceil(files.length / numColumns) : 1 : null
-            rows = numColumns != null && numRows != null ? new Array(numRows) : null
+            rows = numColumns != null && numRows != null && fileView.type == "icons" && fileView.direction == "row" ? new Array(numRows) : null
 
             if(rows != null)
             {
@@ -151,17 +153,29 @@ const FileList = (props = {}, ref) => {
                     const iCrc = file.crc;
                     const iTo = "to" in file ? file.to : null
                     const iHandle = file.handle;
-                    const iIcon = ("icon" in file) ? file.icon : null;
+                    const iIcon = ("icon" in file) ? file.icon : "/Images/icons/document-outline.svg";
                     const mimeType = ("mimeType" in file) ? file.mimeType : "";
-                
-                    let iImage = {
+                    
+                    const update = iTo == null ? {
+                        command: "getIcon",
+                        file: file,
+                        waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
+                        error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
+
+                    } : null
+
+                    const iImage = iTo == null ? {
                         scale: scale,
                         backgroundColor: backgroundColor,
                         backgroundImage: backgroundImage,
-                        image: iIcon == null ? "/Images/icons/document-outline.svg" : iIcon,
-                        borderRadius:15
-                    }
+                        image: iIcon, 
+                        borderRadius:15,
+                        update: update,
+                    } : file.netImage
+                   // if(update != null) iImage.update = update
                  
+                    console.log(iImage)
+
                     switch(fileView.type)
                     {
                         case "icons":
@@ -171,11 +185,10 @@ const FileList = (props = {}, ref) => {
                                     if(rows != null)
                                     {
                                         const rowIndex = Math.floor(i/numColumns)
-                                        const columnIndex = Math.round((( i / numColumns ) % 1) * numColumns)
-                                       
-                                     
-                                      
-                                          rows[rowIndex][columnIndex] = <ImageDiv key={i}
+                                        const columnIndex = ((( i / numColumns ) -rowIndex) * numColumns)
+                                        
+
+                                        rows[rowIndex][columnIndex] = <ImageDiv key={i}
                                             style={{ margin: 10, overflow: "hidden" }}
                                             about={iName}
                                             onClick={(e) => {
@@ -189,12 +202,13 @@ const FileList = (props = {}, ref) => {
                                             height={fileView.iconSize.width}
                                             width={fileView.iconSize.height}
                                             netImage={iImage}
+                                            
                                         />
                                     }
                                 break;
                                 case "list":
                                 default:
-                             
+                                    
                                     iImage.scale = 1;
                                     array.push(
                                         <div key={i} style={{borderRadius:15, margin:25, padding:0, overflow:"hidden"}} about={iName} className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className} >
@@ -220,6 +234,7 @@ const FileList = (props = {}, ref) => {
                             break;
                         case "details":
                         default:
+                          
                             array.push(
                                 <div key={i} style={{ width: "100%", display: "flex", paddingLeft: 0 }} className={styles.result} tabIndex={i} onClick={(e) => {
 
@@ -263,6 +278,7 @@ const FileList = (props = {}, ref) => {
                 )
             }
         }
+     
         setList( array)
 
     }, [files, selectedIndex, props, fileView])
@@ -328,7 +344,6 @@ const FileList = (props = {}, ref) => {
         }
 
     }, [selectedIndex])
-
 
 
 

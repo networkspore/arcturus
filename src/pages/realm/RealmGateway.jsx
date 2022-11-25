@@ -304,7 +304,13 @@ export const RealmGateway= (props = {}) =>{
                     <ImageDiv onClick={(e)=>{
                        setShowIndex(10)
                     }} width={130} height={ 130} about={"Select Image"} className={admin ? className : ""} netImage={{
-                        image: currentRealm.realmID != null && "icon" in currentRealm.image ? currentRealm.image.icon : "/Images/spinning.gif",
+                        update: {
+                            command: "getIcon",
+                            file: currentRealm.image,
+                            waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
+                            error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
+
+                        }, 
                         backgroundColor: "#44444450",
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
                        
@@ -425,7 +431,9 @@ export const RealmGateway= (props = {}) =>{
                 <RealmAssets />
             }
             {admin && showIndex == 10 &&
-                <ImagePicker />
+                <ImagePicker onCancel={()=>{setShowIndex(null)}} onOk={(file)=>{
+
+                }}/>
             }
        </>
     )

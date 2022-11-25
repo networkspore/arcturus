@@ -237,63 +237,18 @@ export async function getFileInfo(entry, dirHandle, type) {
                 
                 crc32FromArrayBuffer(arrayBuffer, (crc) => {
                     
-                    if (type == "image") {
-                        get(crc + ".arcicon").then((iconInIDB) => {
-                           
-                            if(iconInIDB != undefined)
-                            {
-                            
-                                const dataURL = iconInIDB;
-                                resolve({
-                                    directory: dirHandle,
-                                    icon: dataURL,
-                                    mimeType: type,
-                                    name: file.name,
-                                    crc: crc,
-                                    size: file.size,
-                                    type: file.type,
-                                    lastModified: file.lastModified,
-                                    handle: entry
-                                })
-                            }else{
-                           
-                                getThumnailFile(file, crc).then((dataURL) => {
-                                    resolve({
-                                        directory: dirHandle,
-                                        icon: dataURL,
-                                        mimeType: type,
-                                        name: file.name,
-                                        crc: crc,
-                                        size: file.size,
-                                        type: file.type,
-                                        lastModified: file.lastModified,
-                                        handle: entry
-                                    })
-                                }).catch((err) => {
-                                    resolve({ directory: dirHandle, icon: null, mimeType: type, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                                })
-                            }
-                        }).catch((err)=>{
-                            getThumnailFile(file, crc).then((dataURL) => {
-                                resolve({
-                                    directory: dirHandle,
-                                    icon: dataURL,
-                                    mimeType: type,
-                                    name: file.name,
-                                    crc: crc,
-                                    size: file.size,
-                                    type: file.type,
-                                    lastModified: file.lastModified,
-                                    handle: entry
-                                })
-                            }).catch((err) => {
-                                resolve({ directory: dirHandle, icon: null, mimeType: type, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                            })
-                        })
-                        
-                    } else {
-                        resolve({ directory: dirHandle, icon: null, mimeType: type, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                    }              
+                    get(crc + ".arcicon").then((iconInIDB) => {
+                        if(iconInIDB == undefined && type == "image")
+                        {
+                            getThumnailFile(file, crc).then((dataUrl) =>{
+                                set(crc + ".arcicon", dataUrl)
+                            }).catch((err) => console.log(err))
+                        }
+                    }).catch((err)=>{
+                        console.log(err)
+                    })
+
+                    resolve({ directory: dirHandle, mimeType: type, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })   
                 })
             })
         })
@@ -328,10 +283,10 @@ export async function getImageHandleDataURL(localFile){
 }
 
 
-async function getThumnailFile(arrayBuffer, crc, size = { width: 100, height: 100 }) {
+export async function getThumnailFile(file, size = { width: 100, height: 100 }) {
     
     return new Promise(resolve => {
-        createImageBitmap(arrayBuffer).then((image) => {
+        createImageBitmap(file).then((image) => {
             var canvas = document.createElement('canvas'),
                 ctx = canvas.getContext("2d");
 
@@ -351,21 +306,7 @@ async function getThumnailFile(arrayBuffer, crc, size = { width: 100, height: 10
             const resampledCanvas = resample(canvas, scale);
             const dataUrl = resampledCanvas.toDataURL();
 
-            set(crc + ".arcicon", dataUrl)
-            get(".arcicon").then((arr)=>{
-                if(arr != undefined)
-                {
-                    const index = arr.findIndex(icons => icons == crc + ".arcicon")
-
-                    if(index == -1){
-                        update(".arcicon", val => val.push(crc + ".arcicon")).catch((error)=>{
-                            console.log(error)
-                        })
-                    }
-                }else{
-                    set(".arcicon", [crc + ".arcicon"])
-                }
-            })
+       
             
 
             resolve(dataUrl)

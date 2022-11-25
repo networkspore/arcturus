@@ -57,7 +57,7 @@ export const Realm = () => {
             const index = realms.findIndex(r => r.realmID == currentRealmID)
             const realm = realms[index]
             if (!("value" in realm.image)) {
-                addFileRequest({ command: "getRealmImage", page: "realm", id: realm.realmID, file: realm.image, callback: updateRealmImage })
+                addFileRequest({ command: "getImage", page: "realm", id: realm.realmID, file: realm.image, callback: updateRealmImage })
             }
            
             setCurrentRealm(realm)

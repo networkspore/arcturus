@@ -1,5 +1,4 @@
-import { get } from "idb-keyval";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useId} from "react";
 import useZust from "../../../hooks/useZust";
 
 
@@ -13,7 +12,7 @@ export const ImageDiv = (props = {}) => {
     const [filter, setFilter] = useState("")
 
     const [imgStyle, setImgStyle] = useState({})
-
+    const imgDivId = useId()
     
     const [style, setStyle] = useState({
         display: "flex",
@@ -25,21 +24,46 @@ export const ImageDiv = (props = {}) => {
     })
 
  
-
+    const addFileRequest = useZust((state) => state.addFileRequest)
   
+    const [updated, setUpdated] = useState(null) 
+
+    const onUpdate = (response) => {
+        console.log(response)
+        if("success" in response && response.success){
+            switch (response.request.command){
+                case "getIcon":
+                    setUpdated({ success: true, url: response.file.icon, style: { filter: "" } })
+                break;
+                case "getImage":
+                    setUpdated({ success: true, url: response.file.image, style: { filter: "" } })
+                    break;
+                default:
+                    setUpdated({ success: false, url: props.netImage.update.error.url, style: props.netImage.update.error.style })
+            }
+        }else{
+
+        }
+    }
 
     useEffect(() => {
-       
+      
        
         const tmp = ("netImage" in props) ? props.netImage !== undefined ?  props.netImage : {} : {};
 
-      
-
+        const update = "update" in tmp && tmp.update != null && tmp.update.file != null && tmp.update.file.crc != null && tmp.update.file.crc != "" ? tmp.update : null
+       
+        
+        if(update != null && updated == null && update.file.crc != "") {
+        
+            console.log(update)
+            addFileRequest({command: tmp.update.command, page: "imgDiv", id: imgDivId, file: tmp.update.file, callback: onUpdate})
+        }
         let info = { 
             opacity: ("opacity" in tmp) ? tmp.opacity : 1,
             scale: ("scale" in tmp) ? tmp.scale : 1, 
-            image: ("image" in tmp) ? tmp.image : "", 
-            filter: ("filter" in tmp) ? tmp.filter : null, 
+            image: ("image" in tmp) && update == null ? tmp.image : update == null ? null : updated ? updated.url : update.waiting.url, 
+            filter: ("filter" in tmp) && update == null ? tmp.filter : update == null ? null : updated? updated.style.filter : update.waiting.style.filter, 
             backgroundImage: ("backgroundImage" in tmp) ? tmp.backgroundImage : null, 
             backgroundColor: ("backgroundColor" in tmp) ? tmp.backgroundColor : "#000000" 
         };
@@ -111,7 +135,7 @@ export const ImageDiv = (props = {}) => {
         setStyle(tmpStyle)
      
     
-    }, [props, pageSize])
+    }, [props, pageSize, updated])
 
 
 

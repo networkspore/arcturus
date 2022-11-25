@@ -30,6 +30,7 @@ import { useRef } from "react";
 
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
+import { useId } from "react";
 
  const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -120,7 +121,7 @@ const HomeMenu = ({ props}) => {
     const [directory, setDirectory] = useState("")
 
     const setPage = useZust((state) => state.setPage)
-    const addFileRequest = useZust((state) => state.addFileRequest)
+
     const realms = useZust((state) => state.realms)
 
     const setSocket = useZust((state) => state.setSocket)
@@ -534,33 +535,9 @@ const HomeMenu = ({ props}) => {
 
 
 
-    const updateRealmImage = (response) => useZust.setState(produce((state) => {
-     
+    
 
-        if ("error" in response) {
-            console.log('error')
-        } else {
-            if(response.success)
-            {
-                const index = realms.findIndex(realm => realm.realmID == response.request.id);
-                const image = index != -1 ? state.realms[index].image : null;
-
-                if (index != -1) {
-                    const file = response.file;
-
-                    const fileProperties = Object.getOwnPropertyNames(file)
-
-                    fileProperties.forEach(property => {
-                        image[property] = file[property];
-                    });
-
-                    if (index != -1) state.realms[index].image = image;
-                }
-            }
-            
-        }
-    }))
-
+    const homeMenuID = useId()
 
     useEffect(()=>{
         if(showMenu && realms != null && realms.length > 0 )
@@ -571,32 +548,33 @@ const HomeMenu = ({ props}) => {
                     const realmIndex = realms.findIndex(r => r.realmID == quickBar[i].realmID)
                     if(realmIndex != -1){
                         const realm = realms[realmIndex];
-                        if (!("icon" in realm.image)) {
-
-                            addFileRequest({command:"getRealmIcon", page: "homeMenu", id: realm.realmID, file: realm.image, callback: updateRealmImage })
-                            tmp.push(
-
-                                <div key={i} onClick={()=>{
-                                    setCurrentRealmID(realm.realmID)
-                                    navigate("/realm/gateway")
-                                }} style={{ outline: 0 }} className={showIndex == 7 &&  currentRealmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
-                                    <ImageDiv width={60} height={60} netImage={{opacity:.6, image: "/Images/spinning.gif", filter: "invert(100%)", scale: .75 }} />
-                                </div>
-                            )
-
-                        } else {
+                        const iIcon = "icon" in realm.image ? realm.image.icon != null ? realm.image.icon : null : null;
+                       
+       
                          
                             tmp.push(
                                 <div key={i} onClick={() => { 
                                     setCurrentRealmID(realm.realmID)
                                     navigate("/realm/gateway")
                                 }} style={{ outline: 0 }} className={showIndex == 7 && currentRealmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
-                                    <ImageDiv width={60} height={60} netImage={{ backgroundColor:"", opacity: 1, image: realm.image.icon,  scale: 1 }} />
+                                    <ImageDiv width={60} height={60} 
+                                        netImage={{ 
+                                            update: { 
+                                                command: "getIcon", 
+                                                file: realm.image,
+                                                waiting: {url: "/Images/spinning.gif", style: { filter: "invert(100%)" }},
+                                                error: {url:"/Images/icons/cloud-offline-outline.svg", style:{filter:"invert(100%)"}},
+
+                                            }, 
+                                            backgroundColor: "", 
+                                            opacity: 1, 
+                                            image: null,  
+                                            scale: 1 
+                                        }} 
+                                    />
                                 </div>
                             )
-                          
-                        }
-                    }else{
+
               
                     }
                 }

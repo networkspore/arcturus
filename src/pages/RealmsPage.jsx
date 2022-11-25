@@ -80,7 +80,7 @@ export const RealmsPage = () =>{
                             { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.value, opacity: .9} }
                         )
                     }else{
-                        addFileRequest({ command: "getRealmImage", page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
+                        addFileRequest({ command: "getImage", page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
                         if (("icon" in realm.image)) {
                             tmp.push(
                                 { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.icon, opacity: .9 } }

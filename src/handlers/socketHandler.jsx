@@ -19,8 +19,9 @@ export const SocketHandler = (props = {}) => {
         if(!(user.userID > 0))
         {
             loggedIn.current.value = false;
+            sock.current.value = null
         }
-    }, [user.userID])
+    }, [user])
 
 
     useEffect(()=>{
@@ -31,28 +32,37 @@ export const SocketHandler = (props = {}) => {
 
     const sock = useRef({value:null})
 
+    const tryCount = useRef({value:1})
+
     useEffect(() =>{
         
         if(!loggedIn.current.value)
         {
             if(socketCmd.cmd == "login")
-            {
-                if(sock.current.value == null)
+            {   
+                console.log(sock.current.value)
+                if (sock.current.value == null && tryCount.current.value < 5)
                 {
                     sock.current.value =  io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
                 
                     sock.current.value.on("connect", ()=>{
-                       
+                        console.log("connected")
                         if(sock.current.value != null){
                             sock.current.value.emit("login", socketCmd.params, (response)=>{
                                 if("success" in response && response.success){
                                     setSocket(sock.current.value)
                                     loggedIn.current.value = true
                                     socketCmd.callback(response)
+                                    sock.current.value = null
+                                    tryCount.current.value = 1
                                 }else{
+                              
                                     sock.current.value.disconnect()
                                     sock.current.value = null;
-                                    loggedIn.current.value = fakse
+                                    loggedIn.current.value = false
+                                    tryCount.current.value++
+                                    socketCmd.callback({success:false})
+                                    
                                 }
                                 setSocketCmd()
                             })
@@ -63,7 +73,7 @@ export const SocketHandler = (props = {}) => {
             
         }else{
             switch (socketCmd.cmd) {
-                case "login":
+                default:
                    
                     break;
             }

@@ -67,7 +67,7 @@ export const FileHandler = ( props = {}) =>{
                 if( addProcessing(request)){
                     
                     executeFileCommand(request).then((result)=>{
-                       console.log(result)
+                      
                         request.callback(result)
                         removeProcessing(request)
                         removeFileRequest(request)
@@ -87,60 +87,65 @@ export const FileHandler = ( props = {}) =>{
     const executeFileCommand = (request) => {
         return new Promise(resolve => {
 
-            checkLocal(request).then((localResult) => { //check local files first
+         
+            
+            switch (request.command) {
                 
-                switch (request.command) {
-                    case "getRealmIcon":
+                case "getIcon":
+                    switch (request.file.mimeType) {
 
-                        if (localResult != null) {
-                            resolve({ success: true, file: localResult, request: request })
-                        } else {
+                        case "image":
+                            checkLocalImages(request).then((localResult)=>{
+                                if (localResult != null) {
+                                    //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
 
-                            checkPeers(request).then((peersResult) => {
-                                resolve({ error: "not implemented" })
+                                    getLocalIcon(request, localResult).then((imageResult) => {
+                                        resolve(imageResult)
+                                    })
+                                } else {
+                                    checkPeers(request).then((peersResult) => {
+                                        resolve({ error: "not implemented" })
+                                    })
+                                }
                             })
-
+                            break;
+                        default:
+                            resolve({ error: "not implemented" })
                         }
+                    break;
+                case "getImage":
+                    switch (request.file.mimeType) {
 
-                        break;
-                    case "getRealmImage":
-                        if (localResult != null) {
-                            //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
+                        case "image":
+                            checkLocalImages(request).then((localResult) => {
+                                if (localResult != null) {
+                                    //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
 
-                            getLocalImage(request, localResult).then((realmImageResult) => {
-                                updateImages(imageResult.file)
-                                resolve(realmImageResult)
+                                    getLocalImage(request, localResult).then((imageResult) => {
+                                        resolve(imageResult)
+                                    })
+                                } else {
+                                    checkPeers(request).then((peersResult) => {
+                                        resolve({ error: "not implemented" })
+                                    })
+                                }
                             })
-                        } else {
-                            checkPeers(request).then((peersResult) => {
-                                resolve({ error: "not implemented" })
-                            })
-                        }
-                        break;
-                    case "getImage":
-                        if (localResult != null) {
-                            //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
+                            break;
+                        default:
+                            resolve({ error: "not implemented" })
+                    }
+                    break;
+                   
+                default:
+                    resolve({ error: "not implemented" })
 
-                            getLocalImage(request, localResult).then((imageResult) => {
-
-                                updateImages(imageResult.file)
-                             
-                                resolve(imageResult)
-                            })
-                        } else {
-                            checkPeers(request).then((peersResult) => {
-                                resolve({ error: "not implemented" })
-                            })
-                        }
-                        break;
-
-
-                }
-            })
+            }
+         
 
         })
 
     }
+
 
 
     async function getLocalImage(request, localFile){
@@ -170,24 +175,47 @@ export const FileHandler = ( props = {}) =>{
         }
     }
 
+    async function getLocalIcon(request, localFile) {
 
-    async function checkLocal(request) {
-      
-        switch (request.file.mimeType) {
-            
-            case "image":
-                const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+        try {
+            const idbDataUrl = await get(localFile.crc + ".arcicon")
 
-                if (i > -1) {
-                    return imagesFiles[i]
-                } else {
-                    return null
-                }
-                break;
-            default:
-                return null
-                break;
+            const dataURL = idbDataUrl == undefined ? await worker.getThumnailFile(localFile) : idbDataUrl;
+
+            const objNames = Object.getOwnPropertyNames(request.file)
+            let newFile = {}
+            objNames.forEach(name => {
+                newFile[name] = request.file[name]
+            });
+
+            const localNames = Object.getOwnPropertyNames(localFile)
+
+            localNames.forEach(name => {
+                newFile[name] = localFile[name]
+            });
+
+            newFile.icon = dataURL
+
+            return { success: true, file: newFile, request: request }
+        } catch (err) {
+            return { error: new Error("Cannot get image from file.") }
         }
+    }
+
+
+
+    async function checkLocalImages(request) {
+   
+    
+        const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+
+        if (i > -1) {
+            return imagesFiles[i]
+        } else {
+            return null
+        }
+        
+    
     }
 
     
