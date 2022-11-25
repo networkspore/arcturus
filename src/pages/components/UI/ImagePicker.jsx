@@ -61,6 +61,13 @@ export const ImagePicker = (props ={}) =>{
         }
     }, [configFile, localDirectory])
 
+    useEffect(()=>{
+        if("selectedImage" in props)
+        {
+            addFileRequest({ command: "getImage", page: "imagePicker", id: pickerID, file: props.selectedImage, callback: updateImage })
+        }
+    },[props])
+
     const updateImage = (response) => {
       
             setImageSelected(response.file)
@@ -142,7 +149,7 @@ export const ImagePicker = (props ={}) =>{
                 
             }}>
                 <div style={{display:"flex", width:"100%"}}>
-                    <div style={{ marginLeft: 15, marginBottom: 5,width:80 }}>  <ImageDiv width={20} height={20} netImage={{ opacity: .8, image: "/Images/icons/image-outline.svg", filter: "invert(100%)" }} /></div>
+                    <div style={{ marginLeft: 12,marginTop:6,width:80 }}>  <ImageDiv width={20} height={25} netImage={{ opacity: .8, image: "/Images/icons/image-outline.svg", filter: "invert(100%)" }} /></div>
                 <div style={{
                     display:"flex",
                     alignItems: "center",

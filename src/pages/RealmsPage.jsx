@@ -208,6 +208,9 @@ export const RealmsPage = () =>{
         }
         
     }
+    const onNextPage = (e) =>{
+
+    }
    
     return (
         <>
@@ -378,20 +381,35 @@ export const RealmsPage = () =>{
                     }
                     {selectedRealm != null &&
                         <>
-                            <div style={{ flex: 0.02 }}>&nbsp;</div>
-                            <div style={{ display: "flex", justifyContent: "end", alignItems: "center", flex:1,}}>
-                                <div about="Gateway" className={styles.tooltipCenter__item} onClick={(e) => { 
-                                    setCurrentRealmID(selectedRealm.realmID)
-                                    navigate("/realm/gateway")
-                                    }}  style={{padding:10, display: "flex", transform:"translateX(50%)" }}>
+                            <div style={{ flex: 1 }}>&nbsp;</div>
+                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex:1,}}>
+                                <div style={{ width:30}}>&nbsp;</div>
+
+                                <div about="Gateway" 
+                                    className={styles.tooltipCenter__item} 
+                                    onClick={(e) => { 
+                                        setCurrentRealmID(selectedRealm.realmID)
+                                        navigate("/realm/gateway")
+                                    }}  
+                                    style={{display: "flex", 
+                                    }}>
+                                    <div style={{ width: 100 }}>&nbsp;</div>
                                     <ImageDiv style={{ filter:"drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)"}} width={55} height={55} netImage={{ scale: 1,  backgroundColor: "", image: "/Images/realm.png", filter: "invert(100%)" }} />
+                                    <div style={{ width: 100 }}>&nbsp;</div>
                                 </div>
+                              
+                                    <div about={"Delete Realm"} className={styles.tooltipCenter__item} onClick={onEndRealm}>
+
+                                        <ImageDiv width={20} height={20} netImage={{ image: "/Images/icons/trash-outline.svg", filter: "invert(100%)" }} />
+
+                                    </div>
+
                             </div>
 
                             <div style={{display:"flex", justifyContent:"end", alignItems:"center", flex:1, }}>
-                                <div about={"End Realm"} className={styles.tooltipCenter__item} onClick={onEndRealm} style={{ padding: 20, }}>
+                                <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onNextPage} style={{  }}>
                                  
-                                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/remove-circle-outline.svg", filter: "invert(100%)" }} />
+                                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/chevron-forward-outline.svg", filter: "invert(100%)" }} />
                                   
                                 </div>
                                 

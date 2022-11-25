@@ -861,7 +861,58 @@
 	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
 	filter: drop-shadow(0px 0px 3px #ffffff30);
 }
+.bubbleButtonLink {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+	box-shadow: 0 0 10px #ffffff15, 0 0 20px #ffffff15, inset 0 0 30px #77777715;
+	opacity: .9;
+	overflow: auto;
+}
 
+.bubbleButtonLink:hover {
+	color: white;
+	opacity: 1;
+	background: #ffffff05;
+	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
+}
+.bubbleButtonLink::after {
+	position: absolute;
+		display: flex;
+		font-family: "webpapyrus";
+		z-index: 9999;
+	
+		top: 70%;
+	
+		transform: translate(-50%, -10%);
+	
+	
+		left: 50%;
+	
+		content: attr(about);
+	
+		white-space: nowrap;
+	
+		padding: 10px;
+	
+		/* 90% of current font size   */
+		font-size: 0.9em;
+		font-weight: bold;
+		background: rgba(0, 0, 0, 0.8);
+		border-radius: 5px;
+		color: white;
+	
+		/*  invisible (can't see it but can click on it)  */
+	
+
+}
 .bubble__item::after {
 	position: absolute;
 	display: flex;

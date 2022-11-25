@@ -278,8 +278,10 @@ export const RealmGateway= (props = {}) =>{
 
             
         }
+        
+        const onUpdateRealmImage = (e) =>{
 
-
+        }
 
 
     return (
@@ -431,9 +433,7 @@ export const RealmGateway= (props = {}) =>{
                 <RealmAssets />
             }
             {admin && showIndex == 10 &&
-                <ImagePicker onCancel={()=>{setShowIndex(null)}} onOk={(file)=>{
-
-                }}/>
+                <ImagePicker selectedImage={currentRealm.image} onCancel={()=>{setShowIndex(null)}} onOk={onUpdateRealmImage}/>
             }
        </>
     )
