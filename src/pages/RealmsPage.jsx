@@ -20,6 +20,8 @@ export const RealmsPage = () =>{
     const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
     const [showIndex, setShowIndex] = useState(0)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
+    const [showMenu, setShowMenu] = useState(false)
+    
 
     const [selectedRealm, setSelectedRealm] = useState(null)
 
@@ -145,7 +147,7 @@ export const RealmsPage = () =>{
 
 
     const onRealmChange = (r) =>{
-        
+        setShowMenu(false)
         if(r != null && r.id > -1 )
         {
            const index = realms.findIndex(realm => realm.realmID == r.id)
@@ -365,24 +367,30 @@ export const RealmsPage = () =>{
                    
                     {selectedItem != null && selectedRealm == null &&
                         <>
-                            <div style={{flex:.02 }}>&nbsp;</div>
-                        <div style={{ height: 30 }}>&nbsp;</div>
-                            <div style={{ display: "flex", alignItems: "left", width: "100%" }}>
-                                
-                                <div className={styles.InactiveIcon} style={{ display: "flex" }}>
-                                    <div style={{ width: 5 }}>&nbsp;</div>
-                                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/add-circle-outline.svg", filter: "invert(100%)" }} />
-                                    <div onClick={onCreateRealm} style={{ fontSize: 20, fontFamily: "WebPapyrus", padding: 10, cursor: "pointer" }}>
-                                        Create Realm
-                                    </div>
-                                </div>
-                            </div>
-                            <div style={{ flex: .02 }}>&nbsp;</div>
+                            <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent:"center" }}>
+                            
+                                <div style={{ width: 55, borderRadius: 55 }} about={"Begin a realm"} className={styles.tooltipCenter__item} onClick={(e) => {
+                                   
+                                }}>
+
+                                    <ImageDiv style={{ filter: "drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)" }} width={55} height={55} netImage={{ backgroundColor: "", image: "/Images/icons/earth-outline.svg", filter: "invert(100%) drop-shadow(0 0 10px #ffffff40) drop-shadow(0 0 20px #ffffff40)" }} />
+
+                                </div></div>
                         </>
                     }
                     {selectedRealm != null &&
                         <>
-                            <div style={{ flex: 1 }}>&nbsp;</div>
+                           
+                            <div style={{display:"flex", flex: 1, alignItems:"center" }}> 
+                            <div style={{width:50}}>&nbsp;</div>
+                                <div style={{  width: 30, borderRadius: 20 }} about={"Menu"} className={styles.tooltipCenter__item} onClick={(e)=>{
+                                    setShowMenu(true)
+                                }}>
+
+                                    <ImageDiv width={35} height={35} netImage={{ backgroundColor: "", image: "/Images/icons/menu-outline.svg", filter: "invert(100%) drop-shadow(0 0 10px #ffffff40) drop-shadow(0 0 20px #ffffff40)" }} />
+
+                            </div></div>
+
                             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex:1,}}>
                                 <div style={{ width:30}}>&nbsp;</div>
 
@@ -399,11 +407,7 @@ export const RealmsPage = () =>{
                                     <div style={{ width: 100 }}>&nbsp;</div>
                                 </div>
                               
-                                    <div about={"Delete Realm"} className={styles.tooltipCenter__item} onClick={onEndRealm}>
-
-                                        <ImageDiv width={20} height={20} netImage={{ image: "/Images/icons/trash-outline.svg", filter: "invert(100%)" }} />
-
-                                    </div>
+                                   
 
                             </div>
 
@@ -438,7 +442,28 @@ export const RealmsPage = () =>{
         { showIndex == 1 &&
             <RealmCreatePage onNewRealm={onNewRealm}/>
         }
-       
+        {showMenu && selectedRealm != null && 
+            <div  style={{backgroundColor:"black", display:"flex", flexDirection:"column", position:"fixed", left:135, top: 120, width:200, padding:5 }}>
+                    <div className={styles.result} onClick={(e) => {
+                        setCurrentRealmID(selectedRealm.realmID)
+                        navigate("/realm/gateway")
+                    } } style={{display:"flex", alignItems:"center", justifyContent:"left"}}>
+
+                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/realm.png", filter: "invert(100%)" }} />
+                    <div style={{paddingLeft:10}}>
+                        Enter Gateway
+                    </div>
+                </div>
+                    <div className={styles.result} onClick={onEndRealm} style={{ display: "flex", alignItems: "center", justifyContent: "left" }}>
+
+                        <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/flash-outline.svg", filter: "invert(100%)" }} />
+                        <div style={{ paddingLeft: 10 }}>
+                            End Realm
+                        </div>
+                    </div>
+            </div>
+        }
+           
         </>
     )
 }

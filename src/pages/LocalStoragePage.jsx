@@ -167,7 +167,10 @@ export const LocalStoragePage = () => {
         set("localDirectory" + user.userID, lDirectory)
   
         try{
-            dirHandle.handle.getFileHandle("arcturus.config").then((handle) => {
+            localDirectory.handle.getDirectoryHandle("home", { create: true }).then((homeHandle) => {
+                homeHandle.getDirectoryHandle(user.userName, { create: true }).then((userHomeHandle) => {
+
+            userHomeHandle.getFileHandle(user.userName + ".storage.config").then((handle) => {
                 console.log(handle)
                 if (handle != null && handle != undefined) {
                     getFileInfo(handle, value.handle).then((file) => {
@@ -175,7 +178,7 @@ export const LocalStoragePage = () => {
 
 
                         setSocketCmd({
-                            cmd: "checkStorageCRC", params: { crc: file.crc }, callback: (callback) => {
+                            cmd: "checkUserStorageCRC", params: { crc: file.crc }, callback: (callback) => {
                             if ("error" in callback) {
                                 addSystemMessage(initStorage)
                                 navigate("/home/localstorage/init")
@@ -226,8 +229,9 @@ export const LocalStoragePage = () => {
                         navigate("/home/localstorage/init")
                     })
                 }
+                })
+            })
         })
-         
     }catch(err){
             console.log(err)
             addSystemMessage(initStorage)

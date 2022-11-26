@@ -17,22 +17,23 @@ export const InitStoragePage = (props = {}) => {
     const location = useLocation()
     const P2PRef = useRef();
     const ergoRef = useRef();
+
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
   
 
     const localDirectory = useZust((state) => state.localDirectory)
     const setConfigFile = useZust((state) => state.setConfigFile)
     const configFile = useZust((state) => state.configFile)
+
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
+    const realmsDirectory = useZust((state) => state.realmsDirectory);
+    const homeDirectory = useZust((state) => state.homeDirectory)
 
 
-    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
-    const setImagesDirectory = useZust((state) => state.setImagesDirectory);
-    const setModelsDirectory = useZust((state) => state.setModelsDirectory);
-    const setMediaDirectory = useZust((state) => state.setMediaDirectory);
-
+    
 
     const [engineKey, setEngineKey] = useState("Generate a key")
 
@@ -79,7 +80,7 @@ export const InitStoragePage = (props = {}) => {
     },[localDirectory])
 
     useEffect(() => {
-        console.log(location.state)
+      
         const isState = location.state != null && ("configFile") in location.state ?  location.state.configFile : null
         setStateConfig(isState)
         if(stateConfig != null) {
@@ -89,7 +90,7 @@ export const InitStoragePage = (props = {}) => {
             
             if (configFile.value != null) {
                try{
-
+                 
                     setFirstRun(false)
                     const config = configFile.value;
                     setEngineKey(config.engineKey)
@@ -102,7 +103,7 @@ export const InitStoragePage = (props = {}) => {
                     setCustomFolders(configFile.value.folders)
 
                 }catch(err){
-                    localDirectory.handle.removeEntry("arcturus.config").then((deleted)=>
+                    localDirectory.handle.removeEntry(user.userName+".storage.config").then((deleted)=>
                     {
                         props.resetLocalStorage()
                     }).catch((err)=>{
@@ -113,6 +114,7 @@ export const InitStoragePage = (props = {}) => {
                 }
 
             }else{
+             
                 setFirstRunConfig()
             }
         }
@@ -169,136 +171,142 @@ export const InitStoragePage = (props = {}) => {
         })
     }
 
-    const setupConfigFile = () =>{
-       return new Promise(resolve =>{
-        getLocalPermissions(()=>{
-  
-            localDirectory.handle.getFileHandle("arcturus.config", { create: true }).then((fileHandle)=>{
-        
-                fileHandle.createWritable().then((configFileStream)=>{
-         
-                    const config = {
-                        engineKey: engineKey,
-                        peer2peer: P2PRef.current.getValue,
-                        ergo: ergoRef.current.getValue,
-                        folders:{
-                            images: { name: !imagesDefault ? customFolders.images : imagesDirectory.name, 
-                                default: imagesDefault, 
-                                fileTypes: ["webp","apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
-                            },
-                            models: { name: !modelsDefault ? customFolders.models : modelsDirectory.name, 
-                                default: modelsDefault,
-                                fileTypes: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"]
-                            },
-                            terrain: { name: !terrainDefault ? customFolders.terrain : terrainDirectory.name, 
-                                default: terrainDefault, 
-                                fileTypes: ["json"]
-                            },
-                            media: { name: !mediaDefault ? customFolders.media : mediaDirectory.name,
-                                default: mediaDefault,
-                                fileTypes: ["pcm", "mp3", "ogg", "webm", "aac", "wav", "3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", ".oga", ] 
-                            },
-                           
-                        } 
-                    }
-                    let userConfig = {}
-                    userConfig[user.userName] = config;
 
-                    configFileStream.write(JSON.stringify(userConfig)).then((value)=>{
-            
-                        configFileStream.close().then((closed)=>{
-                            console.log()
-                            localDirectory.handle.getFileHandle("arcturus.config").then((newHandle) => {
-                                console.log("config got")
-                                getFileInfo(newHandle).then((fileInfo) => {
-                                
-                                    const newConfig = fileInfo;
+    const setupConfigFile = (userName) => {
+        return new Promise(resolve => {
+            getLocalPermissions(() => {
+                localDirectory.handle.getDirectoryHandle("home", { create: true }).then((homeHandle) => {
+                    homeHandle.getDirectoryHandle(user.userName, { create: true }).then((userHomeHandle) => {
 
-                                    newConfig.value = config
+                        userHomeHandle.getFileHandle(userName + ".storage.config", { create: true }).then((fileHandle) => {
 
-                                    const engineKey = config.engineKey;
+                    fileHandle.createWritable().then((configFileStream) => {
 
+                        const config = {
+                            engineKey: engineKey,
+                            peer2peer: P2PRef.current.getValue,
+                            ergo: ergoRef.current.getValue,
+                            folders: {
+                                images: {
+                                    name: !imagesDefault ? customFolders.images : imagesDirectory.name,
+                                    default: imagesDefault,
+                                    fileTypes: ["webp", "apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
+                                },
+                                models: {
+                                    name: !modelsDefault ? customFolders.models : modelsDirectory.name,
+                                    default: modelsDefault,
+                                    fileTypes: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"]
+                                },
+                                terrain: {
+                                    name: !terrainDefault ? customFolders.terrain : terrainDirectory.name,
+                                    default: terrainDefault,
+                                    fileTypes: ["json"]
+                                },
+                                media: {
+                                    name: !mediaDefault ? customFolders.media : mediaDirectory.name,
+                                    default: mediaDefault,
+                                    fileTypes: ["pcm", "mp3", "ogg", "webm", "aac", "wav", "3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", ".oga",]
+                                },
 
+                            }
+                        }
+                        let userConfig = {}
+                        userConfig[user.userName] = config;
 
+                        configFileStream.write(JSON.stringify(userConfig)).then((value) => {
 
-                                    if (!imagesDefault) {
-                                        set("images" + engineKey, customFolders.images)
-                                    }
-                                    if (!modelsDefault) {
-                                        set("models" + engineKey, customFolders.models)
-                                    }
-                                    if (!terrainDefault) {
-                                        set("terrain" + engineKey, customFolders.terrain)
-                                    }
-                                    if (!mediaDefault) {
-                                        set("media" + engineKey, customFolders.media)
-                                    }
-                                    const newFile = {
-                                        mimeType: "config",
-                                        name: fileInfo.name,
-                                        crc: fileInfo.crc,
-                                        size: fileInfo.size,
-                                        type: fileInfo.type,
-                                        lastModified: fileInfo.lastModified,
-                                    } 
-                                    if(firstRun)
-                                    {
-                                        setSocketCmd({
-                                            cmd: "createStorage", params: {file:newFile, key:engineKey}, callback: (created) => {
+                            configFileStream.close().then((closed) => {
+                                console.log()
+                               userHomeHandle.getFileHandle(userName + ".storage.config").then((newHandle) => {
+                                    console.log("config got")
+                                    getFileInfo(newHandle).then((fileInfo) => {
 
-                                            if (!("error" in created)) {
-                                                if(created.success){
-                                                    newConfig.fileID = created.fileID;
-                                                    newConfig.storageID = created.storageID;
+                                        const newConfig = fileInfo;
 
-                                                    resolve( {success:true, config:newConfig})
-                                                }else{
-                                                    resolve( { success: false })
+                                        newConfig.value = config
+
+                                        const engineKey = config.engineKey;
+
+                                        if (!imagesDefault) {
+                                            set("images" + engineKey, customFolders.images)
+                                        }
+                                        if (!modelsDefault) {
+                                            set("models" + engineKey, customFolders.models)
+                                        }
+                                        if (!terrainDefault) {
+                                            set("terrain" + engineKey, customFolders.terrain)
+                                        }
+                                        if (!mediaDefault) {
+                                            set("media" + engineKey, customFolders.media)
+                                        }
+                                        const newFile = {
+                                            mimeType: "config",
+                                            name: fileInfo.name,
+                                            crc: fileInfo.crc,
+                                            size: fileInfo.size,
+                                            type: fileInfo.type,
+                                            lastModified: fileInfo.lastModified,
+                                        }
+                                        if (firstRun) {
+                                            setSocketCmd({
+                                                cmd: "createStorage", params: { file: newFile, key: engineKey }, callback: (created) => {
+
+                                                    if (!("error" in created)) {
+                                                        if (created.success) {
+                                                            newConfig.fileID = created.fileID;
+                                                            newConfig.storageID = created.storageID;
+
+                                                            resolve({ success: true, config: newConfig })
+                                                        } else {
+                                                            resolve({ success: false })
+                                                        }
+                                                    } else {
+                                                        resolve({ error: created.error })
+                                                    }
                                                 }
-                                            } else {
-                                                resolve( {error: created.error})
-                                            }
-                                        }})
-                                    }else{
-                                        setSocketCmd({
-                                            cmd: "updateStorageConfig", params: { fileID: configFile.fileID, file: newFile }, callback: (updated) => {
+                                            })
+                                        } else {
+                                            setSocketCmd({
+                                                cmd: "updateStorageConfig", params: { fileID: configFile.fileID, file: newFile }, callback: (updated) => {
 
-                                            if (!("error" in updated)) {
-                                                if(updated.success){
-                                                    resolve( { success: true, config: configFile })
-                                                }else{
-                                                    resolve( {success:false})
+                                                    if (!("error" in updated)) {
+                                                        if (updated.success) {
+                                                            resolve({ success: true, config: configFile })
+                                                        } else {
+                                                            resolve({ success: false })
+                                                        }
+                                                    } else {
+                                                        resolve({ error: updated.error })
+                                                    }
                                                 }
-                                            } else {
-                                                resolve( { error: updated.error })
-                                            }
-                                        }})
-                                    }
+                                            })
+                                        }
 
+
+                                    }).catch((err) => {
+                                        console.log(err)
+                                        resolve({ error: err })
+                                    })
 
                                 }).catch((err) => {
                                     console.log(err)
                                     resolve({ error: err })
                                 })
+                            });
 
-                            }).catch((err) => {
-                                console.log(err)
-                                resolve({ error: err })
-                            })
-                        });
 
-                        
+                        })
                     })
+                }).catch((err) => {
+                    console.error(err)
+                    resolve({ error: err })
                 })
-            }).catch((err)=>{
-                console.error(err)
-                resolve({ error: err })
             })
-            
-           
         })
-        
-       })
+
+            })
+
+        })
     }
 
 
@@ -310,7 +318,7 @@ export const InitStoragePage = (props = {}) => {
             console.log("submitting")
     
             setValid(false)
-            setupConfigFile().then(result=>{
+            setupConfigFile(user.userName).then(result=>{
                     setValid(true);
                     console.log(result)
                     if(!("error" in result)){
@@ -508,7 +516,7 @@ export const InitStoragePage = (props = {}) => {
                                     fontSize: "13px"
                                 }}>
 
-                                    arcturus.config
+                                    {user.userName}.storage.config
 
                                 </div>
                                 <div style={{

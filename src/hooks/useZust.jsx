@@ -94,26 +94,30 @@ const useZust = create((set) => ({
    imagesDirectory: {  name: "images", handle: null, directories: [] },
    setImagesDirectory: (value = {  name: "images", handle: null, directories: [] }) => set({ imagesDirectory: value }),
 
-   modelsDirectory: {  name: "models", handle: null },
-   setModelsDirectory: (value = {  name: "models", handle: null }) => set({ modelsDirectory: value }),
+   modelsDirectory: { name: "models", handle: null, directories: [] },
+   setModelsDirectory: (value = { name: "models", handle: null, directories: [] }) => set({ modelsDirectory: value }),
 
-   terrainDirectory: {  name: "terrain", handle: null },
-   setTerrainDirectory: (value = {  name: "terrain", handle: null }) => set({ terrainDirectory: value }),
+   terrainDirectory: { name: "terrain", handle: null, directories: [] },
+   setTerrainDirectory: (value = { name: "terrain", handle: null, directories: [] }) => set({ terrainDirectory: value }),
 
-   mediaDirectory: {  name: "media", handle: null },
-   setMediaDirectory: (value = { lname: "media", handle: null }) => set({mediaDirectory: value }),
+   mediaDirectory: { name: "media", handle: null, directories: [] },
+   setMediaDirectory: (value = { lname: "media", handle: null, directories: [] }) => set({mediaDirectory: value }),
    
+   realmsDirectory: { name: "realms", handle: null, directories: [] },
+   setRealmsDirectory: (value = { name: "realms", handle: null, directories: [] }) => set({ realmsDirectory: value }),
 
+   userHomeDirectory: { name: "", handle: null, directories: [] },
+   setUserHomeDirectory: (value = { name: null, handle: null, directories: [] }) => set({ userHomeDirectory: value }),
+   
+   userHomeFiles: [],
+   setUserHomeFiles: (value = []) => set({ realmsFiles: value }),
+
+   realmsFiles: [],
+   setRealmsFiles: (value = []) => set({ realmsFiles: value }),
+ 
    imagesFiles: [],
    setImagesFiles: (value = []) => set({imagesFiles:value}),
-   updateImages: (value) => set(produce((state)=>{
-      const index = state.imagesFiles.findIndex(image => image.crc == value.crc);
-    
-      if(index > -1)
-      {
-         state.imagesFiles[index] = value;
-      }
-   })),
+ 
 
    modelsFiles: [],
    setModelsFiles: (value = []) => set({ modelsFiles: value }),
@@ -209,13 +213,35 @@ const useZust = create((set) => ({
    torilActive: false,
    setTorilActive: (active = true) => set({torilActive: active}),
 
-   user: { LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '' },
-   setUser: (u = { LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '' }) => set({user: u}),
+   user: {
+      LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: {
+         fileID: null,
+         fileName: null,
+         fileType: null,
+         fileCRC: null,
+         fileMimeType: null,
+         fileSize: null,
+         fileLastModified: null
+      
+   } },
+   setUser: (u = {
+      LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: {
+         fileID: null,
+         fileName: null,
+         fileType: null,
+         fileCRC: null,
+         fileMimeType: null,
+         fileSize: null,
+         fileLastModified: null
+
+      } }) => set({user: u}),
    socket: null,
    setSocket: (sock = null) => set({ socket: sock }),
   
    socketCmd:{cmd:null, params:{},callback:() => null},
-   setSocketCmd: (value = { cmd: null, params: {}, callback: ()=> null }) => set({socketCmd: value}),
+   setSocketCmd: (value = { cmd: null, params: {}, callback: ()=> null }) => set(produce((state)=>{
+      state.socketCmd = value
+   })),
    setUserLoggedIn: (loggedIn = false) => set(produce(state => { state.user.LoggedIn = loggedIn})),
    setUserID: (userID = '') => set(produce(state => { state.user.userID = userID })),
    setUserName: (userName = '') => set(produce(state => { state.user.userName = userName})),

@@ -131,7 +131,7 @@ export const PeerNetworkHandler = (props ={}) => {
         if(peerConnection == null){
             if(userPeerID != "") setUserPeerID("")
         }
-
+        console.log(peerConnection)
        
     }, [peerConnection])
 

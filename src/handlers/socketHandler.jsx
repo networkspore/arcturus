@@ -36,6 +36,7 @@ export const SocketHandler = (props = {}) => {
         
         if(!loggedIn.current.value)
         {
+            console.log(socketCmd)
             if (socketCmd.cmd == "login" && !(("anonymous") in socketCmd)) {
                     
                 if (sock.current.value == null && tryCount.current.value < 5)
@@ -142,7 +143,18 @@ export const SocketHandler = (props = {}) => {
                     })
                     break;
                 case "checkStorageCRC":
-                    sock.current.value.emit("checkStorageCRC",socketCmd.params.crc, (response) =>{
+                
+                    sock.current.value.emit("checkStorageCRC", socketCmd.params.crc, (response) =>{
+                        socketCmd.callback(response)
+                    })
+                    break;
+                case "checkUserFiles":
+                    sock.current.value.emit("checkUserFiles", socketCmd.params.crc, (response) => {
+                        socketCmd.callback(response)
+                    })
+                    break; 
+                case "checkFileCRC":
+                    sock.current.value.emit("checkFileCRC", socketCmd.params.crc, (response) => {
                         socketCmd.callback(response)
                     }) 
                     break;

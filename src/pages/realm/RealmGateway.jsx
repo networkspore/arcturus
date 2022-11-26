@@ -309,7 +309,7 @@ export const RealmGateway= (props = {}) =>{
                         update: {
                             command: "getIcon",
                             file: currentRealm.image,
-                            waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
+                            waiting: { url: "/Images/spinning.gif" },
                             error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
 
                         }, 

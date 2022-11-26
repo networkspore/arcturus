@@ -51,19 +51,52 @@ export const ImageDiv = (props = {}) => {
        
         const tmp = ("netImage" in props) ? props.netImage !== undefined ?  props.netImage : {} : {};
 
-        const update = "update" in tmp && tmp.update != null && tmp.update.file != null && tmp.update.file.crc != null && tmp.update.file.crc != "" ? tmp.update : null
+        const update = "update" in tmp ? tmp.update : null
        
         
-        if(update != null && updated == null && update.file.crc != "") {
+        let errorCheck = update == null
+
+        if (!errorCheck) errorCheck = update.file == null
+
+        if(!errorCheck) errorCheck = update.file.mimeType == null || update.file.crc == null
+
+        if (!errorCheck) errorCheck = update.file.mimeType != "image"
         
-            console.log(update)
+        if (update != null && errorCheck){
+            console.log("set error")
+            console.log(update.error.url)
+            tmp.image = update.error.url;
+            
+            if("style" in update.error) {
+               const styleNames = Object.getOwnPropertyNames(update.error.style)
+               styleNames.forEach(name => {
+                    tmp[name] = update.error.style[name]
+               });
+            }
+
+        } else if (update != null && updated == null )  {
+            if ("waiting" in update){
+            tmp.image = update.waiting.url;
+            if ("style" in update.waiting) {
+                const styleNames = Object.getOwnPropertyNames(update.error.style)
+                styleNames.forEach(name => {
+                    tmp[name] = update.error.style[name]
+                });
+            }}
             addFileRequest({command: tmp.update.command, page: "imgDiv", id: imgDivId, file: tmp.update.file, callback: onUpdate})
+        }else if(updated != null)
+        {
+            tmp.image = updated.url;
+            tmp.filter = updated.style.filter
         }
+
+
+
         let info = { 
             opacity: ("opacity" in tmp) ? tmp.opacity : 1,
             scale: ("scale" in tmp) ? tmp.scale : 1, 
-            image: ("image" in tmp) && update == null ? tmp.image : update == null ? null : updated ? updated.url : update.waiting.url, 
-            filter: ("filter" in tmp) && update == null ? tmp.filter : update == null ? null : updated? updated.style.filter : update.waiting.style.filter, 
+            image: ("image" in tmp) ? tmp.image : "", 
+            filter: ("filter" in tmp) ? tmp.filter : "", 
             backgroundImage: ("backgroundImage" in tmp) ? tmp.backgroundImage : null, 
             backgroundColor: ("backgroundColor" in tmp) ? tmp.backgroundColor : "#000000" 
         };

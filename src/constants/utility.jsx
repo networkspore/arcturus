@@ -255,6 +255,29 @@ export async function getFileInfo(entry, dirHandle, type) {
     })
 }
 
+export async function getJsonFile(fileHandle){
+
+    const file = fileHandle.getFile();
+
+    const fileTxt = await file.text()
+
+    const json = await JSON.parse(fileTxt)
+
+    let config = {};
+
+    const fileInfoNames = Object.getOwnPropertyNames(file)
+
+    fileInfoNames.forEach(name => {
+        config[name] = file[name]
+    });
+
+    config.value = json;
+
+
+    return config;
+
+}
+
 export async function getImageHandleDataURL(localFile){
     const crc = localFile.crc;
 

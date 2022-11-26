@@ -2,23 +2,21 @@ import React, { useState, useEffect } from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import useZust from "./hooks/useZust";
-import { ImageDiv } from "./pages/components/UI/ImageDiv";
+import useZust from "../hooks/useZust";
+import { ImageDiv } from "../pages/components/UI/ImageDiv";
 
-import styles from './pages/css/home.module.css'
+import styles from '../pages/css/home.module.css'
 import produce from "immer";
 
 export const SystemMessagesMenu = (props = {}) => {
 
-    const pageSize = useZust((state) => state.pageSize)
+
     const user = useZust((state) => state.user)
-    const socket = useZust((state) => state.socket)
 
     const navigate = useNavigate();
 
     const [menuList, setMenuList] = useState([]);
 
-    const connected = useZust((state) => state.connected)
 
     const systemMessages = useZust((state) => state.systemMessages)
 
@@ -62,14 +60,17 @@ export const SystemMessagesMenu = (props = {}) => {
                 if(messageDeleteOn.length > 0){
                     const index = messageDeleteOn.indexOf(":")
                     const args = messageDeleteOn.split(":")
-                    
-                    const cmd = index == -1 ? messageDeleteOn : args.splice(0, 1)
-
+        
+                    const cmd = index == -1 ? messageDeleteOn : args[0]
+        
                     switch(cmd)
                     {
                         case "seconds":
-                            const seconds = parseInt(args[0]) * 1000
-                            setTimeout(() => {
+              
+                            const seconds = parseInt(args[1]) * 1000
+                      
+                            setTimeout(() => {  
+                               
                                 removeSystemMessage(messageID)
                             }, seconds);
 
@@ -81,7 +82,7 @@ export const SystemMessagesMenu = (props = {}) => {
 
                 tmpArray.push(
                     <div key={messageID} onClick={(e)=>{
-                       
+                        console.log("clicked")
                         removeSystemMessage(messageID)
                         navigate(messageNavigate)
                     }}  style={{display:"flex"}} className={styles.result}>
@@ -110,11 +111,12 @@ export const SystemMessagesMenu = (props = {}) => {
         <div style={{
             display:"flex",
             flexDirection:"column",
-            width:240,
+            width:260,
             position:"fixed",
             right: 0,
-            top: 50,
+            top: 33,
             boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+            backgroundImage:"linear-gradient(black, #cccccc20)",
             margin:5,
         }}>
           

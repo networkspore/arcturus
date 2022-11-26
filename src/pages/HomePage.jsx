@@ -11,6 +11,7 @@ import { ImageDiv } from './components/UI/ImageDiv';
 import { LocalStoragePage } from './LocalStoragePage';
 import { AccountSettingsPage } from './AccountSettingsPage';
 import { PeerNetworkPage } from './PeerNetworkPage';
+import { ImagePicker } from './components/UI/ImagePicker';
 
 
 
@@ -23,24 +24,20 @@ export const HomePage = (props ={}) => {
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
+    const homeDirectory = useZust((state) => state.homeDirectory)
+
 
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
     const [showIndex, setshowIndex] = useState(0)
-    const nav = useNavigate();
-    const setUser = useZust((state) => state.setUser)
+    const navigate = useNavigate();
+
 
     const [subDirectory, setSubDirectory] = useState("")
 
     const location = useLocation();
 
-    const configFile = useZust((state) => state.configFile)
-
-    const [profile, setProfile] = useState({
-        name:"Offline", 
-        image:{}
-    });
-
+  
 
     const onLogoutClick = (e) => {
         window.location.replace("/")
@@ -48,35 +45,10 @@ export const HomePage = (props ={}) => {
     }
 
 
-    const getProfile = (callback) => {
-      //  if (configFile.handle == null) {
-
-            const defaultProfile = {
-                name: user.userName,
-                image: {
-                    image:"/Images/icons/person.svg",
-                    backgroundColor: "#44444450",
-                    backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-                    width: 130,
-                    height: 130,
-                    filter: "invert(100%)",
-                },
-                
-            }
-
-            callback(defaultProfile)
-      //  }
-    }
+ 
 
 
 
-
-    useEffect(()=>{
-        
-        getProfile((value)=>{
-            setProfile(value)
-        })
-    },[configFile])
 
 
 
@@ -123,7 +95,20 @@ export const HomePage = (props ={}) => {
                  
                 }}></div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
-                    <ImageDiv netImage={profile.image} />
+                    <ImageDiv clsssName={styles.bubble__item} onClick={(e) => {
+                        setshowIndex(10)
+                    }} width={130} height={130} about={"Select Image"} netImage={{
+                        update: {
+                            command: "getIcon",
+                            file: user.image,
+                            waiting: { url: "/Images/spinning.gif" },
+                            error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                        },
+                        backgroundColor: "#44444450",
+                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+
+                    }} />
                     <div style={{height:20}}> &nbsp;</div>
                     <div style={{  paddingTop:5, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
                         <div style={{
@@ -135,7 +120,7 @@ export const HomePage = (props ={}) => {
                             color: "#cdd4da",
                             textShadow: "2px 2px 2px #101314",
 
-                        }} >{ profile.name }</div>
+                        }} >{ user.name }</div>
 
                     </div>
 
@@ -272,6 +257,16 @@ export const HomePage = (props ={}) => {
             }
             {showIndex == 4 &&
                 <AccountSettingsPage cancel={() => { setshowIndex(0) }}  />
+            }
+            {showIndex == 10 &&
+                <ImagePicker selectedImage={user.image} 
+                    onCancel ={()=>{
+                        setshowIndex(0)
+                    }}
+                    onOK={(image)=>{
+
+                    }}
+                />
             }
        </>
         

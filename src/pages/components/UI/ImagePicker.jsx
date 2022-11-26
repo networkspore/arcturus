@@ -62,7 +62,7 @@ export const ImagePicker = (props ={}) =>{
     }, [configFile, localDirectory])
 
     useEffect(()=>{
-        if("selectedImage" in props)
+        if("selectedImage" in props && props.selectedImage.imageID != null)
         {
             addFileRequest({ command: "getImage", page: "imagePicker", id: pickerID, file: props.selectedImage, callback: updateImage })
         }
