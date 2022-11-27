@@ -63,29 +63,6 @@ const useZust = create((set) => ({
    updateRealm: (value, i) => set(produce((state) => {
       state.realm[i] = value
    })),
-   updateRealmImage: (response) => set(produce((state) => {
-      if ("error" in response) {
-         console.log('error')
-      } else {
-         if (response.success) {
-            const index = state.realms.findIndex(realm => realm.realmID == response.request.id);
-            const image = index != -1 ? state.realms[index].image : null;
-
-            if (index != -1) {
-               const file = response.file;
-
-               const fileProperties = Object.getOwnPropertyNames(file)
-
-               fileProperties.forEach(property => {
-                  image[property] = file[property];
-               });
-
-               if (index != -1) state.realms[index].image = image;
-            }
-         }
-
-      }
-   })),
    publishedFiles:[],
    setPublishedFiles: (value = []) => set({publishedImages: value}),
    userPeerID:"",
@@ -214,27 +191,9 @@ const useZust = create((set) => ({
    setTorilActive: (active = true) => set({torilActive: active}),
 
    user: {
-      LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: {
-         fileID: null,
-         fileName: null,
-         fileType: null,
-         fileCRC: null,
-         fileMimeType: null,
-         fileSize: null,
-         fileLastModified: null
-      
-   } },
+      LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: null },
    setUser: (u = {
-      LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: {
-         fileID: null,
-         fileName: null,
-         fileType: null,
-         fileCRC: null,
-         fileMimeType: null,
-         fileSize: null,
-         fileLastModified: null
-
-      } }) => set({user: u}),
+      LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: null }) => set({user: u}),
    socket: null,
    setSocket: (sock = null) => set({ socket: sock }),
   

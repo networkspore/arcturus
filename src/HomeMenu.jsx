@@ -238,9 +238,6 @@ const HomeMenu = ({ props }) => {
 
             const file = await getFileInfo(handle, userHomeHandle)
 
-            setSocketCmd({
-                cmd: "checkStorageCRC", params: { crc: file.crc }, callback: onCrcResult
-            })
             const onCrcResult = (crcResult) => {
                 console.log(crcResult)
                 if ("error" in crcResult) {
@@ -291,10 +288,16 @@ const HomeMenu = ({ props }) => {
                     }
                 }
             }
+
+            setSocketCmd({
+                cmd: "checkStorageCRC", params: { crc: file.crc }, callback: onCrcResult
+            })
+            
         }catch(err){
 
             console.log(err)
             addSystemMessage(initStorage)
+            navigate("/")
         }                 
     }
 
@@ -677,7 +680,7 @@ const HomeMenu = ({ props }) => {
 
             }
             <div style={{
-                position: "fixed", top: 0, right: 0, display: "flex", alignItems: "center", width: 300, height: 35, backgroundColor: "black",
+                position: "fixed", top: 0, right: 0, display: "flex", alignItems: "center",  height: 35, backgroundColor: "black",
             }}>
                 <div style={{ display: "flex", }}>
 
@@ -705,7 +708,7 @@ const HomeMenu = ({ props }) => {
                             fontSize: "16px",
                             paddingTop: "5px",
                             paddingLeft: "10px",
-                            paddingRight: "10px"
+                            paddingRight: "15px"
                         }}> {user.userID > 0 ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
                     </div>
 

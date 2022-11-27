@@ -12,7 +12,6 @@ import { errorRealmEnd } from "../constants/systemMessages";
 
 export const RealmsPage = () =>{
     const user = useZust((state) => state.user)
-    const socket = useZust((state) => state.socket)
     const navigate = useNavigate();
     const location = useLocation();
     const pageSize = useZust((state) => state.pageSize)
@@ -64,8 +63,6 @@ export const RealmsPage = () =>{
     }, [location, configFile])
     
 
-    const updateRealmImage = useZust((state) => state.updateRealmImage)
-
     useEffect(()=>{
         if(realms != null){
          
@@ -76,34 +73,32 @@ export const RealmsPage = () =>{
                 
                 realms.forEach(realm => {
                     
-                    if (("value" in realm.image && realm.image.value != null)) {
-                   
-                        tmp.push(
-                            { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.value, opacity: .9} }
-                        )
-                    }else{
-                        addFileRequest({ command: "getImage", page: "realms", id: realm.realmID, file: realm.image, callback: updateRealmImage })
-                        if (("icon" in realm.image)) {
-                            tmp.push(
-                                { index: realm.realmIndex, page: realm.realmPage, id: realm.realmID, name: realm.realmName, netImage: { scale: 1, image: realm.image.icon, opacity: .9 } }
-                            )
-                        }else{
+                    console.log(realm.image)
                             tmp.push(
                                 {
                                     index: realm.realmIndex,
                                     page: realm.realmPage,
                                     id: realm.realmID,
                                     name: realm.realmName,
-                                    netImage: { opacity: .2, scale: .6, image: "/Images/spinning.gif" }
+                                    netImage: {
+                                        update: {
+                                            command: "getImage",
+                                            file: realm.image,
+                                            waiting: { url: "/Images/spinning.gif" },
+                                            error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
+                                        },
+                                        backgroundColor: "#44444450",
+                                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+
+                                    }
                                 }
                             )
-                        }
+                      
                         
-                    }
+                    })
                     
                     
                 
-                });
                 setRealmItems(tmp)
             }else{
                 setRealmItems([])
@@ -125,8 +120,6 @@ export const RealmsPage = () =>{
         }
         setSocketCmd({
             cmd: "createRealm", params: {realmName: realm.realmName,file: newFile,page: selectedItem.page,index: selectedItem.index, }, callback: (response) => {
-
-        
 
             if ("error" in response) {
                 callback(false)
@@ -213,6 +206,13 @@ export const RealmsPage = () =>{
     }
     const onNextPage = (e) =>{
 
+    }
+
+    const onRealmGateway = (e) => {
+        
+            setCurrentRealmID(selectedRealm.realmID)
+            navigate("/realm/gateway")
+        
     }
    
     return (
@@ -369,9 +369,7 @@ export const RealmsPage = () =>{
                         <>
                             <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent:"center" }}>
                             
-                                <div style={{ width: 55, borderRadius: 55 }} about={"Begin a realm"} className={styles.tooltipCenter__item} onClick={(e) => {
-                                   
-                                }}>
+                                <div style={{ width: 55, borderRadius: 55 }} about={"Begin a realm"} className={styles.tooltipCenter__item} onClick={onCreateRealm}>
 
                                     <ImageDiv style={{ filter: "drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)" }} width={55} height={55} netImage={{ backgroundColor: "", image: "/Images/icons/earth-outline.svg", filter: "invert(100%) drop-shadow(0 0 10px #ffffff40) drop-shadow(0 0 20px #ffffff40)" }} />
 
@@ -396,10 +394,7 @@ export const RealmsPage = () =>{
 
                                 <div about="Gateway" 
                                     className={styles.tooltipCenter__item} 
-                                    onClick={(e) => { 
-                                        setCurrentRealmID(selectedRealm.realmID)
-                                        navigate("/realm/gateway")
-                                    }}  
+                                    onClick={onRealmGateway}  
                                     style={{display: "flex", 
                                     }}>
                                     <div style={{ width: 100 }}>&nbsp;</div>
@@ -444,10 +439,7 @@ export const RealmsPage = () =>{
         }
         {showMenu && selectedRealm != null && 
             <div  style={{backgroundColor:"black", display:"flex", flexDirection:"column", position:"fixed", left:135, top: 120, width:200, padding:5 }}>
-                    <div className={styles.result} onClick={(e) => {
-                        setCurrentRealmID(selectedRealm.realmID)
-                        navigate("/realm/gateway")
-                    } } style={{display:"flex", alignItems:"center", justifyContent:"left"}}>
+                    <div className={styles.result} onClick={onRealmGateway } style={{display:"flex", alignItems:"center", justifyContent:"left"}}>
 
                     <ImageDiv width={30} height={30} netImage={{ image: "/Images/realm.png", filter: "invert(100%)" }} />
                     <div style={{paddingLeft:10}}>

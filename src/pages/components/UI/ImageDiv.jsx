@@ -29,20 +29,20 @@ export const ImageDiv = (props = {}) => {
     const [updated, setUpdated] = useState(null) 
 
     const onUpdate = (response) => {
+        console.log("response")
         console.log(response)
         if("success" in response && response.success){
             switch (response.request.command){
                 case "getIcon":
-                    setUpdated({ success: true, url: response.file.icon, style: { filter: "" } })
+                    setUpdated({ success: true, url: response.file.icon })
                 break;
                 case "getImage":
-                    setUpdated({ success: true, url: response.file.image, style: { filter: "" } })
+                    
+                    setUpdated({ success: true, url: response.file.value })
                     break;
-                default:
-                    setUpdated({ success: false, url: props.netImage.update.error.url, style: props.netImage.update.error.style })
             }
         }else{
-
+            setUpdated({error: new Error("file request error")})
         }
     }
 
@@ -54,43 +54,42 @@ export const ImageDiv = (props = {}) => {
         const update = "update" in tmp ? tmp.update : null
        
         
-        let errorCheck = update == null
-
-        if (!errorCheck) errorCheck = update.file == null
-
-        if(!errorCheck) errorCheck = update.file.mimeType == null || update.file.crc == null
-
-        if (!errorCheck) errorCheck = update.file.mimeType != "image"
+        console.log(update)
         
-        if (update != null && errorCheck){
-            console.log("set error")
-            console.log(update.error.url)
-            tmp.image = update.error.url;
-            
-            if("style" in update.error) {
-               const styleNames = Object.getOwnPropertyNames(update.error.style)
-               styleNames.forEach(name => {
-                    tmp[name] = update.error.style[name]
-               });
+        if (update != null && update.file != null){
+            if(updated != null && "error" in updated ){
+                console.log("error")
+                tmp.image = update.error.url;
+                
+                if("style" in update.error) {
+                    const styleNames = Object.getOwnPropertyNames(update.error.style)
+                    styleNames.forEach(name => {
+                            tmp[name] = update.error.style[name]
+                    });
+                }
+
+            } else if (updated == null )  {
+                if ("waiting" in update){
+                    tmp.image = update.waiting.url;
+                    if ("style" in update.waiting) {
+                        const styleNames = Object.getOwnPropertyNames(update.error.style)
+                        styleNames.forEach(name => {
+                            tmp[name] = update.error.style[name]
+                        });
+                    }
+                }
+                const request = { command: tmp.update.command, page: "imgDiv", id: imgDivId, file: tmp.update.file, callback: onUpdate };
+                console.log("requesting")
+                addFileRequest(request)
+            }else if(updated != null)
+            {
+                   console.log("updated")
+              
+                tmp.image = updated.url;
+                
             }
 
-        } else if (update != null && updated == null )  {
-            if ("waiting" in update){
-            tmp.image = update.waiting.url;
-            if ("style" in update.waiting) {
-                const styleNames = Object.getOwnPropertyNames(update.error.style)
-                styleNames.forEach(name => {
-                    tmp[name] = update.error.style[name]
-                });
-            }}
-            addFileRequest({command: tmp.update.command, page: "imgDiv", id: imgDivId, file: tmp.update.file, callback: onUpdate})
-        }else if(updated != null)
-        {
-            tmp.image = updated.url;
-            tmp.filter = updated.style.filter
         }
-
-
 
         let info = { 
             opacity: ("opacity" in tmp) ? tmp.opacity : 1,
@@ -115,8 +114,8 @@ export const ImageDiv = (props = {}) => {
         let tmpHeight = 0, tmpWidth = 0;
 
         if(bounds.width > bounds.height)
-        {{
-            if(bounds.width != 0)
+        {
+            if(bounds.width != 0){
                 percent = bounds.height / bounds.width
     
             }

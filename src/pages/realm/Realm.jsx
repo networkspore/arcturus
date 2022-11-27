@@ -31,8 +31,6 @@ export const Realm = () => {
     const configFile = useZust((state) => state.configFile)
     const setPage = useZust((state) => state.setPage)
     const realms = useZust((state) => state.realms)
-    const updateRealmImage = useZust((state) => state.updateRealmImage)
-    const socket = useZust((state) => state.socket)
     const addSystemMessage = useZust((state) => state.addSystemMessage)
     const addFileRequest = useZust((state) => state.addFileRequest)
 
@@ -51,19 +49,7 @@ export const Realm = () => {
         config: null,
         realmType: null,
     })
-    useEffect(() => {
-        
-        if (currentRealmID != null) {
-            const index = realms.findIndex(r => r.realmID == currentRealmID)
-            const realm = realms[index]
-            if (!("value" in realm.image)) {
-                addFileRequest({ command: "getImage", page: "realm", id: realm.realmID, file: realm.image, callback: updateRealmImage })
-            }
-           
-            setCurrentRealm(realm)
-        }
-    }, [user, currentRealmID, realms])
-
+ 
    
    
 
@@ -71,20 +57,26 @@ export const Realm = () => {
     
         if(currentRealmID != null)
         {
+            console.log("enteredRealm")
+            console.log(currentRealmID)
             setSocketCmd({
                 cmd: "enterRealmGateway", params: { realmID: currentRealmID }, callback: (enteredGateway) => {
-                   
+               
                 if ("error" in enteredGateway)
                 {
-                    console.log(enteredGateway)
                     addSystemMessage(errorRealmEnter)
                 }else{
                     if (enteredGateway.success){
+
                         setAdmin(enteredGateway.admin)
                         setGatewayUsers(enteredGateway.gatewayUsers) 
                         setRealmUsers(enteredGateway.realmUsers)
                         setGatewayMessages(enteredGateway.gatewayMessages)
                         setRealmMember(enteredGateway.realmMember)
+
+                        const index = realms.findIndex(realm => realm.realmID == currentRealmID)
+
+                        setCurrentRealm(realms[index])
                     }else{
                         addSystemMessage(noGatewayEnter)
                     }
@@ -93,7 +85,7 @@ export const Realm = () => {
             }})
         }
       
-    },[currentRealmID])
+    },[currentRealmID,realms])
 
     useEffect(() => {
         const cL = location.pathname;

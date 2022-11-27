@@ -24,7 +24,7 @@ export const HomePage = (props ={}) => {
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
-    const homeDirectory = useZust((state) => state.homeDirectory)
+
 
 
     const pageSize = useZust((state) => state.pageSize)
@@ -46,7 +46,20 @@ export const HomePage = (props ={}) => {
 
 
  
+/* <ImageDiv clsssName={styles.bubble__item} onClick={(e) => {
+                        setshowIndex(10)
+                    }} width={130} height={130} about={"Select Image"} netImage={{
+                        update: {
+                            command: "getIcon",
+                            file: user.image,
+                            waiting: { url: "/Images/spinning.gif" },
+                            error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
 
+                        },
+                        backgroundColor: "#44444450",
+                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+
+                    }} />*/
 
 
 
@@ -83,7 +96,7 @@ export const HomePage = (props ={}) => {
        
         
     },[location])
-
+    const className = styles.bubble__item;
     return (
         
        <>
@@ -95,9 +108,12 @@ export const HomePage = (props ={}) => {
                  
                 }}></div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
-                    <ImageDiv clsssName={styles.bubble__item} onClick={(e) => {
+                   
+
+
+                    <ImageDiv onClick={(e) => {
                         setshowIndex(10)
-                    }} width={130} height={130} about={"Select Image"} netImage={{
+                    }} width={130} height={130} about={"Select Image"} className={className} netImage={{
                         update: {
                             command: "getIcon",
                             file: user.image,
@@ -109,6 +125,7 @@ export const HomePage = (props ={}) => {
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
 
                     }} />
+
                     <div style={{height:20}}> &nbsp;</div>
                     <div style={{  paddingTop:5, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
                         <div style={{
@@ -125,6 +142,7 @@ export const HomePage = (props ={}) => {
                     </div>
 
                     <div style={{ paddingTop: 3, height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
+
 
                 </div>
                         

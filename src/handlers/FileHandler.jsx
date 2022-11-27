@@ -60,25 +60,39 @@ export const FileHandler = ( props = {}) =>{
     const removeFileRequest = useZust((state)=> state.removeFileRequest)
 
     useEffect(()=>{
-        if(fileRequest != null && fileRequest.length > 0){
-            
-            fileRequest.forEach((request, i) => {
-                
-                if( addProcessing(request)){
-                    
-                    executeFileCommand(request).then((result)=>{
-                      
-                        request.callback(result)
-                        removeProcessing(request)
-                        removeFileRequest(request)
-                    })           
-                   
-                }else{
-                    console.log("request is still processing")
-                }
-            });
+        if (fileRequest != null && fileRequest.length > 0 ){
+           
+                fileRequest.forEach((request, i) => {
+                    console.log(request)
+                    if (request.file != null && request.file.crc != null && request.file.crc != "" && request.file.mimeType != null) {
 
+                        if( addProcessing(request)){
+                            console.log("processing")
+                            console.log(request)
+                            executeFileCommand(request).then((result)=>{
+                            
+                                request.callback(result)
+                                removeProcessing(request)
+                                removeFileRequest(request)
+                            })           
+                        
+                        }else{
+                            console.log("request is still processing")
+                        }  
+                    }else{
+                        console.log("requesting null")
+                        request.callback({error: new Error("File does not exist.")})
+                        removeFileRequest(request)
+                    }
+                });
+          
+
+        } else {
+          console.log('doing nothing')
+
+           
         }
+  
     },[fileRequest])
 
 
@@ -87,7 +101,7 @@ export const FileHandler = ( props = {}) =>{
     const executeFileCommand = (request) => {
         return new Promise(resolve => {
 
-         
+           
             
             switch (request.command) {
                 
@@ -180,7 +194,7 @@ export const FileHandler = ( props = {}) =>{
         try {
             const idbDataUrl = await get(localFile.crc + ".arcicon")
 
-            const dataURL = idbDataUrl == undefined ? await worker.getThumnailFile(localFile) : idbDataUrl;
+            const dataURL = idbDataUrl == undefined ? await worker.getThumnailFile(await localFile.handle.getFile()) : idbDataUrl;
 
             const objNames = Object.getOwnPropertyNames(request.file)
             let newFile = {}
@@ -195,7 +209,7 @@ export const FileHandler = ( props = {}) =>{
             });
 
             newFile.icon = dataURL
-
+            console.log(newFile)
             return { success: true, file: newFile, request: request }
         } catch (err) {
             return { error: new Error("Cannot get image from file.") }

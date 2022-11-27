@@ -240,7 +240,7 @@ export async function getFileInfo(entry, dirHandle, type) {
                     get(crc + ".arcicon").then((iconInIDB) => {
                         if(iconInIDB == undefined && type == "image")
                         {
-                            getThumnailFile(file, crc).then((dataUrl) =>{
+                            getThumnailFile(file).then((dataUrl) =>{
                                 set(crc + ".arcicon", dataUrl)
                             }).catch((err) => console.log(err))
                         }
@@ -307,8 +307,9 @@ export async function getImageHandleDataURL(localFile){
 
 
 export async function getThumnailFile(file, size = { width: 100, height: 100 }) {
-    
+
     return new Promise(resolve => {
+
         createImageBitmap(file).then((image) => {
             var canvas = document.createElement('canvas'),
                 ctx = canvas.getContext("2d");
