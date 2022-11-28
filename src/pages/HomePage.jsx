@@ -25,7 +25,7 @@ export const HomePage = (props ={}) => {
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
-
+    const className = styles.bubble__item;
 
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
@@ -37,7 +37,7 @@ export const HomePage = (props ={}) => {
 
     const location = useLocation();
 
-  
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const onLogoutClick = (e) => {
         window.location.replace("/")
@@ -96,7 +96,23 @@ export const HomePage = (props ={}) => {
        
         
     },[location])
-    const className = styles.bubble__item;
+
+    const updateUserImage = (update) =>{
+        const fileInfo = {
+            name: update.name, 
+            crc: update.crc, 
+            size: update.size, 
+            type: update.type, 
+            mimeType: update.mimeType, 
+            lastModified: update.lastModified
+        }
+       
+
+        setSocketCmd({cmd: "updateUserImage", params:{imageInfo:fileInfo}, callback:(updateResult)=>{
+            console.log(user.image)
+        }})
+    }
+
     return (
         
        <>
@@ -107,13 +123,14 @@ export const HomePage = (props ={}) => {
                     textAlign: "center",
                  
                 }}></div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems:"center", padding:"10px"}}>
                    
 
 
-                    <ImageDiv onClick={(e) => {
+                    <ImageDiv width={150} height={150} style={{overflow:"hidden"}} onClick={(e) => {
                         setshowIndex(10)
-                    }} width={130} height={130} about={"Select Image"} className={className} netImage={{
+                    }}  about={"Select Image"} className={className} netImage={{
+                        scale:1.1,
                         update: {
                             command: "getIcon",
                             file: user.image,
@@ -137,7 +154,7 @@ export const HomePage = (props ={}) => {
                             color: "#cdd4da",
                             textShadow: "2px 2px 2px #101314",
 
-                        }} >{ user.name }</div>
+                        }} >{ user.userName }</div>
 
                     </div>
 
@@ -145,8 +162,8 @@ export const HomePage = (props ={}) => {
 
 
                 </div>
-                        
-                <div style={{ width: 260, paddingLeft:"15px", paddingTop:25, }}>
+                <div style={{height:50}}>&nbsp;</div>
+                <div style={{ width: 260, paddingLeft:"15px", }}>
                     
                     
                         <NavLink className={styles.result}  to={ "/home/account"}>
@@ -281,9 +298,7 @@ export const HomePage = (props ={}) => {
                     onCancel ={()=>{
                         setshowIndex(0)
                     }}
-                    onOK={(image)=>{
-
-                    }}
+                    onOk={updateUserImage}
                 />
             }
        </>

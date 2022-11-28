@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useId } from "react";
 
 import useZust from "../../../hooks/useZust";
 import { ImageDiv } from "./ImageDiv";
@@ -8,10 +8,12 @@ import SelectBox from "./SelectBox";
 import produce from "immer";
 
 import { errorSelectingImage, initDirectory, initStorage } from "../../../constants/systemMessages";
-import { useId } from "react";
+
 
 export const ImagePicker = (props ={}) =>{
     const searchInputRef = useRef()
+    const pickerID = useId()
+
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
     const imagesFiles = useZust((state) => state.imagesFiles)
@@ -62,14 +64,14 @@ export const ImagePicker = (props ={}) =>{
     }, [configFile, localDirectory])
 
     useEffect(()=>{
-        if("selectedImage" in props && props.selectedImage.imageID != null)
+        if( props.selectedImage != undefined && props.selectedImage.imageID != null)
         {
             addFileRequest({ command: "getImage", page: "imagePicker", id: pickerID, file: props.selectedImage, callback: updateImage })
         }
-    },[props])
+    },[props.selectedImage])
 
     const updateImage = (response) => {
-      
+     
             setImageSelected(response.file)
       
     }
@@ -100,7 +102,6 @@ export const ImagePicker = (props ={}) =>{
         }
 
     }
-    const pickerID = useId()
 
    
 
@@ -219,7 +220,7 @@ export const ImagePicker = (props ={}) =>{
                                      
                                
                                  
-                                        <div style={{ cursor: "pointer" }} onClick={onImageSelected}>
+                                        <div style={{ cursor: "pointer" }}>
                                             <div style={{height:50, }}>&nbsp;</div>
                                             <ImageDiv
                                                 width={300}

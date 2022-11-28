@@ -218,15 +218,15 @@ export const PeerNetworkPage = () => {
                         }}>
                             <ImageDiv 
                                 style={{cursor:"pointer"}}
-                                width={"80"}
-                                height={"80"}
+                                width={40}
+                                height={40}
                                 netImage={{
+                                    opacity:.7,
                                     image: "/Images/icons/cloud-offline-outline.svg",
                                     filter:"invert(100%)",
-                                    width:40,
-                                    height:40 
+                                  
                             }}/>  
-                            <div  style={{ cursor:"pointer", color: "white"}} > Initialize local storage... </div>
+                            <div style={{ cursor: "pointer", color:peerConnection == null ? "#777171"  : "white", paddingTop: 10 }} >  Peer Network Disabled</div>
                     </div>         
                 }
                

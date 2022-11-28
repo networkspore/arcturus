@@ -30,6 +30,7 @@ import { useRef } from "react";
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
 import { useId } from "react";
+import { flushSync } from "react-dom";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -64,7 +65,7 @@ const HomeMenu = ({ props }) => {
 
 
     const configFile = useZust((state) => state.configFile)
-
+    const setConfigFile = useZust((state) => state.setConfigFile)
     const setRealms = useZust((state) => state.setRealms)
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
@@ -73,7 +74,7 @@ const HomeMenu = ({ props }) => {
     const toNav = useNavigate()
     const currentRealmID = useZust((state) => state.currentRealmID)
     const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
-    const setConfigFile = useZust((state) => state.setConfigFile)
+
 
     const [showIndex, setShowIndex] = useState(false);
 
@@ -90,22 +91,17 @@ const HomeMenu = ({ props }) => {
         state.files = value;
     }))
 
-
-
     const [directory, setDirectory] = useState("")
 
     const setPage = useZust((state) => state.setPage)
 
     const realms = useZust((state) => state.realms)
 
-
-    const page = useZust((state) => state.page)
-
     const setQuickBar = useZust((state) => state.setQuickBar)
     const quickBar = useZust((state) => state.quickBar)
 
     const [onComplete, setOnComplete] = useState("/network")
-
+    const [loadState, setLoadState] = useState(null)
     const [realmQuickBarItems, setRealmQuickBarItems] = useState(null)
 
     useEffect(() => {
@@ -158,24 +154,11 @@ const HomeMenu = ({ props }) => {
 
                         break;
                     case "/loading":
-
-                        if (location.state != null) {
-                            setPage(null)
-                            setShowMenu(false)
-                            setShowIndex(-1)
-                            if ("navigate" in location.state) {
-
-                                setOnComplete(location.state.navigate)
-                            }
-                            if ("configFile" in location.state) {
-
-                                setConfigFile(location.state.configFile)
-                            }
-
-
-                        } else {
-                            console.log(location.state)
-                        }
+                        setLoadState(location.state)
+                        setShowIndex(-1)
+                        setPage(null)
+                        setShowMenu(false)
+                  
                         break;
 
                     default:
@@ -193,8 +176,8 @@ const HomeMenu = ({ props }) => {
 
             switch (currentLocation) {
                 case '/login':
-
-                    setShowIndex(1)
+                    setTimeout(() => { setShowIndex(1) },100)
+                   
                     break;
                 case '/welcome':
                     setShowIndex(2)
@@ -236,37 +219,46 @@ const HomeMenu = ({ props }) => {
             const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true }) 
             const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.config")
 
-            const file = await getFileInfo(handle, userHomeHandle)
+            const fileInfo = await getFileInfo(handle, userHomeHandle)
 
-            const onCrcResult = (crcResult) => {
-                console.log(crcResult)
-                if ("error" in crcResult) {
-                    addSystemMessage(initStorage)
-                    navigate("/network")
-                } else {
-                    if (crcResult.success) {
-                        readFileJson(handle).then((jsonResult) => {
-                            if ("error" in jsonResult) {
-                                addSystemMessage(initStorage)
-                                navigate("/network")
-                            } else {
-                                if (jsonResult.success) {
-                                    const json = jsonResult.value;
-                                    file.value = json[user.userName];
-                                    file.fileID = crcResult.fileID;
+            console.log(fileInfo)
+            setSocketCmd({
+                cmd: "checkStorageCRC", params: { crc: fileInfo.crc }, callback: (crcResult) => {
 
-                                    if (!("error" in crcResult)) {
+                    console.log(crcResult)
+                    if ("error" in crcResult) {
+                        addSystemMessage(initStorage)
+                        navigate("/network")
+                    } else {
+                        if (crcResult.success) {
+                            readFileJson(handle).then((jsonResult) => {
+                                if ("error" in jsonResult) {
+                                    addSystemMessage(initStorage)
+                                    navigate("/network")
+                                } else {
+                                    if (jsonResult.success) {
+                                        const json = jsonResult.value;
+                                        fileInfo.value = json[user.userName];
+                                        fileInfo.fileID = crcResult.fileID;
 
-                                        if (crcResult.success) {
+                                        if (!("error" in crcResult)) {
 
-                                            file.storageID = crcResult.storageID;
+                                            if (crcResult.success) {
+
+                                                fileInfo.storageID = crcResult.storageID;
 
 
-                                            navigate("/loading", { state: { configFile: file, navigate: "/network" } })
+                                                navigate("/loading", { state: { configFile: fileInfo, navigate: "/network" } })
 
+                                            } else {
+
+                                                navigate("/home/localstorage/init", { state: { configFile: fileInfo } })
+                                            }
                                         } else {
 
-                                            navigate("home/localstorage/init", { state: { configFile: file } })
+
+                                            addSystemMessage(initStorage)
+                                            navigate("/network")
                                         }
                                     } else {
 
@@ -274,23 +266,14 @@ const HomeMenu = ({ props }) => {
                                         addSystemMessage(initStorage)
                                         navigate("/network")
                                     }
-                                } else {
-
-
-                                    addSystemMessage(initStorage)
-                                    navigate("/network")
                                 }
-                            }
-                        })
-                    } else {
-                        addSystemMessage(initStorage)
-                        navigate("/network")
+                            })
+                        } else {
+                            addSystemMessage(initStorage)
+                            navigate("/network")
+                        }
                     }
                 }
-            }
-
-            setSocketCmd({
-                cmd: "checkStorageCRC", params: { crc: file.crc }, callback: onCrcResult
             })
             
         }catch(err){
@@ -303,8 +286,8 @@ const HomeMenu = ({ props }) => {
 
 
     useEffect(() => {
-
-        if (user.userID > 0, configFile.value != null) {
+       
+        if (user.userID > 0 && configFile.value != null) {
             const config = configFile.value;
         
             setFolderDefaults(config).then((promise) => {
@@ -332,6 +315,10 @@ const HomeMenu = ({ props }) => {
         } 
 
     }, [configFile, user])
+
+    useEffect(()=>{
+        console.log(configFile)
+    }, [configFile])
 
     useEffect(()=>{
         if(realms != null && realms.length > 0){
@@ -612,7 +599,10 @@ const HomeMenu = ({ props }) => {
             {
                 showIndex == -1 &&
 
-                <LoadingPage />
+                <LoadingPage onComplete={onComplete} state={loadState} onConfigChange={(config) =>{ 
+                 
+                    setConfigFile(config)
+                }}/>
             }
 
 

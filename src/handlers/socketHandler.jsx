@@ -1,18 +1,24 @@
 import produce from "immer";
 import React, { useState, useEffect, useRef } from "react";
 import { loginToken, socketIOhttp, socketToken } from "../constants/httpVars";
+import { useCookies } from "react-cookie";
 import useZust from "../hooks/useZust";
 import { io } from "socket.io-client";
+import { ImageDiv } from "../pages/components/UI/ImageDiv";
+import sha256 from 'crypto-js/sha256';
+import styles from '../pages/css/login.module.css';
 
 export const SocketHandler = (props = {}) => {
     
     const user = useZust((state) => state.user)
-    const socket = useZust((state) => state.socket)
-    const setSocket = useZust((state) => state.setSocket)
     const socketCmd = useZust((state) => state.socketCmd)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
     const loggedIn = useRef({value:false})
 
+    const passRef = useRef()
+    const [notConnected, setNotConnected] = useState(false)
+    const [showLogin, setShowLogin] = useState(false)
+    const [cookie, setCookie] = useCookies(['login']);
 
 
     useEffect(()=>{ 
@@ -26,11 +32,41 @@ export const SocketHandler = (props = {}) => {
     }, [user])
 
 
-
-
     const sock = useRef({value:null})
 
     const tryCount = useRef({value:1})
+
+    
+
+    useEffect(()=>{
+       
+        if (user.userID > 0 && sock.current.value == null ){
+            setNotConnected(true)
+          
+            if ("login" in cookie && cookie.login.useCookie) {
+            
+                login(cookie.login.name, cookie.login.pass);
+
+            }else{
+                 setShowLogin(true)
+            }
+           
+        } else if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected){
+            setNotConnected(true)
+   
+            if ("login" in cookie && cookie.login.useCookie) {
+
+                login(cookie.login.name, cookie.login.pass);
+
+            } else {
+                setShowLogin(true)
+            }
+        }else{
+           
+            setNotConnected( false )
+            setShowLogin( false )
+        }
+    }, [sock.current.value, user])
 
     useEffect(() =>{
         
@@ -75,13 +111,12 @@ export const SocketHandler = (props = {}) => {
                         }
                     })
                 }
-            }else{
-              
+            } else{
                 if (sock.current.value == null && socketCmd.cmd == "login") {
                     sock.current.value = io(socketIOhttp, { auth: { token: socketToken }, transports: ['websocket'] });
 
                     sock.current.value.on("connect", () => {
-                        socketCmd.callback({success:true})
+                        socketCmd.callback({ success: true })
                         sock.current.value.on("disconnect", (res) => {
                             switch (res) {
                                 case "io server disconnect":
@@ -91,7 +126,7 @@ export const SocketHandler = (props = {}) => {
                             }
                         })
                     })
-                }else if(sock.current.value != null){
+                } else if(sock.current.value != null){
                 
                     switch (socketCmd.cmd) {
                         case "checkRefCode":
@@ -148,11 +183,7 @@ export const SocketHandler = (props = {}) => {
                         socketCmd.callback(response)
                     })
                     break;
-                case "checkUserFiles":
-                    sock.current.value.emit("checkUserFiles", socketCmd.params.crc, (response) => {
-                        socketCmd.callback(response)
-                    })
-                    break; 
+             
                 case "checkFileCRC":
                     sock.current.value.emit("checkFileCRC", socketCmd.params.crc, (response) => {
                         socketCmd.callback(response)
@@ -160,6 +191,11 @@ export const SocketHandler = (props = {}) => {
                     break;
                 case "updateUserPeerID":
                     sock.current.value.emit("updateUserPeerID", socketCmd.params.userPeerID, (response) =>{
+                        socketCmd.callback(response)
+                    })
+                    break;
+                case "updateUserImage":
+                    sock.current.value.emit("updateUserImage", socketCmd.params.imageInfo, (response) => {
                         socketCmd.callback(response)
                     })
                     break;
@@ -239,7 +275,167 @@ export const SocketHandler = (props = {}) => {
         }
     },[socketCmd])
 
+
+    function handleSubmit(e) {
+        e.preventDefault();
+    
+        const pass = passRef.current.value;
+        if(pass.length > 5 && user.userID > 0){
+            const code = sha256(pass).toString();
+            login(user.userName, code);
+        }else{
+            window.location.replace("/")
+        }
+    }
+
+
+    function login(name_email = "", pass = "") {
+        setShowLogin(false)
+            setSocketCmd({
+                cmd: "login", params: { nameEmail: name_email, password: pass }, callback: (response) => {
+                    console.log("response")
+                    if("success" in response && response.success)
+                    {
+
+                    }else{
+                        setShowLogin(true)
+                    }
+                   
+                }
+            })
+      
+    }
+
+
     return (
-        <></>
+        
+        <>
+        {
+            notConnected &&
+            <ImageDiv onClick={(e) => {
+                setShowLogin(true)
+            }} width={25} height={30} netImage={{ image: "/Images/icons/key-outline.svg", scale: .7, filter: "invert(100%)" }} />
+        }
+        {showLogin &&
+            <div style={{
+                display: "flex",
+                left: "50%",
+                height: 375,
+                top: "50%",
+                position: "fixed",
+                transform: "translate(-50%,-50%)",
+                width: 600,
+                cursor:"default",
+                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+                backgroundImage: "linear-gradient(to bottom,  #00030490,#13161780)",
+                textShadow: "2px 2px 2px black",
+                flexDirection: "column",
+                alignItems: "center",
+
+                paddingBottom: 30,
+            }}
+            >
+                
+                <div style={{
+                    paddingBottom: 10,
+                   display:"flex",
+                   justifyContent:"end",
+                   alignItems:"start",
+                    width: "100%",
+                    paddingTop:10,
+                    fontFamily: "WebRockwell",
+                    fontSize: "18px",
+                    fontWeight: "bolder",
+                    color: "#cdd4da",
+                    textShadow: "2px 2px 2px #101314",
+                    backgroundImage: "linear-gradient(#131514, #000304EE )",
+                   
+
+                }}>
+                    <div style={{paddingRight:10, paddingBottom:5, cursor:"pointer"}}>
+                    <ImageDiv  width={20} height={20} onClick={(e)=>{setShowLogin(false)}} netImage={{ opacity:.7, image:"/Images/icons/close-outline.svg", filter:'invert(70%)'}}/>
+                    </div>
+                </div>
+                
+                <div style={{ textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffff60", fontWeight: "bold", fontSize: "50px", fontFamily: "WebPapyrus", color: "#cdd4da" }}>
+                    Login
+                </div>
+                <form onSubmit={event => handleSubmit(event)}>
+                    <div style={{ display: "flex", paddingTop: 30, justifyContent: "center", }}>
+                        <div style={{
+
+                            display: "flex",
+
+                            justifyContent: "center",
+                            backgroundImage: "linear-gradient(to right, #00030430, #77777720, #00030430)",
+                            paddingBottom: 5,
+                            paddingTop: 5,
+                            paddingLeft: 5,
+                            paddingRight: 5,
+                            width: 400,
+                        }}>
+                            <div style={{
+                                outline: 0,
+                                border: 0,
+                                width: 400, textAlign: "center", color: "#777777", fontSize: "25px", backgroundColor: "black", fontFamily: "WebPapyrus"
+                            }}  > {user.userName} </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: "flex", paddingTop: 40, justifyContent: "center", }}>
+                        <div style={{
+
+                            display: "flex",
+
+                            justifyContent: "center",
+                            backgroundImage: "linear-gradient(to right, #00030430, #77777720, #00030430)",
+                            paddingBottom: 5,
+                            paddingTop: 5,
+                            paddingLeft: 5,
+                            paddingRight: 5
+                        }}>
+                            <input onKeyUp={(e) => {
+                                if (e.code == "Enter") {
+                                    handleSubmit(e)
+                                }
+                            }} ref={passRef} style={{
+                                outline: 0,
+                                border: 0,
+                                color: "white",
+                                width: 500, textAlign: "center", fontSize: "25px", backgroundColor: "black", fontFamily: "WebPapyrus"
+                            }} name="loginPass" placeholder="Password" type="password"  />
+                        </div>
+                    </div>
+                   
+
+                 
+                    <div style={{ width: "100%", display: "flex", justifyContent: "right" }}>
+                        <div onClick={handleSubmit} style={{
+                            textAlign: "center",
+                            cursor:   "pointer" ,
+                            fontFamily: "WebPapyrus",
+                            fontSize: "25px",
+                            fontWeight: "bolder",
+                            width: 100,
+                            color:  "#ffffffcc" ,
+
+                            paddingTop: "10px",
+                            paddingBottom: "10px",
+                            transform: "translate(45px, 30px)"
+                        }}
+                                className={ styles.OKButton}
+
+                        > Enter </div>
+                        <div style={{ width: 20 }}></div>
+
+                    </div>
+
+
+                </form>
+          
+
+            </div>
+        }
+            </>
     )
 }

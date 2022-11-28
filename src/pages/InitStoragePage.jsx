@@ -173,6 +173,7 @@ export const InitStoragePage = (props = {}) => {
 
 
     const setupConfigFile = (userName) => {
+       
         return new Promise(resolve => {
             getLocalPermissions(() => {
                 localDirectory.handle.getDirectoryHandle("home", { create: true }).then((homeHandle) => {
@@ -216,9 +217,9 @@ export const InitStoragePage = (props = {}) => {
                         configFileStream.write(JSON.stringify(userConfig)).then((value) => {
 
                             configFileStream.close().then((closed) => {
-                                console.log()
+                               
                                userHomeHandle.getFileHandle(userName + ".storage.config").then((newHandle) => {
-                                    console.log("config got")
+                                    
                                     getFileInfo(newHandle).then((fileInfo) => {
 
                                         const newConfig = fileInfo;
@@ -271,7 +272,7 @@ export const InitStoragePage = (props = {}) => {
 
                                                     if (!("error" in updated)) {
                                                         if (updated.success) {
-                                                            resolve({ success: true, config: configFile })
+                                                            resolve({ success: true, config: newConfig })
                                                         } else {
                                                             resolve({ success: false })
                                                         }
@@ -328,7 +329,9 @@ export const InitStoragePage = (props = {}) => {
                             removeSystemMessage(0)
                             removeSystemMessage(1)
                             removeSystemMessage(2)
-                            navigate("/loading", { state: { configFile: newConfig, navigate: "/localstorage" } })
+                            setConfigFile()
+                            console.log(newConfig)
+                            navigate("/loading", { state: { configFile: newConfig, navigate: "/home/localstorage" } })
                         }
                     }else{
                         console.log(result.error)
@@ -392,7 +395,7 @@ export const InitStoragePage = (props = {}) => {
                     const config = stateConfig;
                     config.value.storageID = storageID;
 
-                    navigate("/loading", {state:{configFile:config}, navigate:"/localstorage"})
+                    navigate("/loading", {state:{configFile:config}, navigate:"/home/localstorage"})
                 }else{
                     console.log(callback.error)
                     alert("This config file could not be loaded.")

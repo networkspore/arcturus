@@ -100,7 +100,7 @@ const FileList = (props = {}, ref) => {
     useEffect(() => {
 
         var array = [];
-        const filter = ("filter" in props) ? props.filter : {name:"", directory:""}
+        const filter = props.filter != undefined ? props.filter : {name:"", directory:""}
         let rows = null 
     
         if (files != null && divRef.current) {
@@ -174,8 +174,7 @@ const FileList = (props = {}, ref) => {
                     } : file.netImage
                    // if(update != null) iImage.update = update
                  
-                    console.log(iImage)
-
+              
                     switch(fileView.type)
                     {
                         case "icons":
@@ -281,7 +280,7 @@ const FileList = (props = {}, ref) => {
      
         setList( array)
 
-    }, [files, selectedIndex, props, fileView])
+    }, [files, selectedIndex, props.filter, fileView])
 
     useEffect(() => {
 
@@ -297,7 +296,7 @@ const FileList = (props = {}, ref) => {
                 }
             }
         }
-    }, [selectedCrc])
+    }, [selectedCrc,files])
 
     useImperativeHandle(
         ref,

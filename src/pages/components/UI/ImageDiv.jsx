@@ -29,8 +29,7 @@ export const ImageDiv = (props = {}) => {
     const [updated, setUpdated] = useState(null) 
 
     const onUpdate = (response) => {
-        console.log("response")
-        console.log(response)
+     
         if("success" in response && response.success){
             switch (response.request.command){
                 case "getIcon":
@@ -54,22 +53,10 @@ export const ImageDiv = (props = {}) => {
         const update = "update" in tmp ? tmp.update : null
        
         
-        console.log(update)
         
-        if (update != null && update.file != null){
-            if(updated != null && "error" in updated ){
-                console.log("error")
-                tmp.image = update.error.url;
-                
-                if("style" in update.error) {
-                    const styleNames = Object.getOwnPropertyNames(update.error.style)
-                    styleNames.forEach(name => {
-                            tmp[name] = update.error.style[name]
-                    });
-                }
-
-            } else if (updated == null )  {
-                if ("waiting" in update){
+        if (update != null && update.file != null && updated == null){
+           
+            if ("waiting" in update){
                     tmp.image = update.waiting.url;
                     if ("style" in update.waiting) {
                         const styleNames = Object.getOwnPropertyNames(update.error.style)
@@ -77,18 +64,28 @@ export const ImageDiv = (props = {}) => {
                             tmp[name] = update.error.style[name]
                         });
                     }
-                }
+             
                 const request = { command: tmp.update.command, page: "imgDiv", id: imgDivId, file: tmp.update.file, callback: onUpdate };
-                console.log("requesting")
+        
                 addFileRequest(request)
-            }else if(updated != null)
-            {
-                   console.log("updated")
-              
-                tmp.image = updated.url;
-                
             }
 
+        }
+        if (updated != null) {
+            if (updated != null && "error" in updated) {
+
+                tmp.image = update.error.url;
+
+                if ("style" in update.error) {
+                    const styleNames = Object.getOwnPropertyNames(update.error.style)
+                    styleNames.forEach(name => {
+                        tmp[name] = update.error.style[name]
+                    });
+                }
+
+            } else{
+                tmp.image = updated.url;
+            }
         }
 
         let info = { 
@@ -102,9 +99,9 @@ export const ImageDiv = (props = {}) => {
         
        
         
-        const propsWidth = ("width" in props) ? props.width : "width" in tmp ? tmp.width : null;
+        const propsWidth = ("width" in props) ? props.width :  null;
 
-        const propsHeight = ("height" in props) ? props.height : "height" in tmp ? tmp.height : null;
+        const propsHeight = ("height" in props) ? props.height :  null;
      
         let scale = info.scale;
         const bounds = propsWidth != null && propsHeight != null ? {width:propsWidth, height:propsHeight}: divRef.current ?  divRef.current.getBoundingClientRect() : {width:30, height:30}
@@ -134,6 +131,7 @@ export const ImageDiv = (props = {}) => {
             
             }
         }
+
     
         let tmpStyle = {
             display:"flex",
@@ -153,7 +151,8 @@ export const ImageDiv = (props = {}) => {
                 tmpStyle[element] = props.style[element];
             });
         }
-        let tmpImgStyle = { width: tmpWidth, 
+        let tmpImgStyle = { 
+            width: tmpWidth, 
             height: tmpHeight, 
             filter: info.filter, 
             opacity:info.opacity

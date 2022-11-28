@@ -24,13 +24,13 @@ import { get } from "idb-keyval";
 
     const [data, setData] = useState({ loginRemember: false, loginName: "", loginPass: "" });
     const [cookie, setCookie] = useCookies(['login']);
-   
+     const autoLogin = useZust((state) => state.autoLogin)
 
      
     const navigate = useNavigate(); 
     
     const [disable, setDisable] = useState(false)
-    const autoLogin = useZust((state) => state.autoLogin)
+  
 
     
    // const [overlayPos, setOverlayPos] = useState({top:200, left:200})
@@ -61,45 +61,17 @@ import { get } from "idb-keyval";
         }));
 
     }
-  
-    const socket = useZust((state) => state.socket)
+ 
     useEffect(()=>{
-      
-        let isLogin = false;
-  
+        setLoginPage()
     
-        if(autoLogin){
-            if ("login" in cookie){
-                if(cookie.login.useCookie)
-                {
-                    
-                    isLogin = login(cookie.login.name, cookie.login.pass);
+           if ("login" in cookie && cookie.login.useCookie) {
             
-                }
+                login(cookie.login.name, cookie.login.pass);
+   
             }
-        }else{
-            if ("login" in cookie) {
-                if (cookie.login.useCookie) {
-                    setCookie("login", { useCookie: false, name: "", pass: "" })
-                    
-                   
-                }
-            }
-        }
-        if(!isLogin){
-            setLoginPage();
-        }
-         //   setFillMainOverlay(false);
+   
 
-        
-       // setOverlayPos(produce((state) => {
-         //  state.top = pageSize.height/2 - 200;
-         //  state.left =  pageSize.width * .25 - 300;
-       // }))
-
-        return () => {
-     
-        }
     }
     ,[]);
 

@@ -35,6 +35,8 @@ export const FileHandler = ( props = {}) =>{
 
     const processing = useRef({value:[]})
 
+    const [isProcessing, setIsProcessing] = useState(false)
+
     const addProcessing = (request) => {
         const index = processing.current.value.findIndex(item => item.page == request.page && item.id == request.id)
         
@@ -77,7 +79,8 @@ export const FileHandler = ( props = {}) =>{
                             })           
                         
                         }else{
-                            console.log("request is still processing")
+                            console.log("request is still processing" + request.file.name)
+                        
                         }  
                     }else{
                         console.log("requesting null")
@@ -95,7 +98,14 @@ export const FileHandler = ( props = {}) =>{
   
     },[fileRequest])
 
+    useEffect(()=>{
 
+        if(processing.current.value > 0){
+            setIsProcessing(true)
+        }else{
+            setIsProcessing(false)
+        }
+    },[processing.current])
 
 
     const executeFileCommand = (request) => {
@@ -209,7 +219,7 @@ export const FileHandler = ( props = {}) =>{
             });
 
             newFile.icon = dataURL
-            console.log(newFile)
+       
             return { success: true, file: newFile, request: request }
         } catch (err) {
             return { error: new Error("Cannot get image from file.") }
@@ -243,7 +253,7 @@ export const FileHandler = ( props = {}) =>{
     return (
         <>
             {
-                processing.current.value.length > 0 &&
+                isProcessing &&
                 <ImageDiv onClick={(e) => {
                     navigate("/home/peernetwork/transfers")
                 }} width={25} height={30} netImage={{ image: "/Images/icons/file-tray-stacked.svg", scale: .7, filter: "invert(100%)" }} />
