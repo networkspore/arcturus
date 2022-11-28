@@ -48,13 +48,28 @@ export const ImageDiv = (props = {}) => {
     useEffect(() => {
       
        
-        const tmp = ("netImage" in props) ? props.netImage !== undefined ?  props.netImage : {} : {};
+        let tmp = props.netImage != undefined ?  props.netImage : {};
 
         const update = "update" in tmp ? tmp.update : null
        
         
-        
-        if (update != null && update.file != null && updated == null){
+        if (updated != null) {
+            if (updated != null && "error" in updated) {
+
+                tmp.image = update.error.url;
+
+                if ("style" in update.error) {
+                    const styleNames = Object.getOwnPropertyNames(update.error.style)
+                    styleNames.forEach(name => {
+                        tmp[name] = update.error.style[name]
+                    });
+                }
+
+            } else {
+                tmp.filter = ""
+                tmp.image = updated.url;
+            }
+        }else if (update != null && update.file != null && updated == null){
            
             if ("waiting" in update){
                     tmp.image = update.waiting.url;
@@ -71,22 +86,7 @@ export const ImageDiv = (props = {}) => {
             }
 
         }
-        if (updated != null) {
-            if (updated != null && "error" in updated) {
-
-                tmp.image = update.error.url;
-
-                if ("style" in update.error) {
-                    const styleNames = Object.getOwnPropertyNames(update.error.style)
-                    styleNames.forEach(name => {
-                        tmp[name] = update.error.style[name]
-                    });
-                }
-
-            } else{
-                tmp.image = updated.url;
-            }
-        }
+   
 
         let info = { 
             opacity: ("opacity" in tmp) ? tmp.opacity : 1,

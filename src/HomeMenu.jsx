@@ -571,6 +571,7 @@ const HomeMenu = ({ props }) => {
                                             error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
 
                                         },
+                                       
                                         backgroundColor: "",
                                         opacity: 1,
                                         image: null,
