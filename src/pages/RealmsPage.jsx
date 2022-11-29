@@ -364,7 +364,16 @@ export const RealmsPage = () =>{
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
                     <div style={{ display:"flex", width:"100%"}}> 
-                   
+                    {selectedItem == null && selectedRealm == null &&
+                        < div style={{ display: "flex", justifyContent: "end", alignItems: "center", flex: 1, marginRight:"5%" }}>
+                            <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onNextPage} style={{}}>
+
+                                <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/chevron-forward-outline.svg", filter: "invert(100%)" }} />
+
+                            </div>
+
+                        </div>
+                    }
                     {selectedItem != null && selectedRealm == null &&
                         <>
                             <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent:"center" }}>
@@ -390,7 +399,7 @@ export const RealmsPage = () =>{
                             </div></div>
 
                             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex:1,}}>
-                                <div style={{ width:30}}>&nbsp;</div>
+                              
 
                                 <div about="Gateway" 
                                     className={styles.tooltipCenter__item} 
@@ -407,18 +416,14 @@ export const RealmsPage = () =>{
                             </div>
 
                             <div style={{display:"flex", justifyContent:"end", alignItems:"center", flex:1, }}>
-                                <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onNextPage} style={{  }}>
-                                 
-                                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/chevron-forward-outline.svg", filter: "invert(100%)" }} />
-                                  
-                                </div>
+                                    &nbsp;
                                 
                             </div>
-                            <div style={{ flex:0.02 }}>&nbsp;</div>
+                       
                         </>
                     }
                     </div>
-            <div style={{width:"100%", display:"flex",height:"100%"}}>
+            <div style={{width:"100%", display:"flex",height:"100%", flex:1}}>
                 
                 <BubbleList onChange={(item)=>{
                   

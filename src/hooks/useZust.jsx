@@ -194,9 +194,19 @@ const useZust = create((set) => ({
       LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: null },
    setUser: (u = {
       LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: null }) => set({user: u}),
-   socket: null,
-   setSocket: (sock = null) => set({ socket: sock }),
-  
+   socketConnected: false,
+   setSocketConnected: (value) => set({socketConnected: value}),
+   updateUserImage: (update = {
+      fileID: -1,
+      fileName: null,
+      fileType: null,
+      fileCRC: null,
+      fileMimeType: null,
+      fileSize: null,
+      fileLastModified: null
+   }) => set(produce((state) => {
+      state.user.image = update
+   })),
    socketCmd:{cmd:null, params:{},callback:() => null},
    setSocketCmd: (value = { cmd: null, params: {}, callback: ()=> null }) => set(produce((state)=>{
       state.socketCmd = value

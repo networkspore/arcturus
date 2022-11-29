@@ -21,10 +21,9 @@ const BubbleList = (props = {}, ref) => {
     const activeClassName = ("activeClassName" in props) ? props.activeClassName : styles.bubbleActive__item;
 
 
-    const rowStyle = { display: "flex", flex: 1, height: "20%" }
+    const rowStyle = {display: "flex", flex: 1, height: "20%", width:"100%", alignItems:"center", justifyContent:"center" }
     const itemStyle = {
         borderRadius: 40,
-        margin:"3%",
         overflow:"hidden",
         textShadow: "2px 2px 2px black",
         cursor: "pointer"
@@ -143,48 +142,48 @@ const BubbleList = (props = {}, ref) => {
 
   
     return (
-        <div onClick={(e)=>{setCurrentItem(null)}} ref={divRef} style={{display:"flex", flexDirection:"column", overflow:"hidden", minWidth:800, minHeight:800, width:"100%", height:"100%"}} >
+        <div onClick={(e) => { setCurrentItem(null) }} ref={divRef} style={{ display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 800, minHeight: 800, width: "100%", height: "100%",  }} >
             
-          
+            
                 <div style={rowStyle}>
-                    
-                    <ImageDiv about={displayItem[0].name} className={currentItem != null && currentItem.index == 0 ? activeClassName : className} onClick={(e) => onClick(e, 0)} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[0].netImage} />
-
-                    <ImageDiv about={displayItem[1].name} className={currentItem != null && currentItem.index == 1 ? activeClassName : className} onClick={(e) => { onClick(e, 1) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 1].netImage} />
-
-                    <ImageDiv about={displayItem[2].name} className={currentItem != null && currentItem.index == 2 ? activeClassName : className} onClick={(e) => { onClick(e, 2) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 2].netImage} />
-
-                    <ImageDiv about={displayItem[3].name} className={currentItem != null && currentItem.index == 3 ? activeClassName : className} onClick={(e) => { onClick(e, 3) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 3].netImage} />
-
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                <ImageDiv about={displayItem[0].name} className={currentItem != null && currentItem.index == 0 ? activeClassName : className} onClick={(e) => {onClick(e, 0)}} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[0].netImage} />
+                <div style={{width:"5%"}}>&nbsp;</div>
+                <ImageDiv about={displayItem[1].name} className={currentItem != null && currentItem.index == 1 ? activeClassName : className} onClick={(e) => { onClick(e, 1) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 1].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                <ImageDiv about={displayItem[2].name} className={currentItem != null && currentItem.index == 2 ? activeClassName : className} onClick={(e) => { onClick(e, 2) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 2].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                <ImageDiv about={displayItem[3].name} className={currentItem != null && currentItem.index == 3 ? activeClassName : className} onClick={(e) => { onClick(e, 3) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 3].netImage} />
+                <div style={{width: "5%"}}></div>
                 
                 </div>
                 <div style={rowStyle}>
-                    <ImageDiv about={displayItem[4].name} className={currentItem != null && currentItem.index == 4 ? activeClassName : className} onClick={(e) => { onClick(e, 4) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 4].netImage} />
-                
-                    <ImageDiv about={displayItem[5].name} className={currentItem != null && currentItem.index == 5 ? activeClassName : className} onClick={(e) => { onClick(e, 5) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 5].netImage} />
-    
-                <ImageDiv about={displayItem[6].name} className={currentItem != null && currentItem.index == 6 ? activeClassName : className} onClick={(e) => { onClick(e, 6) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[6].netImage} />
-        
-                <ImageDiv about={displayItem[7].name} className={currentItem != null && currentItem.index == 7 ? activeClassName : className} onClick={(e) => { onClick(e, 7) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[7].netImage} />
+                    <ImageDiv about={displayItem[4].name} className={currentItem != null && currentItem.index == 4 ? activeClassName : className} onClick={(e) => { onClick(e, 4) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 4].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                    <ImageDiv about={displayItem[5].name} className={currentItem != null && currentItem.index == 5 ? activeClassName : className} onClick={(e) => { onClick(e, 5) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 5].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                <ImageDiv about={displayItem[6].name} className={currentItem != null && currentItem.index == 6 ? activeClassName : className} onClick={(e) => { onClick(e, 6) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[6].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                <ImageDiv about={displayItem[7].name} className={currentItem != null && currentItem.index == 7 ? activeClassName : className} onClick={(e) => { onClick(e, 7) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[7].netImage} />
                 
               
                     
                 </div>
                 <div style={rowStyle}>
-                    <ImageDiv about={displayItem[8].name} className={currentItem != null && currentItem.index == 8 ? activeClassName : className} onClick={(e) => { onClick(e, 8) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[8].netImage} />
-
-                    <ImageDiv about={displayItem[9].name} className={currentItem != null && currentItem.index == 9 ? activeClassName : className} onClick={(e) => { onClick(e, 9) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 9].netImage} />
-
-                    <ImageDiv about={displayItem[10].name} className={currentItem != null && currentItem.index == 10 ? activeClassName : className} onClick={(e) => { onClick(e, 10) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 10].netImage} />
-
-                    <ImageDiv about={displayItem[11].name} className={currentItem != null && currentItem.index == 11 ? activeClassName : className} onClick={(e) => { onClick(e, 11) }} style={itemStyle} width={"18%"} height={"80%"} netImage={displayItem[ 11].netImage} />
+                    <ImageDiv about={displayItem[8].name} className={currentItem != null && currentItem.index == 8 ? activeClassName : className} onClick={(e) => { onClick(e, 8) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[8].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                    <ImageDiv about={displayItem[9].name} className={currentItem != null && currentItem.index == 9 ? activeClassName : className} onClick={(e) => { onClick(e, 9) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 9].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                    <ImageDiv about={displayItem[10].name} className={currentItem != null && currentItem.index == 10 ? activeClassName : className} onClick={(e) => { onClick(e, 10) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 10].netImage} />
+                <div style={{ width: "5%" }}>&nbsp;</div>
+                    <ImageDiv about={displayItem[11].name} className={currentItem != null && currentItem.index == 11 ? activeClassName : className} onClick={(e) => { onClick(e, 11) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 11].netImage} />
 
                 
                 </div>
            
-         
+            
 
-            <div style={{ flex:.3 }}>&nbsp;</div>
+        
         </div>
       
     )

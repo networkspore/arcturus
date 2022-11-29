@@ -8,7 +8,7 @@ import loadingStyles from './pages/css/loading.module.css';
 export const LoadingPage = (props ={}) => {
     const navigate = useNavigate()
 
-
+    const setConfigFile = useZust((state) => state.setConfigFile)
 
     useEffect(()=>{
 
@@ -19,7 +19,7 @@ export const LoadingPage = (props ={}) => {
             
             if(props.state.configFile != undefined){
            
-                props.onConfigChange(props.state.configFile)
+                setConfigFile(props.state.configFile)
            
             
             }

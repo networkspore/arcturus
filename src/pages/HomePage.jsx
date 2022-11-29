@@ -29,6 +29,7 @@ export const HomePage = (props ={}) => {
 
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
+    const updateUserImage = useZust((state) => state.updateUserImage)
     const [showIndex, setshowIndex] = useState(0)
     const navigate = useNavigate();
 
@@ -97,7 +98,7 @@ export const HomePage = (props ={}) => {
         
     },[location])
 
-    const updateUserImage = (update) =>{
+    const onUpdateUserImage = (update) =>{
         const fileInfo = {
             name: update.name, 
             crc: update.crc, 
@@ -109,7 +110,11 @@ export const HomePage = (props ={}) => {
        
 
         setSocketCmd({cmd: "updateUserImage", params:{imageInfo:fileInfo}, callback:(updateResult)=>{
-            console.log(user.image)
+            if("success" in updateResult && updateResult.success)
+            {
+                updateUserImage(updateResult.file)
+            }
+
         }})
     }
 
@@ -127,12 +132,12 @@ export const HomePage = (props ={}) => {
                    
 
 
-                    <ImageDiv width={150} height={150} style={{overflow:"hidden"}} onClick={(e) => {
+                    <ImageDiv width={150} height={150} onClick={(e) => {
                         setshowIndex(10)
-                    }}  about={"Select Image"} className={className} netImage={{
+                    }}  about={"Select Image"}  className={className} netImage={{
                         scale:1.1,
                         update: {
-                            command: "getIcon",
+                            command: "getImage",
                             file: user.image,
                             waiting: { url: "/Images/spinning.gif" },
                             error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
@@ -162,7 +167,7 @@ export const HomePage = (props ={}) => {
 
 
                 </div>
-                <div style={{height:50}}>&nbsp;</div>
+                <div style={{height:10}}>&nbsp;</div>
                 <div style={{ width: 260, paddingLeft:"15px", }}>
                     
                     
@@ -298,7 +303,7 @@ export const HomePage = (props ={}) => {
                     onCancel ={()=>{
                         setshowIndex(0)
                     }}
-                    onOk={updateUserImage}
+                    onOk={onUpdateUserImage}
                 />
             }
        </>

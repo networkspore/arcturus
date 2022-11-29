@@ -69,6 +69,7 @@ export const InitStoragePage = (props = {}) => {
 
 
     const [firstRun, setFirstRun] = useState(true)
+  
 
     const [stateConfig, setStateConfig] = useState(null)
 
@@ -93,6 +94,7 @@ export const InitStoragePage = (props = {}) => {
                  
                     setFirstRun(false)
                     const config = configFile.value;
+                   
                     setEngineKey(config.engineKey)
                     P2PRef.current.setValue(config.peer2peer)
                     ergoRef.current.setValue(config.ergo)
@@ -267,13 +269,18 @@ export const InitStoragePage = (props = {}) => {
                                                 }
                                             })
                                         } else {
+                                          
                                             setSocketCmd({
+                                            
                                                 cmd: "updateStorageConfig", params: { fileID: configFile.fileID, file: newFile }, callback: (updated) => {
 
                                                     if (!("error" in updated)) {
                                                         if (updated.success) {
+                                                            newConfig.fileID = configFile.fileID;
+                                                            newConfig.storageID = configFile.storageID;
                                                             resolve({ success: true, config: newConfig })
                                                         } else {
+                                                           
                                                             resolve({ success: false })
                                                         }
                                                     } else {
@@ -317,7 +324,6 @@ export const InitStoragePage = (props = {}) => {
         if(valid)
         {
             console.log("submitting")
-    
             setValid(false)
             setupConfigFile(user.userName).then(result=>{
                     setValid(true);

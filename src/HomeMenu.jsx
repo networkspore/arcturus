@@ -43,6 +43,7 @@ const HomeMenu = ({ props }) => {
     const userPeerID = useZust((state) => state.userPeerID)
 
 
+
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
@@ -154,6 +155,7 @@ const HomeMenu = ({ props }) => {
 
                         break;
                     case "/loading":
+                        console.log("at loading")
                         setLoadState(location.state)
                         setShowIndex(-1)
                         setPage(null)
@@ -211,6 +213,7 @@ const HomeMenu = ({ props }) => {
         try {
             const value = await get("localDirectory" + user.userID)
             const verified = await getPermissionAsync(value.handle)
+            console.log(verified)
             if(!verified) return false
 
             setLocalDirectory(value)
@@ -594,16 +597,15 @@ const HomeMenu = ({ props }) => {
 
     }, [quickBar, realms, currentRealmID, showIndex])
 
+
+
     return (
         <>
 
             {
                 showIndex == -1 &&
 
-                <LoadingPage onComplete={onComplete} state={loadState} onConfigChange={(config) =>{ 
-                 
-                    setConfigFile(config)
-                }}/>
+                <LoadingPage onComplete={onComplete} state={loadState} />
             }
 
 
@@ -662,7 +664,15 @@ const HomeMenu = ({ props }) => {
 
                             <NavLink style={{ outline: 0 }} className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
-                                <ImageDiv width={60} height={60} netImage={{ image: "/Images/icons/person.svg", filter: "invert(100%)", scale: .75 }} />
+                                <ImageDiv width={60} height={60}   netImage={{
+                                    image: "/Images/icons/person.svg", filter: "invert(100%)", scale: .9, update: {
+                                        command: "getIcon",
+                                        file: user.image,
+                                        waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
+                                        error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                                    },
+                                       }} />
                             </NavLink>
 
                         </div>
@@ -670,20 +680,27 @@ const HomeMenu = ({ props }) => {
                 </div>
 
             }
+           
             <div style={{
                 position: "fixed", top: 0, right: 0, display: "flex", alignItems: "center",  height: 35, backgroundColor: "black",
             }}>
                 <div style={{ display: "flex", }}>
 
                     <div style={{ display: "flex", alignItems: "center", cursor: "pointer", backgroundColor: "black" }} >
-                        <div onClick={(e) => {
-                            toNav("/network")
-                        }}>
+                        {location.pathname != "/loading" &&
+                        <div onClick={onProfileClick} >
                             <ImageDiv width={30} height={30} netImage={{
-                                image: user.userID > 0 ? "/Images/logo.png" : "/Images/logout.png", width: 25, height: 25,
-                                filter: userPeerID != "" ? "drop-shadow(0px 0px 3px #faa014)" : ""
+                                image: "/Images/icons/person.svg", filter: "invert(100%)", scale: .9, update: {
+                                    command: "getIcon",
+                                    file: user.image,
+                                    waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
+                                    error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                                },
                             }} />
+                                  
                         </div>
+                        }
                         {user.userID > 0 &&
                             <>
                                 <PeerNetworkHandler />
@@ -692,15 +709,21 @@ const HomeMenu = ({ props }) => {
 
                             </>
                         }
-                        <SocketHandler />
+               
+                        <SocketHandler /> 
+                   
+                        {location.pathname != "/loading" &&
                         <div onClick={onProfileClick} style={{
                             fontFamily: "WebPapyrus",
                             color: "#c7cfda",
                             fontSize: "16px",
                             paddingTop: "5px",
                             paddingLeft: "10px",
-                            paddingRight: "15px"
-                        }}> {user.userID > 0 ? user.userName : <div style={{ display: "flex" }}><div>Log</div><div style={{ width: "6px" }}>&nbsp;</div><div>In</div> </div>}</div>
+                            paddingRight: "15px",
+                            whiteSpace: "nowrap"
+                        }}> {user.userID > 0 ? user.userName : "Log in"}</div>
+                     
+                        }
                     </div>
 
                 </div>

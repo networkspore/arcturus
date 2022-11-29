@@ -18,11 +18,16 @@ export const ImageDiv = (props = {}) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-      
-        overflow: "hidden",
-        borderRadius: "20px"
+        overflow:"clip",
+        borderRadius: 20
     })
 
+    const [clipStyle, setClipStyle] = useState({
+        display: "flex",
+        overflow: "clip", 
+        borderRadius: "20px",
+        alignItems: "center",
+        justifyContent: "center", })
  
     const addFileRequest = useZust((state) => state.addFileRequest)
   
@@ -142,6 +147,7 @@ export const ImageDiv = (props = {}) => {
             height: bounds.height,
             backgroundColor: info.backgroundColor,
             backgroundImage: info.backgroundImage,
+      
         };
 
         if ("style" in props) {
@@ -152,11 +158,22 @@ export const ImageDiv = (props = {}) => {
             });
         }
         let tmpImgStyle = { 
-            width: tmpWidth, 
-            height: tmpHeight, 
+            width: tmpStyle.width * scale, 
+            height: tmpStyle.height * scale, 
             filter: info.filter, 
             opacity:info.opacity
         }
+
+        let clip = {
+            width: tmpWidth,
+            height: tmpHeight,
+            borderRadius: tmpStyle.borderRadius,
+            display: "flex",
+            overflow: "clip",
+            alignItems: "center",
+            justifyContent: "center", 
+        }
+        setClipStyle(clip)
       
         setImgStyle(tmpImgStyle)
 
@@ -164,6 +181,8 @@ export const ImageDiv = (props = {}) => {
  
         
         setStyle(tmpStyle)
+
+
      
     
     }, [props, pageSize, updated])
@@ -171,13 +190,9 @@ export const ImageDiv = (props = {}) => {
 
 
 
-   async function updateImgURL (image) {
-
-   }
-
     return (
         <div about={props.about} className={props.className} ref={divRef} onClick={props.onClick} style={style}>
-            {imgURL != null && imgURL != "" ? <img src={imgURL} style={imgStyle} /> : ""}
+            {imgURL != null && imgURL && <div style={clipStyle}> <img src={imgURL} style={imgStyle} /> </div>}
         </div>
     )
 }

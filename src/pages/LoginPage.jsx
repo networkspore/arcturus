@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from './css/login.module.css';
 import { useNavigate} from 'react-router-dom';
-import { useCookies } from "react-cookie";
+
 import sha256 from 'crypto-js/sha256';
 import useZust from "../hooks/useZust";
 import produce from "immer";
@@ -23,8 +23,7 @@ import { get } from "idb-keyval";
     }))
 
     const [data, setData] = useState({ loginRemember: false, loginName: "", loginPass: "" });
-    const [cookie, setCookie] = useCookies(['login']);
-     const autoLogin = useZust((state) => state.autoLogin)
+    const autoLogin = useZust((state) => state.autoLogin)
 
      
     const navigate = useNavigate(); 
@@ -65,12 +64,7 @@ import { get } from "idb-keyval";
     useEffect(()=>{
         setLoginPage()
     
-           if ("login" in cookie && cookie.login.useCookie) {
-            
-                login(cookie.login.name, cookie.login.pass);
-   
-            }
-   
+       
 
     }
     ,[]);
@@ -136,11 +130,7 @@ import { get } from "idb-keyval";
                 const contacts = response.contacts
                 const requests = response.requests
 
-                if (data.loginRemember) {
-
-                    setCookie("login", { useCookie: true, name: name_email, pass: pass })
-                }
-
+          
                     setUser(user)
                     setContacts(contacts)
                     setContactRequests(requests)

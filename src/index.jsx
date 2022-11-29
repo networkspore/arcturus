@@ -31,6 +31,7 @@ import HomeMenu from './HomeMenu';
 
 
 import { LandingPage } from './LandingPage';
+import { SocketHandler } from './handlers/socketHandler';
 
 
 
@@ -56,16 +57,16 @@ const Loader = (<>  <div className={loadingStyles.loading}  >
 
 const App = () => {
 
-    const user = useZust((state) => state.user);
+ 
 
     const page = useZust((state) => state.page);
     const pageSize = useZust((state) => state.pageSize);
-    const connected = useZust((state) => state.socketConnected)
+
  
     return (
         
-                <CookiesProvider>
-                   
+           <>   
+            
                         
                     <div style={{width: pageSize.width, height: pageSize.height, display:'flex', flexDirection:'column' }}>
                         <div style={{ flex: 1, display: page!=null ? "block": "none" }}>
@@ -108,7 +109,7 @@ const App = () => {
                    
             <Sizing />
                    
-                </CookiesProvider>
+        </>
      
     );
 }

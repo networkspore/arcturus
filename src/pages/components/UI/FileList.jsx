@@ -22,8 +22,8 @@ const FileList = (props = {}, ref) => {
 
     const longClassName = ("longClassName" in props) ? props.longClassName : styles.bubbleScroll__item
     const activeLongClassName = ("activeLongClassName" in props) ? props.activeLongClassName : styles.activeBubbleScroll__item
-    const className = ("className" in props) ? props.className : styles.icon__item;
-    const activeClassName = ("activeClassName" in props) ? props.activeClassName : styles.iconActive__item;
+    const className = ("className" in props) ? props.className : styles.bubble__item;
+    const activeClassName = ("activeClassName" in props) ? props.activeClassName : styles.bubbleActive__item;
     
     const filesStyle = { zIndex: "9999", textAlign: "left", color: "#cdd4da", position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)",  };
     const rowStyle = { margin: "0px 10px 10px 10px", display: "flex", alignItems: "center", flex:1, }
@@ -210,10 +210,11 @@ const FileList = (props = {}, ref) => {
                                     
                                     iImage.scale = 1;
                                     array.push(
-                                        <div key={i} style={{borderRadius:15, margin:25, padding:0, overflow:"hidden"}} about={iName} className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className} >
+                                        <div style={{paddingLeft:20, paddingRight:20, paddingTop:10, paddingBottom:10,width:fileView.iconSize.width, height:fileView.iconSize.height}}  >
                                         <ImageDiv 
-                                            style={{ overflow:"hidden"}}
-                                       
+                                        key={i}
+                                             about={iName}
+                                                className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className}
                                             onClick={(e) => {
                                                 if (iTo == null) {
                                                     setSelectedIndex(i)
@@ -389,9 +390,9 @@ const FileList = (props = {}, ref) => {
 
 
     return (
-        <div ref={divRef}  style={{}}>
+        <div ref={divRef} style={{ overflowX: "clip" }}>
             {fileView.type == "details" &&
-                <div style={{ display: "flex", flex: 1, flexDirection:"column" }}>
+                <div style={{ display: "flex", flex: 1, flexDirection:"column", }}>
                     <div style={{ display: "flex", flex:1 }}>
         
                         <div style={{ flex: 0.1, color: "#777777", }}>&nbsp;</div>

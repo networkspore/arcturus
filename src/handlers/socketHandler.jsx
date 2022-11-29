@@ -16,9 +16,10 @@ export const SocketHandler = (props = {}) => {
     const loggedIn = useRef({value:false})
 
     const passRef = useRef()
-    const [notConnected, setNotConnected] = useState(false)
+    const socketConnected = useZust((state) => state.socketConnected)
+    const setSocketConnected = useZust((state) => state.setSocketConnected)
     const [showLogin, setShowLogin] = useState(false)
-    const [cookie, setCookie] = useCookies(['login']);
+
 
 
     useEffect(()=>{ 
@@ -41,29 +42,19 @@ export const SocketHandler = (props = {}) => {
     useEffect(()=>{
        
         if (user.userID > 0 && sock.current.value == null ){
-            setNotConnected(true)
+            setSocketConnected(false)
           
-            if ("login" in cookie && cookie.login.useCookie) {
+            setShowLogin(true)
             
-                login(cookie.login.name, cookie.login.pass);
-
-            }else{
-                 setShowLogin(true)
-            }
            
         } else if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected){
-            setNotConnected(true)
+            setSocketConnected(false)
    
-            if ("login" in cookie && cookie.login.useCookie) {
-
-                login(cookie.login.name, cookie.login.pass);
-
-            } else {
-                setShowLogin(true)
-            }
+           
+            setShowLogin(true)
+            
         }else{
            
-            setNotConnected( false )
             setShowLogin( false )
         }
     }, [sock.current.value, user])
@@ -86,6 +77,7 @@ export const SocketHandler = (props = {}) => {
                                 if("success" in response && response.success){
                                    // setSocket(sock.current.value)
                                     loggedIn.current.value = true
+                                    setSocketConnected(true)
                                     socketCmd.callback(response)
                                   
                                     tryCount.current.value = 1
@@ -293,10 +285,10 @@ export const SocketHandler = (props = {}) => {
         setShowLogin(false)
             setSocketCmd({
                 cmd: "login", params: { nameEmail: name_email, password: pass }, callback: (response) => {
-                    console.log("response")
+                    console.log(response)
                     if("success" in response && response.success)
                     {
-
+                        
                     }else{
                         setShowLogin(true)
                     }
@@ -311,7 +303,7 @@ export const SocketHandler = (props = {}) => {
         
         <>
         {
-            notConnected &&
+            !socketConnected && user.userID > 0 &&
             <ImageDiv onClick={(e) => {
                 setShowLogin(true)
             }} width={25} height={30} netImage={{ image: "/Images/icons/key-outline.svg", scale: .7, filter: "invert(100%)" }} />

@@ -169,12 +169,13 @@
 	text-decoration: none;
 	color: #666666;
 	transition: background 0.3s;
-
+	border:2px solid black;
+	
 }
 
 .menu__item:hover {
 
-	background: #dddddd33;
+	filter: drop-shadow(0 0 2px #dddddd33) ;
 }
 
 /* create tooltip after each menu item  */
@@ -805,25 +806,18 @@
 
 .bubble__item {
 	cursor: pointer;
-	z-index: 1;
 	position: relative;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 10px;
 	text-decoration: none;
 	color: #666666;
 	transition: background 0.3s;
 	box-shadow: 0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710;
-	opacity:.9;
+
 }
 
-.bubble__item:hover {
-	opacity:1;
-	background: #ffffff05;
-	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
-	filter: drop-shadow(0px 0px 3px #ffffff30);
-}
+
 .bubbleButtonActive {
 	cursor: pointer;
 	z-index: 1;
@@ -913,6 +907,12 @@
 	
 
 }
+.bubble__item:hover {
+
+	background: #ffffff05;
+	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
+}
 .bubble__item::after {
 	position: absolute;
 	display: flex;
@@ -960,7 +960,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 10px;
+	
 	text-decoration: none;
 	color:white;
 	transition: background 0.3s;
@@ -969,8 +969,10 @@
 	box-shadow: 0 0 10px #ffffff70, 0 0 20px #ffffff70, inset 0 0 30px #77777740;
 	filter: drop-shadow(0px 0px 3px #ffffff30);
 }
+	
+	
 
-
+	
 /* create tooltip after each menu item  */
 .bubbleActive__item::after {
 	position: absolute;
@@ -1023,7 +1025,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 10px;
+
 	text-decoration: none;
 	color: #666666;
 	transition: background 0.3s;
@@ -1086,7 +1088,7 @@ transform: translate(0%, 0%);
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 10px;
+
 	text-decoration: none;
 	color: #666666;
 	transition: background 0.3s;
