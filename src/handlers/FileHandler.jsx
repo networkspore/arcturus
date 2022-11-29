@@ -65,12 +65,12 @@ export const FileHandler = ( props = {}) =>{
         if (fileRequest != null && fileRequest.length > 0 ){
            
                 fileRequest.forEach((request, i) => {
-                    console.log(request)
+                  
                     if (request.file != null && request.file.crc != null && request.file.crc != "" && request.file.mimeType != null) {
 
                         if( addProcessing(request)){
-                            console.log("processing")
-                            console.log(request)
+                     
+                        
                             executeFileCommand(request).then((result)=>{
                             
                                 request.callback(result)
@@ -79,7 +79,7 @@ export const FileHandler = ( props = {}) =>{
                             })           
                         
                         }else{
-                            console.log("request is still processing" + request.file.name)
+                          //  console.log(request)
                         
                         }  
                     }else{
@@ -91,7 +91,7 @@ export const FileHandler = ( props = {}) =>{
           
 
         } else {
-          console.log('doing nothing')
+        //  console.log('doing nothing')
 
            
         }

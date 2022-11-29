@@ -54,11 +54,25 @@ export const Realm = () => {
    
 
     useEffect(() =>{
-    
+        setCurrentRealm({
+            realmID: null,
+            realmName: "",
+            userID: null,
+            roomID: null,
+            realmPage: null,
+            realmIndex: null,
+            statusID: null,
+            accessID: null,
+            realmDescription: null,
+            advisoryID: null,
+            image: null,
+            config: null,
+            realmType: null,
+        })
         if(currentRealmID != null)
         {
             console.log("enteredRealm")
-            console.log(currentRealmID)
+           
             setSocketCmd({
                 cmd: "enterRealmGateway", params: { realmID: currentRealmID }, callback: (enteredGateway) => {
                

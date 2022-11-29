@@ -20,7 +20,8 @@ export const SocketHandler = (props = {}) => {
     const setSocketConnected = useZust((state) => state.setSocketConnected)
     const [showLogin, setShowLogin] = useState(false)
 
-
+    const sock = useRef({value:null})
+    const tryCount = useRef({value:1})
 
     useEffect(()=>{ 
         if(!(user.userID > 0))
@@ -33,9 +34,7 @@ export const SocketHandler = (props = {}) => {
     }, [user])
 
 
-    const sock = useRef({value:null})
-
-    const tryCount = useRef({value:1})
+ 
 
     
 
@@ -60,10 +59,10 @@ export const SocketHandler = (props = {}) => {
     }, [sock.current.value, user])
 
     useEffect(() =>{
-        
+    
         if(!loggedIn.current.value)
         {
-            console.log(socketCmd)
+          
             if (socketCmd.cmd == "login" && !(("anonymous") in socketCmd)) {
                     
                 if (sock.current.value == null && tryCount.current.value < 5)
@@ -84,7 +83,7 @@ export const SocketHandler = (props = {}) => {
                                     sock.current.value.on("disconnect", (res) => {
                                         switch (res) {
                                             case "io server disconnect":
-                                                window.location.replace("/")
+                                              sock.current.value = null
                                                 break;
 
                                         }
@@ -259,7 +258,12 @@ export const SocketHandler = (props = {}) => {
                         socketCmd.callback(response)
                     })
                     break;
-            
+                case "updateRealmImage":
+                 
+                    sock.current.value.emit("updateRealmImage", socketCmd.params.realmID, socketCmd.params.imageInfo, (response) => {
+                        socketCmd.callback(response)
+                    })
+                    break;
                 default:
                    socketCmd.callback({error: new Error( "not implemented")})
                     break;

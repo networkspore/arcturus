@@ -31,6 +31,7 @@ import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
 import { useId } from "react";
 import { flushSync } from "react-dom";
+import { StorageHandler } from "./handlers/StorageHandler";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -155,7 +156,7 @@ const HomeMenu = ({ props }) => {
 
                         break;
                     case "/loading":
-                        console.log("at loading")
+                       
                         setLoadState(location.state)
                         setShowIndex(-1)
                         setPage(null)
@@ -224,58 +225,34 @@ const HomeMenu = ({ props }) => {
 
             const fileInfo = await getFileInfo(handle, userHomeHandle)
 
-            console.log(fileInfo)
+         
             setSocketCmd({
                 cmd: "checkStorageCRC", params: { crc: fileInfo.crc }, callback: (crcResult) => {
+                    if ("success" in crcResult && crcResult.success) {
+                        readFileJson(handle).then((jsonResult) => {
+                            
+                            if ("success" in jsonResult && jsonResult.success) {
+                                const json = jsonResult.value;
+                                fileInfo.value = json[user.userName];
+                                fileInfo.fileID = crcResult.fileID;
+                                fileInfo.storageID = crcResult.storageID;
 
-                    console.log(crcResult)
-                    if ("error" in crcResult) {
-                        addSystemMessage(initStorage)
-                        navigate("/network")
+                                navigate("/loading", { state: { configFile: fileInfo, navigate: "/" } })
+
+                            } else {
+                                console.log("json failed")
+
+                                addSystemMessage(initStorage)
+                                //  navigate("/network")
+                            }
+                            
+                        })
                     } else {
-                        if (crcResult.success) {
-                            readFileJson(handle).then((jsonResult) => {
-                                if ("error" in jsonResult) {
-                                    addSystemMessage(initStorage)
-                                    navigate("/network")
-                                } else {
-                                    if (jsonResult.success) {
-                                        const json = jsonResult.value;
-                                        fileInfo.value = json[user.userName];
-                                        fileInfo.fileID = crcResult.fileID;
-
-                                        if (!("error" in crcResult)) {
-
-                                            if (crcResult.success) {
-
-                                                fileInfo.storageID = crcResult.storageID;
-
-
-                                                navigate("/loading", { state: { configFile: fileInfo, navigate: "/network" } })
-
-                                            } else {
-
-                                                navigate("/home/localstorage/init", { state: { configFile: fileInfo } })
-                                            }
-                                        } else {
-
-
-                                            addSystemMessage(initStorage)
-                                            navigate("/network")
-                                        }
-                                    } else {
-
-
-                                        addSystemMessage(initStorage)
-                                        navigate("/network")
-                                    }
-                                }
-                            })
-                        } else {
-                            addSystemMessage(initStorage)
-                            navigate("/network")
-                        }
+                        console.log("crc check failed")
+                        addSystemMessage(initStorage)
+                        //  navigate("/network")
                     }
+                    
                 }
             })
             
@@ -283,7 +260,7 @@ const HomeMenu = ({ props }) => {
 
             console.log(err)
             addSystemMessage(initStorage)
-            navigate("/")
+          //  navigate("/")
         }                 
     }
 
@@ -320,7 +297,7 @@ const HomeMenu = ({ props }) => {
     }, [configFile, user])
 
     useEffect(()=>{
-        console.log(configFile)
+       
     }, [configFile])
 
     useEffect(()=>{
@@ -347,15 +324,15 @@ const HomeMenu = ({ props }) => {
                 if (idbQuickBar != undefined) {
 
                     try {
-                        const qBar = JSON.parse(idbQuickBar)
+                        const qBar = idbQuickBar
 
                         if (Array.isArray(qBar)) {
 
                             let changed = false;
                             let checkedQbar = []
                             qBar.forEach(qbarRealm => {
-                                const index = realms.findIndex(newRealm => newRealm.realmID == qbarRealm.realmID)
-
+                                const index = realms.findIndex(realm => realm.realmID == qbarRealm)
+                                
                                 if (index != -1) {
                                     checkedQbar.push(qbarRealm)
                                 } else {
@@ -364,12 +341,17 @@ const HomeMenu = ({ props }) => {
                             });
 
                             if (changed) {
+                               
+                     
                                 set(qbarIdbName, checkedQbar)
+                                setQuickBar(checkedQbar);
+                            
+                            }else{
+                                setQuickBar(checkedQbar);
                             }
 
-
-                            setQuickBar(checkedQbar);
-
+                           
+                           
                         } else {
                             console.log("Quick bar is corrupt")
 
@@ -377,9 +359,10 @@ const HomeMenu = ({ props }) => {
                         }
 
                     } catch (err) {
+                  
                         console.log(err)
-
-                        setQuickBar([]);
+                       // set(qbarIdbName, [])
+                       // setQuickBar([]);
                     }
 
                 }
@@ -549,19 +532,20 @@ const HomeMenu = ({ props }) => {
     const homeMenuID = useId()
 
     useEffect(() => {
+    
         if (showMenu && realms != null && realms.length > 0) {
             const tmp = []
-            if (quickBar != undefined && quickBar != null) {
-                for (let i = 0; i < quickBar.length; i++) {
-                    const realmIndex = realms.findIndex(r => r.realmID == quickBar[i].realmID)
+            if (quickBar != undefined && quickBar != null && quickBar.length > 0) {
+                console.log(quickBar)
+                quickBar.forEach((realmID, i) => {
+                    
+                    const realmIndex = realms.findIndex(r => r.realmID == realmID)
                     if (realmIndex != -1) {
                         const realm = realms[realmIndex];
-                        const iIcon = "icon" in realm.image ? realm.image.icon != null ? realm.image.icon : null : null;
-
-
-
+                        const realmImage = realm.image
+                       
                         tmp.push(
-                            <div key={i} onClick={() => {
+                            <div key={realmImage.crc} onClick={() => {
                                 setCurrentRealmID(realm.realmID)
                                 navigate("/realm/gateway")
                             }} style={{ outline: 0 }} className={showIndex == 7 && currentRealmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
@@ -569,7 +553,7 @@ const HomeMenu = ({ props }) => {
                                     netImage={{
                                         update: {
                                             command: "getIcon",
-                                            file: realm.image,
+                                            file: realmImage,
                                             waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
                                             error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
 
@@ -586,7 +570,7 @@ const HomeMenu = ({ props }) => {
 
 
                     }
-                }
+                });
                 setRealmQuickBarItems(tmp)
             } else {
                 setRealmQuickBarItems([])
@@ -595,7 +579,7 @@ const HomeMenu = ({ props }) => {
             setRealmQuickBarItems([])
         }
 
-    }, [quickBar, realms, currentRealmID, showIndex])
+    }, [quickBar, realms, currentRealmID, showIndex,])
 
 
 
@@ -665,7 +649,7 @@ const HomeMenu = ({ props }) => {
                             <NavLink style={{ outline: 0 }} className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
                                 <ImageDiv width={60} height={60}   netImage={{
-                                    image: "/Images/icons/person.svg", filter: "invert(100%)", scale: .9, update: {
+                                    image: "/Images/icons/person.svg", filter: "invert(100%)", scale:.8, update: {
                                         command: "getIcon",
                                         file: user.image,
                                         waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
@@ -706,7 +690,7 @@ const HomeMenu = ({ props }) => {
                                 <PeerNetworkHandler />
 
                                 <FileHandler />
-
+                               <StorageHandler />
                             </>
                         }
                
@@ -727,9 +711,9 @@ const HomeMenu = ({ props }) => {
                     </div>
 
                 </div>
-
+                { user.userID > 0 &&
                 <SystemMessagesMenu />
-
+                }
             </div>
 
         </>

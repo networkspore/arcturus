@@ -207,7 +207,9 @@ export const RealmsPage = () =>{
     const onNextPage = (e) =>{
 
     }
+    const onPrevPage = (e) => {
 
+    }
     const onRealmGateway = (e) => {
         
             setCurrentRealmID(selectedRealm.realmID)
@@ -364,7 +366,16 @@ export const RealmsPage = () =>{
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
                     <div style={{ display:"flex", width:"100%"}}> 
-                    {selectedItem == null && selectedRealm == null &&
+                    {selectedItem == null && selectedRealm == null && false &&
+                    <>
+                    < div style={{ display: "flex", justifyContent: "start", alignItems: "center", flex: 1, marginRight:"5%" }}>
+                            <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onPrevPage} style={{}}>
+
+                                <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/chevron-back-outline.svg", filter: "invert(100%)" }} />
+
+                            </div>
+
+                        </div>
                         < div style={{ display: "flex", justifyContent: "end", alignItems: "center", flex: 1, marginRight:"5%" }}>
                             <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onNextPage} style={{}}>
 
@@ -373,6 +384,7 @@ export const RealmsPage = () =>{
                             </div>
 
                         </div>
+                        </>
                     }
                     {selectedItem != null && selectedRealm == null &&
                         <>

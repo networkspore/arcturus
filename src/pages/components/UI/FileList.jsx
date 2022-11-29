@@ -210,9 +210,9 @@ const FileList = (props = {}, ref) => {
                                     
                                     iImage.scale = 1;
                                     array.push(
-                                        <div style={{paddingLeft:20, paddingRight:20, paddingTop:10, paddingBottom:10,width:fileView.iconSize.width, height:fileView.iconSize.height}}  >
+                                        <div key={i} style={{paddingLeft:20, paddingRight:20, paddingTop:10, paddingBottom:10,width:fileView.iconSize.width, height:fileView.iconSize.height}}  >
                                         <ImageDiv 
-                                        key={i}
+                                        
                                              about={iName}
                                                 className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className}
                                             onClick={(e) => {

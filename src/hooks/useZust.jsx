@@ -12,7 +12,22 @@ const useZust = create((set) => ({
 
    currentRealmID: null,
    setCurrentRealmID: (value) => set({currentRealmID: value}) ,
-  
+   updateRealmImage: (realmID, value) => set(produce((state) =>{
+      const index = state.realms.findIndex(realm => realm.realmID == realmID)
+      console.log(index)
+      try{
+         const realm = state.realms[index];
+         const objNames = Object.getOwnPropertyNames(realm)
+         let newRealm = {}
+         objNames.forEach(name => {
+            if(name != "image") newRealm[name] = realm[name]
+         });
+         newRealm.image = value
+         state.realms[index] = newRealm
+      }catch(err){
+         
+      }
+   })),
    party:[],
    quickBar:[],
    setQuickBar:(value) => set({quickBar:value}),

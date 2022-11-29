@@ -84,8 +84,7 @@ export const ImageDiv = (props = {}) => {
                             tmp[name] = update.error.style[name]
                         });
                     }
-             
-                const request = { command: tmp.update.command, page: "imgDiv", id: imgDivId, file: tmp.update.file, callback: onUpdate };
+                const request = { command: tmp.update.command, page: "imgDiv", id: imgDivId + tmp.update.file.crc, file: tmp.update.file, callback: onUpdate };
         
                 addFileRequest(request)
             }
@@ -94,6 +93,7 @@ export const ImageDiv = (props = {}) => {
    
 
         let info = { 
+            fill: ("fill" in tmp) ? tmp.fill : false,
             opacity: ("opacity" in tmp) ? tmp.opacity : 1,
             scale: ("scale" in tmp) ? tmp.scale : 1, 
             image: ("image" in tmp) ? tmp.image : "", 
@@ -114,30 +114,31 @@ export const ImageDiv = (props = {}) => {
         let percent = 1;
 
         let tmpHeight = 0, tmpWidth = 0;
-
+        let imgPercent = {width:1, height:1}
         if(bounds.width > bounds.height)
         {
             if(bounds.width != 0){
                 percent = bounds.height / bounds.width
     
             }
+            
             tmpWidth = (scale * 100 * percent) + "%"
            tmpHeight = (scale * 100) + "%"
-     
+            imgPercent = {width:scale * percent, height:scale}
 
         } else {
-            {
-                if (bounds.width != 0){
-    
-                    percent = bounds.width /bounds.height
-                }
-                tmpWidth = (scale*100) + "%"
-                tmpHeight = (scale*100*percent)+"%"
             
-            }
-        }
+            if (bounds.width != 0){
 
-    
+                percent = bounds.width /bounds.height
+            }
+            tmpWidth = (scale*100) + "%"
+            tmpHeight = (scale*100*percent)+"%"
+        
+            imgPercent = { width: scale , height: scale * percent }
+        }
+       
+        
         let tmpStyle = {
             display:"flex",
             alignItems:"center",
@@ -158,15 +159,15 @@ export const ImageDiv = (props = {}) => {
             });
         }
         let tmpImgStyle = { 
-            width: tmpStyle.width * scale, 
-            height: tmpStyle.height * scale, 
+            width: "100%", 
+            height: "100%", 
             filter: info.filter, 
             opacity:info.opacity
         }
-
+     
         let clip = {
-            width: tmpWidth,
-            height: tmpHeight,
+            width: info.fill? "100%" : bounds.width * imgPercent.width,
+            height: info.fill ? "100%" : bounds.height * imgPercent.height,
             borderRadius: tmpStyle.borderRadius,
             display: "flex",
             overflow: "clip",

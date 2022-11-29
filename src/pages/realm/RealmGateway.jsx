@@ -20,9 +20,10 @@ export const RealmGateway= (props = {}) =>{
 
     const navigate = useNavigate()
     const pageSize = useZust((state) => state.pageSize)
-    const realms = useZust((state) => state.realms)
+   // const realms = useZust((state) => state.realms)
     const user = useZust((state) => state.user)
-    const socket = useZust((state) => state.socket)
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
+    const updateRealmImage = useZust((state) => state.updateRealmImage)
 
 
     const [admin, setAdmin] = useState(false)
@@ -30,7 +31,7 @@ export const RealmGateway= (props = {}) =>{
     const [realmUsers, setRealmUsers] = useState([])
     const [gatewayUsers, setGatewayUsers] = useState([])
     const [realmMember, setRealmMember] = useState(false)
-    const [showImagePicker, setShowImagePicker] = useState(false)
+   // const [showImagePicker, setShowImagePicker] = useState(false)
 
     const [currentRealm, setCurrentRealm] = useState({
         realmID: null,
@@ -58,19 +59,19 @@ export const RealmGateway= (props = {}) =>{
     const [isQuickBar, setIsQuickBar] = useState(false)
     const quickBar = useZust((state) => state.quickBar)
     const setQuickBar = useZust((state) => state.setQuickBar)
-    const quickBarAdd = (realm) => useZust.setState(produce((state) => {
+    const quickBarAdd = (realmID) => useZust.setState(produce((state) => {
         if (!(Array.isArray( state.quickBar))) {
-            state.quickBar = [realm]
+            state.quickBar = [realmID]
         }else{
             const length = state.quickBar.length
 
             if (length > 0) {
-                const index = state.quickBar.findIndex(qbar => qbar.realmID == realm.realmID)
+                const index = state.quickBar.findIndex(qbar => qbar == realmID)
                 if (index == -1) {
-                    state.quickBar.splice(0, 0, realm)
+                    state.quickBar.splice(0, 0, realmID)
                 }
             } else {
-                state.quickBar.push(realm)
+                state.quickBar.push(realmID)
             }
         }
     }))
@@ -83,7 +84,7 @@ export const RealmGateway= (props = {}) =>{
             console.log(length)
             if(length > 0)
             {
-                const index = state.quickBar.findIndex(qbar => qbar.realmID == realmID)
+                const index = state.quickBar.findIndex(qbar => qbar == realmID)
                 console.log(index)
                 if(index > -1){
                     
@@ -165,6 +166,7 @@ export const RealmGateway= (props = {}) =>{
     },[props.messages])
 
     useEffect(()=>{
+        console.log(props.currentRealm)
         setAdmin(props.admin)
         setCurrentRealm(props.currentRealm)
     },[props.admin, props.currentRealm])
@@ -204,12 +206,12 @@ export const RealmGateway= (props = {}) =>{
         needsUpdate.current.value = true;
         if(length == 0)
         {
-            setQuickBar([currentRealm])
+            setQuickBar([currentRealm.realmID])
         }else{
             const index = quickBar.findIndex(qb => qb.realmID == currentRealm.realmID)
            
             if(index == -1){
-                quickBarAdd(currentRealm)
+                quickBarAdd(currentRealm.reamID)
                 
             }else{
                 quickBarRemove(currentRealm.realmID)
@@ -231,34 +233,14 @@ export const RealmGateway= (props = {}) =>{
         needsUpdate.current.value == false
         
         if (quickBar.length > 0) {
-            let saveList = [];
-            quickBar.forEach(qRealm => {
-                let r = {}
-                const realmNames = Object.getOwnPropertyNames(qRealm)
-                realmNames.forEach(name => {
-                    if (name != "image") {
-                        r[name] = qRealm[name]
-                    } else {
-                        r.image = {}
-                    }
-                });
-                const imgNames = Object.getOwnPropertyNames(qRealm.image)
-
-                imgNames.forEach(name => {
-
-                    if (!(name == "value" || name == "handle" || name == "directory")) {
-                 
-                        r.image[name] = qRealm.image[name]
-                    }
-                });
-                saveList.push(r)
-            });
-            const json = JSON.stringify(saveList)
+           
+          
+               
 
             const qbarIdbName = userID + ".arcquickBar";
        
 
-            set(qbarIdbName, json)
+            set(qbarIdbName, quickBar)
 
 
 
@@ -272,21 +254,41 @@ export const RealmGateway= (props = {}) =>{
 
         } else {
             update(userID + ".arcquickBar", (quickBarUpater) => {
-                quickBarUpater = '[]'
+                quickBarUpater = []
             })
         }
 
             
         }
-        
-        const onUpdateRealmImage = (e) =>{
+  
+        const onUpdateRealmImage = (update) =>{
+            setShowIndex(null)
+            const fileInfo = {
+                name: update.name,
+                crc: update.crc,
+                size: update.size,
+                type: update.type,
+                mimeType: update.mimeType,
+                lastModified: update.lastModified
+            }
 
+            console.log("updating:")
+            console.log(fileInfo)
+            setSocketCmd({
+                cmd: "updateRealmImage", params: {realmID:currentRealm.realmID, imageInfo: fileInfo }, callback: (updateResult) => {
+                    console.log(updateResult)
+                    if ("success" in updateResult && updateResult.success) {
+                        updateRealmImage(currentRealm.realmID, updateResult.file)
+                    }
+                   
+                }
+            })
         }
 
 
     return (
         <>
-        <div style={{  position: "fixed", boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710", backgroundColor: "rgba(10,13,14,.6)", width: 300, height: pageSize.height, left: 95, top: "0px" }}>
+        <div style={{display:"flex", flexDirection:"column",  position: "fixed", boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710", backgroundColor: "rgba(10,13,14,.6)", width: 300, height: pageSize.height, left: 95, top: "0px" }}>
                 <div style={{
                    width: "100%",
                    display:"flex",
@@ -303,19 +305,20 @@ export const RealmGateway= (props = {}) =>{
 
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems:"center",  height:"150px", padding:"10px"}}>
-                    <ImageDiv onClick={(e)=>{
-                       setShowIndex(10)
-                    }} width={130} height={ 130} about={"Select Image"} className={admin ? className : ""} netImage={{
+                    <ImageDiv width={150} height={150} onClick={(e) => {
+                        setShowIndex(10)
+                    }} about={"Select Image"} className={className} netImage={{
+                        scale: 1.1,
                         update: {
-                            command: "getIcon",
+                            command: "getImage",
                             file: currentRealm.image,
                             waiting: { url: "/Images/spinning.gif" },
-                            error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
+                            error: { url: "/Images/cloud-offline-outline.svg", style: { filter: "invert(70%)" } },
 
-                        }, 
+                        },
                         backgroundColor: "#44444450",
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-                       
+
                     }} />
  
                     <div style={{ marginTop:20, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
@@ -417,9 +420,12 @@ export const RealmGateway= (props = {}) =>{
                             </div>
                         </div>
                     </>}
+                    
                 </div>
                
-
+                <div style={{ height: "100%", width: 290, display:"flex", flexDirection:"column", justifyContent:"end", alignItems:"center", marginBottom:50, marginTop:50, }}>
+                    <div style={{ width:100, height:30, borderRadius:10}} className={styles.bubbleButton}>Enter</div>
+                </div>
             </div>
             {showIndex == -1 &&
                 <GatewayRoom admin={admin} realmMember={realmMember} currentRealm={currentRealm} messages={messages} gatewayUsers={gatewayUsers} realmUsers={realmUsers}/>
