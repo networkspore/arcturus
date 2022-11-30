@@ -48,7 +48,7 @@ export const PeerNetworkHandler = (props ={}) => {
         setUserPeerID(id)
         setSocketCmd({
             cmd:"updateUserPeerID", params: {userPeerID:id}, callback: (callback) => {
-            console.log(callback)
+            console.log("updatedUserPeerID: " + id)
         }})
     }
 
@@ -64,7 +64,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
         setSocketCmd({
             cmd: "updateUserPeerID", params: { userPeerID: "" }, callback: (callback) => {
-                console.log(callback)
+                console.log("updatedUserPeerID: " + "")
             }
         })
 

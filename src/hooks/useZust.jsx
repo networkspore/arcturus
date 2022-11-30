@@ -25,7 +25,7 @@ const useZust = create((set) => ({
          newRealm.image = value
          state.realms[index] = newRealm
       }catch(err){
-         
+
       }
    })),
    party:[],
@@ -222,8 +222,8 @@ const useZust = create((set) => ({
    }) => set(produce((state) => {
       state.user.image = update
    })),
-   socketCmd:{cmd:null, params:{},callback:() => null},
-   setSocketCmd: (value = { cmd: null, params: {}, callback: ()=> null }) => set(produce((state)=>{
+   socketCmd:{cmd:null, params:{},callback:null},
+   setSocketCmd: (value = { cmd: null, params: {}, callback: null }) => set(produce((state)=>{
       state.socketCmd = value
    })),
    setUserLoggedIn: (loggedIn = false) => set(produce(state => { state.user.LoggedIn = loggedIn})),

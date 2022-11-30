@@ -228,6 +228,7 @@ const HomeMenu = ({ props }) => {
          
             setSocketCmd({
                 cmd: "checkStorageCRC", params: { crc: fileInfo.crc }, callback: (crcResult) => {
+               
                     if ("success" in crcResult && crcResult.success) {
                         readFileJson(handle).then((jsonResult) => {
                             
@@ -260,7 +261,7 @@ const HomeMenu = ({ props }) => {
 
             console.log(err)
             addSystemMessage(initStorage)
-          //  navigate("/")
+            navigate("/")
         }                 
     }
 

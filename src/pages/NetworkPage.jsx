@@ -12,6 +12,7 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 import { MessagePage } from "./MessagePage";
 
 import { OptionsMenu } from "./components/UI/OptionsMenu";
+import { access } from "../constants/constants";
 
 
 
@@ -239,7 +240,10 @@ export const NetworkPage = () => {
             contacts.forEach((contact, i) => {
                 const name = contact.userName;
                 const status = contact.status;
-                const userID = contact.userID
+                const contactID = contact.userID
+                const accessID = contact.accessID
+                const contactImage = contact.image;
+                console.log(contactImage)
                 const c = contact;
                 switch(status.statusName)
                 {
@@ -254,14 +258,29 @@ export const NetworkPage = () => {
                     case "accepted":
                         tmpList.push(
                             <div key={i} >
-                            <div key={i} 
-                            style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} 
+                            <div style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} 
                             className={styles.result} onClick={(e) =>{
                                 e.stopPropagation()
                                 onContactClick(c)
                             }}>
-                                
-                                <div style={{ textShadow: "2px 2px 2px black" }}>
+                                    <ImageDiv width={30} height={30} netImage={accessID == access.contacts || accessID == access.public ? {
+                                        scale: 1.1,
+                                        update: {
+                                            command: "getIcon",
+                                            file: contactImage,
+                                            waiting: { url: "/Images/spinning.gif" },
+                                            error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                                        },
+                                        backgroundColor: "#44444450",
+                                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                                    } : {
+                                        image:"/Images/icons/person.svg",
+                                        filter:"invert(100%)",
+                                        backgroundColor: "#44444450",
+                                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+}}/>
+                                <div style={{ paddingLeft:10, textShadow: "2px 2px 2px black" }}>
                                    
                                     {name}
                                     
@@ -532,7 +551,7 @@ export const NetworkPage = () => {
                                             backgroundColor:  "#000304DD",
 
                                         }}></div>
-                                        <div style={{marginTop:"5px", marginLeft:15, marginRight:10}}>
+                                        <div style={{marginTop:"5px", marginLeft:0, marginRight:10}}>
                                         {contactsList}
                                         </div>
                                     </div>

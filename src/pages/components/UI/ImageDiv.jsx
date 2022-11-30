@@ -58,7 +58,7 @@ export const ImageDiv = (props = {}) => {
         const update = "update" in tmp ? tmp.update : null
        
         
-        if (updated != null) {
+        if (updated != null && update != null) {
             if (updated != null && "error" in updated) {
 
                 tmp.image = update.error.url;
@@ -89,6 +89,9 @@ export const ImageDiv = (props = {}) => {
                 addFileRequest(request)
             }
 
+        }else if(update == null && updated != null)
+        {
+            setUpdated(null)
         }
    
 

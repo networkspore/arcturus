@@ -95,12 +95,15 @@ export const SocketHandler = (props = {}) => {
                                     loggedIn.current.value = false
                                     tryCount.current.value++
                                     socketCmd.callback({success:false})
-                                    
+                                 
                                 }
                                 setSocketCmd()
                             })
                         }
                     })
+                }else{
+                    console.log("Too many login attempts")
+                    socketCmd.callback({ error: new Error("Too many tries."), maxRetry:true})
                 }
             } else{
                 if (sock.current.value == null && socketCmd.cmd == "login") {
@@ -156,7 +159,13 @@ export const SocketHandler = (props = {}) => {
                     }
 
                 }else{
-                    socketCmd.callback({ error: "not connected" })
+                    
+                    
+                    if (socketCmd != null && typeof socketCmd.callback == "function"){
+                        const cmd = socketCmd.callback
+                        console.log(typeof cmd)
+                        socketCmd.callback({ error: "not connected" })
+                    }
                 }
             }
             
@@ -265,7 +274,9 @@ export const SocketHandler = (props = {}) => {
                     })
                     break;
                 default:
-                   socketCmd.callback({error: new Error( "not implemented")})
+                    if(socketCmd.cmd != null){
+                        socketCmd.callback({error: new Error( "not implemented")})
+                    }
                     break;
             }
         }
@@ -292,7 +303,8 @@ export const SocketHandler = (props = {}) => {
                     console.log(response)
                     if("success" in response && response.success)
                     {
-                        
+                        tryCount.current.value = 0;
+                        setSocketConnected(true)
                     }else{
                         setShowLogin(true)
                     }
@@ -354,7 +366,7 @@ export const SocketHandler = (props = {}) => {
                 </div>
                 
                 <div style={{ textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffff60", fontWeight: "bold", fontSize: "50px", fontFamily: "WebPapyrus", color: "#cdd4da" }}>
-                    Login
+                    Log In
                 </div>
                 <form onSubmit={event => handleSubmit(event)}>
                     <div style={{ display: "flex", paddingTop: 30, justifyContent: "center", }}>

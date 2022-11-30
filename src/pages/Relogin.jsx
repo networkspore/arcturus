@@ -75,7 +75,7 @@ export const Relogin = (props ={}) => {
             </div>
 
             <div style={{ textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffff60", fontWeight: "bold", fontSize: "50px", fontFamily: "WebPapyrus", color: "#cdd4da" }}>
-                Login
+                Log In
             </div>
             <form onSubmit={event => handleSubmit(event)}>
                 <div style={{ display: "flex", paddingTop: 30, justifyContent: "center", }}>

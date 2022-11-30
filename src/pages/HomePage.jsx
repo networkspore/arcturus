@@ -122,7 +122,7 @@ export const HomePage = (props ={}) => {
         
        <>
             
-            <div style={{ position: "fixed", boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710", backgroundColor: "rgba(10,13,14,.6)", width: 300, height: pageSize.height, left: 95, top: "0px" }}>
+            <div style={{display:"flex", flexDirection:"column", position: "fixed", boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710", backgroundColor: "rgba(10,13,14,.6)", width: 300, height: pageSize.height, left: 95, top: "0px" }}>
                 <div style={{
                     padding: "10px",
                     textAlign: "center",
@@ -168,7 +168,7 @@ export const HomePage = (props ={}) => {
 
                 </div>
                 <div style={{height:10}}>&nbsp;</div>
-                <div style={{ width: 260, paddingLeft:"15px", }}>
+                <div style={{ width: 260, paddingLeft:"15px", display:"flex", flexDirection:"column",  }}>
                     
                     
                         <NavLink className={styles.result}  to={ "/home/account"}>
@@ -263,29 +263,15 @@ export const HomePage = (props ={}) => {
                             </div>
                         </div>
                     </NavLink>
+                   
                 </div>
-               
+                <div onClick={(e) => { window.location.replace("/") }} style={{ height: "100%", width: 290, display: "flex", flexDirection: "column", justifyContent: "end", alignItems: "center", marginBottom: 50, marginTop: 50, }}>
+                    <div style={{ width: 100, height: 30, borderRadius: 10 }} className={styles.bubbleButton}>Log Out</div>
+                </div>
 
             </div>
        
-            <div style={{ 
-                
-                position: "fixed", 
-                width:60, height: "70px",
-                left: 335, 
-                bottom: "0px", 
-                fontFamily:"Webpapyrus",
-                display: "flex", justifyContent:"center",alignItems: "center",
-                 
-                 }}
-                className={styles.menuLeft__item} 
-                about={"Log-out"} 
-                onClick={onLogoutClick}
-            >
-               
-                <ImageDiv width={40} height={40} style={{borderRadius: 10,}}  netImage={{backgroundColor: "", image: "/Images/icons/lock-open-outline.svg", filter: "invert(100%)"}} />
-                  
-            </div>
+      
         
 
             {showIndex == 2 &&
