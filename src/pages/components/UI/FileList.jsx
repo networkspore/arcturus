@@ -221,7 +221,7 @@ const FileList = (props = {}, ref) => {
                                                 } else {
                                                     navigate(iTo)
                                                 }}} 
-                                           
+                                            style={{overflow:"hidden"}}
                                             height={fileView.iconSize.width} 
                                             width={fileView.iconSize.height} 
                                             netImage={iImage} 

@@ -1,10 +1,14 @@
+import { update } from "idb-keyval";
 import React, { useEffect, useState, useRef, useId} from "react";
+import { useLayoutEffect } from "react";
+import { flushSync } from "react-dom";
 import useZust from "../../../hooks/useZust";
 
 
 export const ImageDiv = (props = {}) => {
     const pageSize = useZust((state) => state.pageSize)
     const divRef = useRef()
+    const prevCRC = useRef({ value: null })
 
     const [imgURL, setImgURL] = useState(null);
     const [scaleWidth, setScaleWidth] = useState("0px");
@@ -38,19 +42,34 @@ export const ImageDiv = (props = {}) => {
         if("success" in response && response.success){
             switch (response.request.command){
                 case "getIcon":
-                    setUpdated({ success: true, url: response.file.icon })
+                    setUpdated({ success: true, url: response.file.icon, crc: response.file.crc })
                 break;
                 case "getImage":
                     
-                    setUpdated({ success: true, url: response.file.value })
+                    setUpdated({ success: true, url: response.file.value, crc: response.file.crc })
                     break;
             }
         }else{
             setUpdated({error: new Error("file request error")})
         }
     }
+    
+    useEffect(()=>{
+        if (props.netImage.update != undefined && props.netImage.update != null)
+        {
+            const update = props.netImage.update
 
-    useEffect(() => {
+            if(prevCRC.current.value != null && update.file.crc != prevCRC.current.value){
+                setUpdated(null)
+                prevCRC.current.value = update.file.crc
+            } else if (update.file != undefined && update.file.crc != null){
+                prevCRC.current.value = update.file.crc
+            }
+        
+        }
+    },[props.netImage.update])
+
+    useLayoutEffect(() => {
       
        
         let tmp = props.netImage != undefined ?  props.netImage : {};
@@ -89,9 +108,6 @@ export const ImageDiv = (props = {}) => {
                 addFileRequest(request)
             }
 
-        }else if(update == null && updated != null)
-        {
-            setUpdated(null)
         }
    
 

@@ -116,15 +116,20 @@ export const RealmCreatePage = (props = {}) =>{
             }
 
         }
+      
+        
+    }
+
+    const imageSearchChanged = (e) =>{
+        const { name, value } = e.target;
         if (name == "imageSearch") {
             if (value.length > 0) {
                 setImageSearch(value)
             } else {
-              if(imageSearch != "")  setImageSearch("")
+                if (imageSearch != "") setImageSearch("")
             }
 
         }
-        
     }
 
 
@@ -279,17 +284,24 @@ export const RealmCreatePage = (props = {}) =>{
                         
                             <div style={{ cursor: "pointer" }} onClick={ onImageSelected }>
                                 <ImageDiv 
-                                    width={100}
-                                    height={100}
+                                    width={300}
+                                    height={300}
                                     about={imageSelected.name} 
                                     style={{ textShadow: "2px 2px 2px black", }} 
-                                    className={ imageSelected.name.length > 15 ? styles.activeBubbleScroll__item : styles.bubbleActive__item} 
+                                    className={  styles.bubbleActive__item} 
                                     netImage={{ 
                                         scale:1, 
                                         backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", 
                                         borderRadius: 40, 
-                                        backgroundColor: "", 
-                                        image: imageSelected.icon }} 
+                                        backgroundColor: "#44444450",
+                                        update: {
+                                            command: "getImage",
+                                            file: imageSelected,
+                                            waiting: {url: "/Images/spinning.gif" },
+                                            error: {url: "/Images/icons/image-outline.svg", style: {filter: "invert(100%)" } },
+                                        },
+                                        
+                                        }} 
                                     />
                             </div>
                         
@@ -306,7 +318,7 @@ export const RealmCreatePage = (props = {}) =>{
                                  
                                     justifyContent: "center",
                                     alignItems: "center", }}>
-                                        <ImageDiv width={100}  height={100} about={"Select Image"} style={{ textShadow: "2px 2px 2px black", }} className={styles.bubble__item}  netImage={{ backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius:40, backgroundColor:"", image: "" }} />
+                                        <ImageDiv width={300}  height={300} about={"Select Image"} style={{ textShadow: "2px 2px 2px black", }} className={styles.bubble__item}  netImage={{ backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius:40, backgroundColor:"", image: "" }} />
                                 </div>
                             }
                     
@@ -351,7 +363,7 @@ export const RealmCreatePage = (props = {}) =>{
                         }}>
                             <div style={{ marginTop: 15, paddingBottom: 15, display: "flex", justifyContent: "right" }}>
                                 <div style={{ margin: 3, backgroundColor: "#33333340", display: "flex", alignItems: "center" }}>
-                                    <input ref={searchInputRef} name={"imageSearch"} onChange={handleChange} style={{
+                                    <input ref={searchInputRef} name={"imageSearch"} onChange={imageSearchChanged} style={{
                                         color: "white",
                                         backgroundColor: "#33333300",
                                         fontFamily: "webpapyrus",
@@ -370,7 +382,7 @@ export const RealmCreatePage = (props = {}) =>{
                                     <ImageDiv width={30} height={30} netImage={{ filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
                                 </div>
                             </div>
-                            <div style={{ justifyContent: "center", display: "flex", width: 300, height: 400, overflowX: "visible", overflowY: "scroll", color: "white", }}>
+                            <div style={{ justifyContent: "center", display: "flex", width: 300, height: 480, overflowX: "visible", overflowY: "scroll", color: "white", }}>
                                 <FileList 
                                     className={styles.bubble__item} 
                                     activeClassName={styles.bubbleActive__item} 
@@ -379,8 +391,9 @@ export const RealmCreatePage = (props = {}) =>{
                                     fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100, scale:1.2 } }} 
                                     files={imagesFiles} 
                                 />
+                             
                             </div>
-
+                            <div style={{ height: 10 }}>&nbsp;</div>
                         </div>
                     }
                 </div>

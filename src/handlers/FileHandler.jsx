@@ -3,10 +3,11 @@ import React, { useState, useEffect } from "react"
 import useZust from "../hooks/useZust"
 import { ImageDiv } from "../pages/components/UI/ImageDiv"
 import produce from "immer"
-import { get } from "idb-keyval"
+import { get, set } from "idb-keyval"
 
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { useRef } from "react"
+
 
 const createWorker = createWorkerFactory(() => import('../constants/utility'));
 
@@ -120,15 +121,21 @@ export const FileHandler = ( props = {}) =>{
 
                         case "image":
                             checkLocalImages(request).then((localResult)=>{
+                                console.log(localResult)
                                 if (localResult != null) {
-                                    //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
-
-                                    getLocalIcon(request, localResult).then((imageResult) => {
-                                        resolve(imageResult)
-                                    })
+                                 
+                                    if("icon" in localResult)
+                                    {
+                                        const iconResult = { success: true, file: localResult, request: request }
+                                        resolve(iconResult)
+                                    } else if(localResult != null){
+                                        getLocalIcon(request, localResult).then((imageResult) => {
+                                            resolve(imageResult)
+                                        })
+                                    }
                                 } else {
                                     checkPeers(request).then((peersResult) => {
-                                        resolve({ error: "not implemented" })
+                                        resolve(peersResult)
                                     })
                                 }
                             })
@@ -142,15 +149,22 @@ export const FileHandler = ( props = {}) =>{
 
                         case "image":
                             checkLocalImages(request).then((localResult) => {
+                                console.log(localResult)
                                 if (localResult != null) {
                                     //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
-
-                                    getLocalImage(request, localResult).then((imageResult) => {
+                                    if("value" in localResult)
+                                    {
+                                        const imageResult = { success: true, file: localResult, request: request }
+                                        resolve(imageResult)
+                                    }else{
+                                        getLocalImage(request, localResult).then((imageResult) => {
                                         resolve(imageResult)
                                     })
+                                    }
+                                    
                                 } else {
                                     checkPeers(request).then((peersResult) => {
-                                        resolve({ error: "not implemented" })
+                                        resolve(peersResult)
                                     })
                                 }
                             })
@@ -175,10 +189,9 @@ export const FileHandler = ( props = {}) =>{
     async function getLocalImage(request, localFile){
         
         try{
-
         
         const dataURL = await worker.getImageHandleDataURL(localFile);
-        
+        set(localFile.crc + ".arcimage", dataURL)
         const objNames = Object.getOwnPropertyNames(request.file)
         let newFile = {}
         objNames.forEach(name => {
@@ -202,9 +215,11 @@ export const FileHandler = ( props = {}) =>{
     async function getLocalIcon(request, localFile) {
 
         try {
-            const idbDataUrl = await get(localFile.crc + ".arcicon")
+         
 
-            const dataURL = idbDataUrl == undefined ? await worker.getThumnailFile(await localFile.handle.getFile()) : idbDataUrl;
+            const dataURL = await worker.getThumnailFile(await localFile.handle.getFile())
+
+            set(localFile.crc + ".arcicon", dataURL)
 
             const objNames = Object.getOwnPropertyNames(request.file)
             let newFile = {}
@@ -228,25 +243,75 @@ export const FileHandler = ( props = {}) =>{
 
 
 
-    async function checkLocalImages(request) {
-   
-    
-        const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+    const checkLocalImages = (request) => {
+        return new Promise(resolve => { 
+       
+            if(request.command == "getIcon") {
+                console.log(request.file)
+                get(request.file.crc + ".arcicon").then((iconDataURL) =>{
+                 
+                    if (iconDataURL != undefined) {
+                
+                        const objNames = Object.getOwnPropertyNames(request.file)
+                        let newFile = {}
+                        objNames.forEach(name => {
+                            newFile[name] = request.file[name]
+                        });
+                
+                        newFile.icon = iconDataURL
+                     
+                        resolve(newFile)
+                    } else {
+                        const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
 
-        if (i > -1) {
-            return imagesFiles[i]
-        } else {
-            return null
-        }
-        
+                        if (i > -1) {
+                            resolve(imagesFiles[i])
+                        } else {
+                            resolve(null)
+                        }
+                    }
+                })
+            } else if (request.command == "getImage") {
+                get(request.file.crc + ".arcimage").then((iconDataURL) => {
+                    if (iconDataURL != undefined) {
+                        const objNames = Object.getOwnPropertyNames(request.file)
+                        let newFile = {}
+                        objNames.forEach(name => {
+                            newFile[name] = request.file[name]
+                        });
+
+                        newFile.value = iconDataURL
+                        console.log(newFile)
+                        resolve( newFile)
+                    } else {
+                        const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+
+                        if (i > -1) {
+                            resolve(imagesFiles[i])
+                        } else {
+                            resolve(null)
+                        }
+                    }
+                })
+            }
+           
+        })
     
     }
 
-    
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-    async function checkPeers(request){
-      
-       
+    const checkPeers = (request) =>{
+        return new Promise(resolve =>{
+        const fileID = request.file.fileID;
+            if(fileID != undefined && fileID != null && fileID > -1){
+                setSocketCmd({cmd:"checkPeers",params:{fileID: fileID},callback:(peersList)=>{
+
+                }})
+            }else{
+                resolve({error: new Error("fileID not valid")})
+            }
+        })
     }
 
 

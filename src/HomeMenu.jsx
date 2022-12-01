@@ -706,7 +706,7 @@ const HomeMenu = ({ props }) => {
                             paddingLeft: "10px",
                             paddingRight: "15px",
                             whiteSpace: "nowrap"
-                        }}> {user.userID > 0 ? user.userName : "Log in"}</div>
+                        }}> {user.userID > 0 ? user.userName : "Log In"}</div>
                      
                         }
                     </div>

@@ -326,11 +326,7 @@ export async function getJsonFile(fileHandle){
 }
 
 export async function getImageHandleDataURL(localFile){
-    const crc = localFile.crc;
-
-    const idbImage = await get( crc + ".arcimage")
-
-    if(idbImage != undefined) return idbImage;
+   
 
     const file = await localFile.handle.getFile()
 
@@ -345,7 +341,7 @@ export async function getImageHandleDataURL(localFile){
 
     const dataURL = canvas.toDataURL();
 
-    set(crc + ".arcimage", dataURL)
+
 
   
     return dataURL

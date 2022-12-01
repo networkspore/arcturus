@@ -25,6 +25,11 @@ export const LocalStoragePage = () => {
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
+    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory)
+    const setImagesDirectory = useZust((state) => state.setImagesDirectory);
+    const setModelsDirectory = useZust((state) => state.setModelsDirectory);
+    const setMediaDirectory = useZust((state) => state.setMediaDirectory);
+
 
     const terrainFiles = useZust((state) => state.terrainFiles);
     const imagesFiles = useZust((state) => state.imagesFiles);
@@ -158,80 +163,82 @@ export const LocalStoragePage = () => {
  
 
     async function handleFirst (dirHandle) {
-         
-        const name = await dirHandle.name;
-
-        const lDirectory = { name: name, handle: dirHandle }
-        setLocalDirectory(lDirectory)
-      
-        set("localDirectory" + user.userID, lDirectory)
-  
         try{
-            localDirectory.handle.getDirectoryHandle("home", { create: true }).then((homeHandle) => {
-                homeHandle.getDirectoryHandle(user.userName, { create: true }).then((userHomeHandle) => {
 
-            userHomeHandle.getFileHandle(user.userName + ".storage.config").then((handle) => {
-                console.log(handle)
-                if (handle != null && handle != undefined) {
-                    getFileInfo(handle, value.handle).then((file) => {
+            const name = await dirHandle.name;
+
+            turnOffLocalStorage()
+
+            const lDirectory = { name: name, handle: dirHandle }
+            setLocalDirectory(lDirectory)
+            
+            set("localDirectory" + user.userID, lDirectory)
+  
+       
+            const homeHandle = await localDirectory.handle.getDirectoryHandle("home", { create: true })
+            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true })
+
+            const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.config")
+         
+            const handleFile = await handle.getFile()
+            console.log(handleFile)
+            if (handleFile != undefined) {
+                getFileInfo(handle, dirHandle).then((file) => {
+
+                    setSocketCmd({
+                        cmd: "checkUserStorageCRC", params: { crc: file.crc }, callback: (callback) => {
+                        if ("error" in callback) {
+                            addSystemMessage(initStorage)
+                            navigate("/home/localstorage/init")
+                        } else {
+                            if (callback.success) {
+                                readFileJson(handle).then((jsonResult) => {
+                                    if ("error" in jsonResult) {
+                                        addSystemMessage(initStorage)
+                                        navigate("/home/localstorage/init")
+                                    } else {
+                                        if (jsonResult.success) {
+                                            const json = jsonResult.value;
+                                            file.value = json[user.userName];
+                                            file.fileID = callback.fileID;
+
+                                            
+                                            file.fileID = callback.fileID;
+                                            if (callback.success) {
+
+                                                file.storageID = callback.storageID;
 
 
+                                                navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
 
-                        setSocketCmd({
-                            cmd: "checkUserStorageCRC", params: { crc: file.crc }, callback: (callback) => {
-                            if ("error" in callback) {
-                                addSystemMessage(initStorage)
-                                navigate("/home/localstorage/init")
-                            } else {
-                                if (callback.success) {
-                                    readFileJson(handle).then((jsonResult) => {
-                                        if ("error" in jsonResult) {
+                                            } else {
+
+                                                navigate("home/localstorage/init", { state: { configFile: file } })
+                                            }
+                                            
+                                        } else {
+                                            console.log(jsonResult.error)
+
                                             addSystemMessage(initStorage)
                                             navigate("/home/localstorage/init")
-                                        } else {
-                                            if (jsonResult.success) {
-                                                const json = jsonResult.value;
-                                                file.value = json[user.userName];
-                                                file.fileID = callback.fileID;
-
-                                                
-                                                file.fileID = callback.fileID;
-                                                if (callback.success) {
-
-                                                    file.storageID = callback.storageID;
-
-
-                                                    navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
-
-                                                } else {
-
-                                                    navigate("home/localstorage/init", { state: { configFile: file } })
-                                                }
-                                              
-                                            } else {
-                                                console.log(jsonResult.error)
-
-                                                addSystemMessage(initStorage)
-                                                navigate("/home/localstorage/init")
-                                            }
                                         }
-                                    })
-                                } else {
-                                    addSystemMessage(initStorage)
-                                    navigate("/home/localstorage/init")
-                                }
+                                    }
+                                })
+                            } else {
+                                addSystemMessage(initStorage)
+                                navigate("/home/localstorage/init")
                             }
-                        }})
+                        }
+                    }})
 
-                    }).catch((err) => {
-                        console.log(err)
-                        addSystemMessage(initStorage)
-                        navigate("/home/localstorage/init")
-                    })
-                }
+                }).catch((err) => {
+                    console.log(err)
+                    addSystemMessage(initStorage)
+                    navigate("/home/localstorage/init")
                 })
-            })
-        })
+            }
+              
+       
     }catch(err){
             console.log(err)
             addSystemMessage(initStorage)
@@ -252,7 +259,7 @@ export const LocalStoragePage = () => {
         del(configFile.name + user.userID)
        
         setConfigFile();
-
+ 
         setTerrainDirectory();
 
         setImagesDirectory();
@@ -262,7 +269,7 @@ export const LocalStoragePage = () => {
         setMediaDirectory();
         setCurrentFiles([])
 
-        navigate(nav)
+        
         
     }
 
@@ -382,7 +389,7 @@ export const LocalStoragePage = () => {
                                 </div>
                                 
                             </div>
-
+                            <div style={{ width: 20 }}>&nbsp;</div>
                          
                         </div>
                         </div>
@@ -443,6 +450,7 @@ export const LocalStoragePage = () => {
                         }}
                     />  
                             <div onClick={(e) => { pickAssetDirectory() }} style={{ cursor:"pointer", color: "white"}} > Select a local directory </div>
+                            
                     </div>         
                 }
                 {configFile.handle != null && showIndex == 2 &&

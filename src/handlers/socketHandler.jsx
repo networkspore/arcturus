@@ -21,7 +21,7 @@ export const SocketHandler = (props = {}) => {
     const [showLogin, setShowLogin] = useState(false)
 
     const sock = useRef({value:null})
-    const tryCount = useRef({value:1})
+    const tryCount = useRef({value:0})
 
     useEffect(()=>{ 
         if(!(user.userID > 0))
@@ -47,6 +47,7 @@ export const SocketHandler = (props = {}) => {
             
            
         } else if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected){
+            sock.current.value = null
             setSocketConnected(false)
    
            
@@ -56,7 +57,46 @@ export const SocketHandler = (props = {}) => {
            
             setShowLogin( false )
         }
+        console.log(sock.current.value)
+     
     }, [sock.current.value, user])
+
+    const socketConnect = () =>{
+        sock.current.value = io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
+
+        sock.current.value.on("connect", () => {
+            console.log("connected")
+
+            sock.current.value.emit("login", socketCmd.params, (response) => {
+                if ("success" in response && response.success) {
+                    // setSocket(sock.current.value)
+                    loggedIn.current.value = true
+                    setSocketConnected(true)
+                    socketCmd.callback(response)
+                    setShowLogin(false)
+                    tryCount.current.value = 1
+                    sock.current.value.on("disconnect", (res) => {
+                        switch (res) {
+                            case "io server disconnect":
+                                sock.current.value = null
+                                break;
+
+                        }
+                    })
+                } else {
+                    console.log(tryCount.current.value)
+                    sock.current.value.disconnect()
+                    sock.current.value = null;
+                    loggedIn.current.value = false
+                    tryCount.current.value += 1
+                    socketCmd.callback({ success: false })
+
+                }
+
+            })
+
+        })
+    }
 
     useEffect(() =>{
     
@@ -64,45 +104,13 @@ export const SocketHandler = (props = {}) => {
         {
           
             if (socketCmd.cmd == "login" && !(("anonymous") in socketCmd)) {
-                    
+                
                 if (sock.current.value == null && tryCount.current.value < 5)
                 {
-                    sock.current.value =  io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
-                
-                    sock.current.value.on("connect", ()=>{
-                        console.log("connected")
-                        if(sock.current.value != null){
-                            sock.current.value.emit("login", socketCmd.params, (response)=>{
-                                if("success" in response && response.success){
-                                   // setSocket(sock.current.value)
-                                    loggedIn.current.value = true
-                                    setSocketConnected(true)
-                                    socketCmd.callback(response)
-                                  
-                                    tryCount.current.value = 1
-                                    sock.current.value.on("disconnect", (res) => {
-                                        switch (res) {
-                                            case "io server disconnect":
-                                              sock.current.value = null
-                                                break;
-
-                                        }
-                                    })
-                                }else{
-                              
-                                    sock.current.value.disconnect()
-                                    sock.current.value = null;
-                                    loggedIn.current.value = false
-                                    tryCount.current.value++
-                                    socketCmd.callback({success:false})
-                                 
-                                }
-                                setSocketCmd()
-                            })
-                        }
-                    })
+                    socketConnect()
                 }else{
-                    console.log("Too many login attempts")
+                    console.log(tryCount.current.value)
+                    console.log(sock.current.value)
                     socketCmd.callback({ error: new Error("Too many tries."), maxRetry:true})
                 }
             } else{
@@ -273,6 +281,10 @@ export const SocketHandler = (props = {}) => {
                         socketCmd.callback(response)
                     })
                     break;
+                case "getImagePeers":
+                    sock.current.value.emit("getImagePeers", socketCmd.params.fileID, (response) => {
+                        socketCmd.callback(response)
+                    })
                 default:
                     if(socketCmd.cmd != null){
                         socketCmd.callback({error: new Error( "not implemented")})
@@ -299,14 +311,22 @@ export const SocketHandler = (props = {}) => {
     function login(name_email = "", pass = "") {
         setShowLogin(false)
             setSocketCmd({
+          
                 cmd: "login", params: { nameEmail: name_email, password: pass }, callback: (response) => {
                     console.log(response)
                     if("success" in response && response.success)
                     {
                         tryCount.current.value = 0;
                         setSocketConnected(true)
+                     
                     }else{
+                       
+                        if (response.error.message != "not implemented"){
+                        alert("Check your password and try again")
                         setShowLogin(true)
+                    }else{
+                            setShowLogin(false)
+                        }
                     }
                    
                 }
