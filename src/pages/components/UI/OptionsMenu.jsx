@@ -17,12 +17,14 @@ export const OptionsMenu = (props = {}) =>{
         
     },[divRef.current])
 
-
+    useEffect(()=>{
+        console.log(props.contact)
+    },[props.contact, props.confirming, props.request])
 
 
     return (
         
-        <div key={contact.userID} className={styles.result} style={{ flex: 1, marginLeft:15, fontFamily:"webpapyrus", fontSize:14, outline:0 }} tabIndex={-1} ref={divRef} >
+        <div  className={styles.result} style={{ flex: 1, marginLeft:15, fontFamily:"webpapyrus", fontSize:14, outline:0 }} tabIndex={-1} ref={divRef} >
             <div>Profile</div>
         </div>
       

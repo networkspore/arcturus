@@ -26,7 +26,8 @@ export const FileHandler = ( props = {}) =>{
 
     const updateImages = useZust((state) => state.updateImages)
 
-    const socket = useZust((state) => state.socket)
+
+    const addPeerDownload = useZust((state) => state.addPeerDownload)
 
     const fileRequest = useZust((state) => state.fileRequest)
     //const updateFileRequest = useZust((state) => state.updateFileRequest)
@@ -117,9 +118,9 @@ export const FileHandler = ( props = {}) =>{
             switch (request.command) {
                 
                 case "getIcon":
-                    switch (request.file.mimeType) {
+                    if (request.file.mimeType == "image") {
 
-                        case "image":
+                     
                             checkLocalImages(request).then((localResult)=>{
                                 
                                 if (localResult != null) {
@@ -134,43 +135,69 @@ export const FileHandler = ( props = {}) =>{
                                         })
                                     }
                                 } else {
-                                    getImagePeers(request).then((peersResult) => {
-                                        resolve(peersResult)
-                                    })
+                                    console.log(request)
+                                    if (request.p2p) {
+                                        console.log('getting peers')
+                                        getImagePeers(request).then((peersResult) => {
+                                            console.log('getting peers')
+                                            getImagePeers(request).then((peerImage) => {
+                                                console.log(peersResult)
+                                                if ("success" in peersResult && peersResult.success) {
+                                                    const file = peerImage.file;
+                                                    const imageResult = { success: true, file: file, request: request }
+                                                    resolve(imageResult)
+                                                } else {
+                                                    resolve({ error: "file not found" })
+                                                }
+                                            })
+                                        })
+                                    } else {
+                                        resolve({ error: "not connected" })
+                                    }
                                 }
                             })
                             break;
-                        default:
+                         }else{
                             resolve({ error: "not implemented" })
                         }
                     break;
                 case "getImage":
-                    switch (request.file.mimeType) {
+                    if(request.file.mimeType == "image") {
 
-                        case "image":
-                            checkLocalImages(request).then((localResult) => {
-                             
-                                if (localResult != null) {
-                                    //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
-                                    if("value" in localResult)
-                                    {
-                                        const imageResult = { success: true, file: localResult, request: request }
-                                        resolve(imageResult)
-                                    }else{
-                                        getLocalImage(request, localResult).then((imageResult) => {
-                                        resolve(imageResult)
-                                    })
-                                    }
-                                    
-                                } else {
-                                    getImagePeers(request).then((peersResult) => {
-                                        resolve(peersResult)
-                                    })
+                        checkLocalImages(request).then((localResult) => {
+                            
+                            if (localResult != null) {
+                                //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
+                                if("value" in localResult)
+                                {
+                                    const imageResult = { success: true, file: localResult, request: request }
+                                    resolve(imageResult)
+                                }else{
+                                    getLocalImage(request, localResult).then((imageResult) => {
+                                    resolve(imageResult)
+                                })
                                 }
-                            })
-                            break;
-                        default:
-                            resolve({ error: "not implemented" })
+                                
+                            } else if (request != null){
+                                if (request.p2p) {
+                                    console.log('getting peers')
+                                    getImagePeers(request).then((peerImage) => {
+                                        console.log(peersResult)
+                                        if ("success" in peersResult && peersResult.success) {
+                                            const file = peerImage.file;
+                                            const imageResult = { success: true, file: file, request: request }
+                                            resolve(imageResult)
+                                        } else {
+                                            resolve({ error: "file not found" })
+                                        }
+                                    })
+                                }else{
+                                    resolve({ error: "not connected" })
+                                }
+                            }
+                        })
+                    }else{
+                        resolve({ error: "not implemented" })
                     }
                     break;
                    
@@ -189,10 +216,22 @@ export const FileHandler = ( props = {}) =>{
         return new Promise(resolve => {
             const fileID = request.file.fileID;
             if (fileID != undefined && fileID != null && fileID > -1) {
-
+                
                 setSocketCmd({
-                    cmd: "getImagePeers", params: { fileID: fileID }, callback: (peersList) => {
-
+                    cmd: "getImagePeers", params: { fileID: fileID }, callback: (foundPeers) => {
+                        if("success" in foundPeers && foundPeers.success)
+                        {
+                            const peers = foundPeers.peers
+                            const newPeerDownload = {
+                                request: request, peers: peers, complete:0
+                            }
+                            addPeerDownload(peerCmd, (downloadID) => {
+                                resolve({downloading:true, downloadID: downloadID})
+                            })
+                        }else{
+                            resolve({error: new Error("Image not found")})
+                        }
+                    
                     }
                 })
             } else {

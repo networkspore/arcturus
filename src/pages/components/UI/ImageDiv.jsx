@@ -7,13 +7,12 @@ import useZust from "../../../hooks/useZust";
 
 export const ImageDiv = (props = {}) => {
     const pageSize = useZust((state) => state.pageSize)
+    const configFile = useZust((state) => state.configFile)
     const divRef = useRef()
     const prevCRC = useRef({ value: null })
 
     const [imgURL, setImgURL] = useState(null);
-    const [scaleWidth, setScaleWidth] = useState("0px");
-    const [scaleHeight, setScaleHeight] = useState("0px");
-    const [filter, setFilter] = useState("")
+
 
     const [imgStyle, setImgStyle] = useState({})
     const imgDivId = useId()
@@ -59,18 +58,21 @@ export const ImageDiv = (props = {}) => {
         {
             const update = props.netImage.update
 
-            if(prevCRC.current.value != null && update.file.crc != prevCRC.current.value){
+            if (prevCRC.current.value != null && update.file.crc != null && update.file.crc != prevCRC.current.value){
                 setUpdated(null)
                 prevCRC.current.value = update.file.crc
             } else if (update.file != undefined && update.file.crc != null){
                 prevCRC.current.value = update.file.crc
+            }else{
+                prevCRC.current.value = null
             }
         
         }
     },[props.netImage.update])
 
     useLayoutEffect(() => {
-      
+        const isLocal = configFile.value != null
+        const isP2P = configFile.value != null && configFile.value.peer2peer != null && configFile.value.peer2peer
        
         let tmp = props.netImage != undefined ?  props.netImage : {};
 
@@ -93,21 +95,39 @@ export const ImageDiv = (props = {}) => {
                 tmp.filter = ""
                 tmp.image = updated.url;
             }
-        }else if (update != null && update.file != null && updated == null){
+        } else if (update != null && update.file != null && updated == null && isLocal){
            
             if ("waiting" in update){
-                    tmp.image = update.waiting.url;
-                    if ("style" in update.waiting) {
-                        const styleNames = Object.getOwnPropertyNames(update.error.style)
-                        styleNames.forEach(name => {
-                            tmp[name] = update.error.style[name]
-                        });
-                    }
-                const request = { command: tmp.update.command, page: "imgDiv", id: imgDivId + tmp.update.file.crc, file: tmp.update.file, callback: onUpdate };
+
+                tmp.image = update.waiting.url;
+
+                if ("style" in update.waiting) {
+                    const styleNames = Object.getOwnPropertyNames(update.error.style)
+                    styleNames.forEach(name => {
+                        tmp[name] = update.error.style[name]
+                    });
+                }
+
+                const request = { 
+                    p2p: isP2P, 
+                    command: tmp.update.command, 
+                    page: "imgDiv", 
+                    id: imgDivId, 
+                    file: tmp.update.file, 
+                    callback: onUpdate 
+                };
         
                 addFileRequest(request)
             }
 
+        } else if (!isLocal && update != null){
+            tmp.image = update.error.url;
+            if ("style" in update.error) {
+                const styleNames = Object.getOwnPropertyNames(update.error.style)
+                styleNames.forEach(name => {
+                    tmp[name] = update.error.style[name]
+                });
+            }
         }
    
 
@@ -205,7 +225,7 @@ export const ImageDiv = (props = {}) => {
 
      
     
-    }, [props, pageSize, updated])
+    }, [props, pageSize, updated, configFile.value])
 
 
 

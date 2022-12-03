@@ -68,7 +68,7 @@ export const NetworkPage = () => {
         }))
 
     const messageRef = useRef();
-    const [userMenu, setUserMenu] = useState({userID:-1})
+    const [userMenu, setUserMenu] = useState(null)
 
     const onSearch = (e = new Event("search")) => {
         const {value} = e.target;
@@ -219,13 +219,18 @@ export const NetworkPage = () => {
         console.log(contact)
     }
     
-    const onContactClick = (contact) => {
-        const prevUserID = userMenu.userID;
-     
+    const prevUserID = useRef({value: null})
+    
 
-        if (prevUserID == contact.userID) {
-            setUserMenu({userID:-1})
+    const onContactClick = (contact) => {
+     
+        prevUserID.current.value = userMenu == null ? null : userMenu.user.userID;
+     
+        if (prevUserID.current.value == contact.user.userID) {
+
+            setUserMenu(null)
         } else {
+       
             setUserMenu(contact)
         }
 
@@ -238,10 +243,10 @@ export const NetworkPage = () => {
             let tmpList = [];
             let requestList = [];
             let confirmList = []
-            console.log(contacts)
+  
             contacts.forEach((contact, i) => {
                 const name = contact.user.userName;
-                console.log(contact)
+              
                 const accepted = contact.accepted
                 const requested = contact.requested;
                 const contactImage = contact.user.image;
@@ -283,8 +288,8 @@ export const NetworkPage = () => {
                                     <div style={{ flex: 1 }} />
 
                                 </div>
-                                {userMenu.userID == userContact.userID &&
-                                    <OptionsMenu user={userMenu} />
+                                {userMenu != null && userMenu.user.userID == userContact.user.userID &&
+                                    <OptionsMenu request={userMenu} />
                                 }
                             </div>
                         
@@ -322,8 +327,8 @@ export const NetworkPage = () => {
                                 <div style={{ flex: 1 }} />
 
                             </div>
-                                {userMenu.userID == userContact.userID &&
-                                    <OptionsMenu  user={userMenu}  />
+                                {userMenu != null && userMenu.user.userID == userContact.user.userID &&
+                                    <OptionsMenu contact={userMenu} />
                                 }
                             </div>
                         )
@@ -361,8 +366,8 @@ export const NetworkPage = () => {
                                 <div style={{ flex: 1 }} />
 
                             </div>
-                            {userMenu.userID == userContact.userID &&
-                                <OptionsMenu user={userMenu} />
+                            {userMenu != null && userMenu.user.userID == userContact.user.userID &&
+                                <OptionsMenu confirming={userMenu} />
                             }
                         </div>
                     )
@@ -388,9 +393,9 @@ export const NetworkPage = () => {
         setSocketCmd({
             cmd: "acknowledgeContact", params: { response: response, contactID: contactID }, callback: (result) => {
             if(result.success){
-                console.log(result)
+             
             }else{
-                console.log(result)
+        
                 alert("Unable to acknowledge contact. Try again later.")
             }
             
@@ -441,7 +446,7 @@ export const NetworkPage = () => {
         <>
            
             <div onClick={(e)=>{
-                setUserMenu({ userID: -1 })
+                setUserMenu(null)
             }} style={{
                 width: 300, height: pageSize.height, 
                 backgroundImage:"linear-gradient(to bottom, #00000088,#10131488)", 

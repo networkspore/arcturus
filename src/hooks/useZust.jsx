@@ -9,7 +9,24 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
-
+   peerDownload:[],
+   addPeerDownload:(value = {request:null, peers:[]}, callback) =>set(produce((state) =>{
+      const index = state.peerDownload.findIndex(dl => dl.request.file.crc == value.request.file.crc )
+      const dlState = state.peerDownload;
+      const length = dlState.length > 0;
+      const id = length > 0 ? dlState[length -1].id + 1 : 1
+      if(index == -1){
+         value.id = id
+         state.peerDownload.push(value)
+         callback(id)
+      }else{
+         callback(dlState[index].id)
+      }
+   })),
+   /*peerCmd: { request: null, peers: [], callback: null },
+   setPeerCmd: (value = { request: null, peers: [], callback: null }) => set(produce((state) => {
+      state.peerCmd = value
+   })),*/
    currentRealmID: null,
    setCurrentRealmID: (value) => set({currentRealmID: value}) ,
    updateRealmImage: (realmID, value) => set(produce((state) =>{

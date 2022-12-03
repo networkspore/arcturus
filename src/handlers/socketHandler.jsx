@@ -179,6 +179,7 @@ export const SocketHandler = (props = {}) => {
             
             
         }else{
+            
             switch (socketCmd.cmd) {
                 case "getRealms":
                     sock.current.value.emit("getRealms", (response)=>{
@@ -287,6 +288,7 @@ export const SocketHandler = (props = {}) => {
                     })
                 default:
                     if(socketCmd.cmd != null){
+                        console.log(socketCmd)
                         socketCmd.callback({error: new Error( "not implemented")})
                     }
                     break;
