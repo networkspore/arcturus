@@ -8,10 +8,12 @@ import SelectBox from "./SelectBox";
 import produce from "immer";
 
 import { errorSelectingImage, initDirectory, initStorage } from "../../../constants/systemMessages";
+import { access } from "../../../constants/constants";
 
 
 export const ImagePicker = (props ={}) =>{
     const searchInputRef = useRef()
+    const accessRef = useRef()
     const pickerID = useId()
 
     const pageSize = useZust((state) => state.pageSize)
@@ -64,17 +66,29 @@ export const ImagePicker = (props ={}) =>{
     }, [configFile, localDirectory])
 
     useEffect(()=>{
-        if( props.selectedImage != undefined && props.selectedImage.imageID != null)
+        props.selectedImage
+        if( props.selectedImage != undefined && props.selectedImage.crc != null)
         {
-            addFileRequest({ command: "getImage", page: "imagePicker", id: pickerID, file: props.selectedImage, callback: updateImage })
+           
+            const userImage = props.selectedImage
+
+            console.log(userImage)
+            if("accessID" in userImage)
+            {
+                console.log(userImage.accessID)
+                accessRef.current.setValue(userImage.accessID)
+            } else if (accessRef.current != undefined) {
+                console.log("setting public")
+                accessRef.current.setValue(access.public)
+            }
+            setImageSelected(props.selectedImage)
+        }else if(accessRef.current != undefined){
+            console.log("setting public")
+            accessRef.current.setValue(access.public)
         }
     },[props.selectedImage])
 
-    const updateImage = (response) => {
-     
-            setImageSelected(response.file)
-      
-    }
+
 
 
     const directoryChanged = (index) => {
@@ -110,9 +124,7 @@ export const ImagePicker = (props ={}) =>{
 
         if (img != undefined) {
             if ("crc" in img) {
-                if(!("value" in img)){
-                    addFileRequest({ command: "getImage", page: "imagePicker", id: pickerID , file: img, callback: updateImage })
-                }
+              
                 setImageSelected(img)
 
             } else {
@@ -129,7 +141,8 @@ export const ImagePicker = (props ={}) =>{
     }
 
     const onOkClick = (e) =>{
-        props.onOk(imageSelected)
+        const accessID = accessRef.current.getValue
+        props.onOk({file:imageSelected, accessID:accessID, userAccess:""})
     }
 
     return (
@@ -171,13 +184,15 @@ export const ImagePicker = (props ={}) =>{
                             backgroundColor: "#33333300",
                             fontFamily: "webpapyrus",
                             fontSize: 12,
-                            width: 150,
+                            width: 160,
                             outline: 0,
                             border: 0
                         }} type={"text"} />
                     </div>
-                    <div style={{ margin: 3, width: 100 }}>
+                    <div style={{ margin: 3, width: "100%", display:"flex", alignItems:"center", justifyContent:"center",  }}>
+                        <div style={{width:80}}>
                         <SelectBox onChange={directoryChanged} textStyle={{ backgroundColor: "#33333340", border: 0, outline: 0, color: "white" }} placeholder={"All"} options={directoryOptions} />
+                            </div>
                     </div>
                     <div onClick={(e) => { searchInputRef.current.focus() }} style={{
                         cursor: "pointer"
@@ -204,10 +219,41 @@ export const ImagePicker = (props ={}) =>{
 
                             <div style={{}}>
                              
-                               
+                                <div style={{ width: "100%", height: 30, paddingTop: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                    <SelectBox
+                                        className={styles.bubbleButton}
+                                        about={"Access Control"}
+                                        ref={accessRef}
+                                        style={{ width: 150 }}
+                                        textStyle={{
+                                            textAlign: "center",
+                                            padding: 4,
+
+                                            width: "100%",
+                                            color: "#ffffff",
+                                            fontFamily: "Webpapyrus",
+                                            border: 0,
+                                            fontSize: 14,
+                                        }}
+                                        optionsStyle={{
+                                            widtH: "100%",
+                                            backgroundColor: "#333333C0",
+                                            paddingTop: 5,
+                                            fontSize: 14,
+                                            fontFamily: "webrockwell"
+                                        }}
+                                        placeholder="access"
+                                        options={[
+                                            { label: "Private", value: access.private },
+                                            { label: "Contacts", value: access.contacts },
+                                            { label: "Public", value: access.public }
+                                        ]} />
+                                </div>
                            
    {imageSelected &&
-                               
+
+                            
+                            
                                     <div style={{
                                         filter: "drop-shadow(0 0 5px #ffffff30) drop-shadow(0 0 10px #ffffff40)",
                                         display: "flex",
@@ -218,7 +264,7 @@ export const ImagePicker = (props ={}) =>{
                                       
                                     }}>
                                      
-                               
+                                       
                                  
                                         <div style={{ cursor: "pointer" }}>
                                             <div style={{height:50, }}>&nbsp;</div>
@@ -233,7 +279,13 @@ export const ImagePicker = (props ={}) =>{
                                                     backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)",
                                                     borderRadius: 40,
                                                     backgroundColor: "",
-                                                    image: "value" in imageSelected ? imageSelected.value :  imageSelected.icon
+                                                    update: {
+                                                        command: "getImage",
+                                                        file: imageSelected,
+                                                        waiting: { url: "/Images/spinning.gif" },
+                                                        error: { url: "" },
+
+                                                    }
                                                 }}
                                             />
                                         </div>
@@ -241,7 +293,7 @@ export const ImagePicker = (props ={}) =>{
                                    
 
                                     </div>
-
+                            
                   }
                   {!imageSelected &&
                                     <div style={{
@@ -259,7 +311,8 @@ export const ImagePicker = (props ={}) =>{
 
 
                             </div>
-                            <div style={{ paddingTop: 20, paddingBottom: 15 }}>
+                            
+                            <div style={{ paddingBottom: 15 }}>
 
                                 <div style={{
                                     justifyContent: "center",

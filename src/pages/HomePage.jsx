@@ -98,18 +98,20 @@ export const HomePage = (props ={}) => {
         
     },[location])
 
-    const onUpdateUserImage = (update) =>{
+    const onUpdateUserImage = (onUpdate) =>{
+        const file = onUpdate.file
+
         const fileInfo = {
-            name: update.name, 
-            crc: update.crc, 
-            size: update.size, 
-            type: update.type, 
-            mimeType: update.mimeType, 
-            lastModified: update.lastModified
+            name: file.name, 
+            crc: file.crc, 
+            size: file.size, 
+            type: file.type, 
+            mimeType: file.mimeType, 
+            lastModified: file.lastModified
         }
        
 
-        setSocketCmd({cmd: "updateUserImage", params:{imageInfo:fileInfo}, callback:(updateResult)=>{
+        setSocketCmd({cmd: "updateUserImage", params:{imageInfo:fileInfo, accessID: onUpdate.accessID, userAccess: onUpdate.userAccess}, callback:(updateResult)=>{
             if("success" in updateResult && updateResult.success)
             {
                 updateUserImage(updateResult.file)
@@ -135,7 +137,7 @@ export const HomePage = (props ={}) => {
                     <ImageDiv width={150} height={150} onClick={(e) => {
                         setshowIndex(10)
                     }}  about={"Select Image"}  className={className} netImage={{
-                        scale:1.1,
+                        scale:1,
                         update: {
                             command: "getImage",
                             file: user.image,

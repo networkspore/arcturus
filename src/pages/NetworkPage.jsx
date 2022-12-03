@@ -12,7 +12,7 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 import { MessagePage } from "./MessagePage";
 
 import { OptionsMenu } from "./components/UI/OptionsMenu";
-import { access } from "../constants/constants";
+import { access, status } from "../constants/constants";
 
 
 
@@ -55,7 +55,7 @@ export const NetworkPage = () => {
     const [requestContact, setRequestContact] = useState(null)
     const [acknowledgeContact, setAcknowledgeContact] = useState(null)
 
-    const contactRequests = useZust((state) => state.contactRequests)
+
     const setSocketCmd = useZust((state) => state.setSocketCmd)
     const contacts = useZust((state) => state.contacts)
 
@@ -127,7 +127,7 @@ export const NetworkPage = () => {
 
                 const msg = complete.msg;
                 if (complete.requested == true){
-                    contact["status"] = { statusID: 3, statusName: "confirming" };
+                    contact["statusID"] = status.confirming
                     addContact(contact)
                     removePerson(contact.userID)
                     setRequestContact(null)
@@ -236,35 +236,69 @@ export const NetworkPage = () => {
         if(contacts.length > 0)
         {
             let tmpList = [];
-            let confirmList = [];
+            let requestList = [];
+            let confirmList = []
+            console.log(contacts)
             contacts.forEach((contact, i) => {
-                const name = contact.userName;
-                const status = contact.status;
-                const contactID = contact.userID
-                const accessID = contact.accessID
-                const contactImage = contact.image;
-                console.log(contactImage)
-                const c = contact;
-                switch(status.statusName)
-                {
-                    case "confirming":
-                        confirmList.push(
-                            <div key={i} onClick={(e) => { onConfirmingContact(contact) }} style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
+                const name = contact.user.userName;
+                console.log(contact)
+                const accepted = contact.accepted
+                const requested = contact.requested;
+                const contactImage = contact.user.image;
 
-                                <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
+                const userContact = contact
+            
+                
+                if(requested){
+               
+                        requestList.push(
+                            <div key={i} >
+                                <div style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }}
+                                    className={styles.result} onClick={(e) => {
+                                        e.stopPropagation()
+                                        onContactClick(userContact)
+                                    }}>
+                                    <ImageDiv width={30} height={30} netImage={contact.user.image.fileID != null && contact.user.image.fileID > 0 ? {
+                                        scale: 1,
+                                        update: {
+                                            command: "getIcon",
+                                            file: contactImage,
+                                            waiting: { url: "/Images/spinning.gif" },
+                                            error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                                        },
+                                        backgroundColor: "#44444450",
+                                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                                    } : {
+                                        image: "/Images/icons/person.svg",
+                                        filter: "invert(100%)",
+                                        backgroundColor: "#44444450",
+                                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                                    }} />
+                                    <div style={{ paddingLeft: 10, textShadow: "2px 2px 2px black" }}>
+
+                                        {name}
+
+                                    </div>
+                                    <div style={{ flex: 1 }} />
+
+                                </div>
+                                {userMenu.userID == userContact.userID &&
+                                    <OptionsMenu user={userMenu} />
+                                }
                             </div>
+                        
                         )
-                        break;
-                    case "accepted":
+                }else if(accepted){
                         tmpList.push(
                             <div key={i} >
                             <div style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} 
                             className={styles.result} onClick={(e) =>{
                                 e.stopPropagation()
-                                onContactClick(c)
+                                onContactClick(userContact)
                             }}>
-                                    <ImageDiv width={30} height={30} netImage={accessID == access.contacts || accessID == access.public ? {
-                                        scale: 1.1,
+                                    <ImageDiv width={30} height={30} netImage={contact.user.image.fileID != null && contact.user.image.fileID > 0 ? {
+                                        scale: 1,
                                         update: {
                                             command: "getIcon",
                                             file: contactImage,
@@ -288,17 +322,55 @@ export const NetworkPage = () => {
                                 <div style={{ flex: 1 }} />
 
                             </div>
-                                {userMenu.userID == c.userID &&
+                                {userMenu.userID == userContact.userID &&
                                     <OptionsMenu  user={userMenu}  />
                                 }
                             </div>
                         )
-                        break;
                     
+                } else {
+                    confirmList.push(
+                        <div key={i} >
+                            <div style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }}
+                                className={styles.result} onClick={(e) => {
+                                    e.stopPropagation()
+                                    onContactClick(userContact)
+                                }}>
+                                <ImageDiv width={30} height={30} netImage={contact.image.fileID != null && contact.image.fileID > 0 ? {
+                                    scale: 1,
+                                    update: {
+                                        command: "getIcon",
+                                        file: contactImage,
+                                        waiting: { url: "/Images/spinning.gif" },
+                                        error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                                    },
+                                    backgroundColor: "#44444450",
+                                    backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                                } : {
+                                    image: "/Images/icons/person.svg",
+                                    filter: "invert(100%)",
+                                    backgroundColor: "#44444450",
+                                    backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                                }} />
+                                <div style={{ paddingLeft: 10, textShadow: "2px 2px 2px black" }}>
+
+                                    {name}
+
+                                </div>
+                                <div style={{ flex: 1 }} />
+
+                            </div>
+                            {userMenu.userID == userContact.userID &&
+                                <OptionsMenu user={userMenu} />
+                            }
+                        </div>
+                    )
                 }
 
             });
             setConfirmingList(confirmList)
+            setRequestedList(requestList)
             setContactsList(tmpList)
         }
     },[contacts, userMenu])
@@ -326,29 +398,7 @@ export const NetworkPage = () => {
         setAcknowledgeContact(null)
     } 
 
-        useEffect(() => {
-            if (contactRequests.length > 0) {
-                let tmpList = [];
-
-                contactRequests.forEach(contact => {
-                    const name = contact.userName;
-            
-
-                    tmpList.push(
-                        <div key={contact.userID} onClick={(e) => { onRequestAcknowledge(contact) }} style={{ fontSize: "14px", display: "flex", justifyContent: "left", alignItems: "center", fontFamily: "WebPapyrus" }} className={styles.result}>
-
-                            <div style={{ textShadow: "2px 2px 2px black" }}>{name}</div>
-                
-                        </div>
-                    )
-
-                });
-
-                setRequestedList(tmpList)
-            }
-        }, [contactRequests])
-
-
+    
 
 
     useEffect(()=>{

@@ -189,11 +189,13 @@ const SelectBox = (props = {}, ref) => {
     return (
 
         <div style={{ display: "block" }}>
-            <input onChange={(e) => {
+            <div about={props.about} style={props.style} className={props.className}>
+            <input  onChange={(e) => {
 
             }} placeholder={props.placeholder} style={textStyle} ref={textBoxRef} onKeyDown={(e) => {
                 if (!editable) e.preventDefault();
             }} type="text" onClick={(e) => onClicked(e)} onBlur={(e) => onBlurring(e)} />
+            </div>
             <div style={{ display: showList ? "block" : "none" }}>
                 {list}
             </div>

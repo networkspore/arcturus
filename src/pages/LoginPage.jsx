@@ -4,41 +4,25 @@ import { useNavigate} from 'react-router-dom';
 
 import sha256 from 'crypto-js/sha256';
 import useZust from "../hooks/useZust";
-import produce from "immer";
-import { io } from "socket.io-client";
-import { socketIOhttp, socketToken } from '../constants/httpVars';
+
 import { useRef } from "react";
-import { get } from "idb-keyval";
+
 
  const LoginPage = (props = {}) =>  {
 
     const txtName = useRef();
     const txtPass = useRef();
 
-    const setSocket = useZust((state) => state.setSocket)
     const setUser = useZust((state) => state.setUser)
     const setContacts = useZust((state) => state.setContacts)
-    const setContactRequests = (value) => useZust.setState(produce((state)=>{
-        state.contactRequests = value;
-    }))
 
     const [data, setData] = useState({ loginRemember: false, loginName: "", loginPass: "" });
     const autoLogin = useZust((state) => state.autoLogin)
-
      
     const navigate = useNavigate(); 
     
     const [disable, setDisable] = useState(false)
   
-
-    
-   // const [overlayPos, setOverlayPos] = useState({top:200, left:200})
-   // const overlaySize = {width: 600, height: 400};
-
-    const pageSize = useZust((state) => state.pageSize);
-   // const scrollLeft = useZust((state) => state.scrollLeft)
-   // const scrollTop = useZust((state) => state.scrollTop)
-
     const setLoginPage = useZust((state) => state.setLoginPage);
 
 
@@ -128,12 +112,12 @@ import { get } from "idb-keyval";
             if(response.success){
                 const user = response.user
                 const contacts = response.contacts
-                const requests = response.requests
+             
 
           
                     setUser(user)
                     setContacts(contacts)
-                    setContactRequests(requests)
+             
 
                     setConnected(true)
                 }else{

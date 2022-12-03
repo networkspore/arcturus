@@ -121,7 +121,7 @@ export const FileHandler = ( props = {}) =>{
 
                         case "image":
                             checkLocalImages(request).then((localResult)=>{
-                                console.log(localResult)
+                                
                                 if (localResult != null) {
                                  
                                     if("icon" in localResult)
@@ -134,7 +134,7 @@ export const FileHandler = ( props = {}) =>{
                                         })
                                     }
                                 } else {
-                                    checkPeers(request).then((peersResult) => {
+                                    getImagePeers(request).then((peersResult) => {
                                         resolve(peersResult)
                                     })
                                 }
@@ -149,7 +149,7 @@ export const FileHandler = ( props = {}) =>{
 
                         case "image":
                             checkLocalImages(request).then((localResult) => {
-                                console.log(localResult)
+                             
                                 if (localResult != null) {
                                     //        if (("value" in localResult && localResult.value != null) || !("value" in localResult)) {
                                     if("value" in localResult)
@@ -163,7 +163,7 @@ export const FileHandler = ( props = {}) =>{
                                     }
                                     
                                 } else {
-                                    checkPeers(request).then((peersResult) => {
+                                    getImagePeers(request).then((peersResult) => {
                                         resolve(peersResult)
                                     })
                                 }
@@ -184,6 +184,22 @@ export const FileHandler = ( props = {}) =>{
 
     }
 
+
+    const getImagePeers = (request) => {
+        return new Promise(resolve => {
+            const fileID = request.file.fileID;
+            if (fileID != undefined && fileID != null && fileID > -1) {
+
+                setSocketCmd({
+                    cmd: "getImagePeers", params: { fileID: fileID }, callback: (peersList) => {
+
+                    }
+                })
+            } else {
+                resolve({ error: new Error("fileID not valid") })
+            }
+        })
+    }
 
 
     async function getLocalImage(request, localFile){
@@ -247,7 +263,7 @@ export const FileHandler = ( props = {}) =>{
         return new Promise(resolve => { 
        
             if(request.command == "getIcon") {
-                console.log(request.file)
+         
                 get(request.file.crc + ".arcicon").then((iconDataURL) =>{
                  
                     if (iconDataURL != undefined) {
@@ -281,7 +297,7 @@ export const FileHandler = ( props = {}) =>{
                         });
 
                         newFile.value = iconDataURL
-                        console.log(newFile)
+           
                         resolve( newFile)
                     } else {
                         const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
@@ -301,18 +317,6 @@ export const FileHandler = ( props = {}) =>{
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-    const checkPeers = (request) =>{
-        return new Promise(resolve =>{
-        const fileID = request.file.fileID;
-            if(fileID != undefined && fileID != null && fileID > -1){
-                setSocketCmd({cmd:"checkPeers",params:{fileID: fileID},callback:(peersList)=>{
-
-                }})
-            }else{
-                resolve({error: new Error("fileID not valid")})
-            }
-        })
-    }
 
 
     return (
