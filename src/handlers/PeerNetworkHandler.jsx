@@ -2,7 +2,7 @@ import React from "react";
 import produce from "immer";
 import useZust from "../hooks/useZust";
 import { ImageDiv } from "../pages/components/UI/ImageDiv";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Peer from "peerjs";
 import { useNavigate } from "react-router-dom";
 import { status } from "../constants/constants";
@@ -19,6 +19,9 @@ export const PeerNetworkHandler = (props ={}) => {
     const setPeerConnection = useZust((state) => state.setPeerConnection);
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
+
+
+    const peerDownload = useZust((state) => state.peerDownload)
 
     
     const openPeerConnection = (onOpen =onPeerOpen, onCall = onPeerCall, onClose = onPeerClose, onDisconnect = onPeerDisconnect, onError = onPeerError) => useZust.setState(produce((state) => {
@@ -135,9 +138,18 @@ export const PeerNetworkHandler = (props ={}) => {
        
     }, [peerConnection])
 
-    useEffect(()=>{
+   
+/*   p2p: isP2P, 
+    command: "getIcon", 
+    page: "imgDiv", 
+    id: imgDivId, 
+    file: tmp.update.file, 
+    callback: onUpdate */
 
-    },[])
+    useEffect(()=>{
+        
+    },[peerDownload])
+
 
     return (
         <>
