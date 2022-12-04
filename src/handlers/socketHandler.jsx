@@ -57,7 +57,7 @@ export const SocketHandler = (props = {}) => {
            
             setShowLogin( false )
         }
-        console.log(sock.current.value)
+        
      
     }, [sock.current.value, user])
 
@@ -84,7 +84,7 @@ export const SocketHandler = (props = {}) => {
                         }
                     })
                 } else {
-                    console.log(tryCount.current.value)
+           
                     sock.current.value.disconnect()
                     sock.current.value = null;
                     loggedIn.current.value = false
@@ -109,8 +109,7 @@ export const SocketHandler = (props = {}) => {
                 {
                     socketConnect()
                 }else{
-                    console.log(tryCount.current.value)
-                    console.log(sock.current.value)
+               
                     socketCmd.callback({ error: new Error("Too many tries."), maxRetry:true})
                 }
             } else{
@@ -162,16 +161,15 @@ export const SocketHandler = (props = {}) => {
                                 socketCmd.callback(response)
                             })
                             break;
-                        default:
-                            socketCmd.callback({error: new Error("Not Implemented")})
+                   
                     }
 
                 }else{
                     
                     
                     if (socketCmd != null && typeof socketCmd.callback == "function"){
-                        const cmd = socketCmd.callback
-                        console.log(typeof cmd)
+                        
+                       
                         socketCmd.callback({ error: "not connected" })
                     }
                 }
@@ -261,7 +259,7 @@ export const SocketHandler = (props = {}) => {
                     
                     break;
                 case "deleteRealm":
-                    sock.current.value.emit("deleteRealm", socketCmd.params.realmiD, (response) => {
+                    sock.current.value.emit("deleteRealm", socketCmd.params.realmID, (response) => {
                         socketCmd.callback(response)
                     })
                     break;
@@ -286,9 +284,10 @@ export const SocketHandler = (props = {}) => {
                     sock.current.value.emit("getImagePeers", socketCmd.params.fileID, (response) => {
                         socketCmd.callback(response)
                     })
+                    break;
                 default:
                     if(socketCmd.cmd != null){
-                        console.log(socketCmd)
+                       
                         socketCmd.callback({error: new Error( "not implemented")})
                     }
                     break;
@@ -315,7 +314,7 @@ export const SocketHandler = (props = {}) => {
             setSocketCmd({
           
                 cmd: "login", params: { nameEmail: name_email, password: pass }, callback: (response) => {
-                    console.log(response)
+                   
                     if("success" in response && response.success)
                     {
                         tryCount.current.value = 0;

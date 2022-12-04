@@ -1,29 +1,34 @@
-import { useEffect } from "react";
-import styles from "./css/home.module.css"
+import React, { useEffect } from "react";
+import styles from './css/home.module.css';
 import FileList from "./components/UI/FileList";
 import { ImageDiv } from "./components/UI/ImageDiv";
+import useZust from "../hooks/useZust";
 
 export const PeerNetworkMenu = (props ={}) =>{
+    const pageSize = useZust((state) => state.pageSize)
     return (
-        <div style={{display:"flex"}}>
-            <div style={{width:300}}>
-                <div style={{display:"flex"}} className={styles.result}>
-                    <ImageDiv width={30} height={30} netImage={{ backgroundColor: "", image: "/Images/icons/library-outline.svg", filter: "invert(100%)" }} />
-                    <div>Library</div>
-                </div>
-                <div style={{ display: "flex" }} className={styles.result}>
-                    <ImageDiv width={30} height={30} netImage={{ backgroundColor: "", image: "/Images/icons/storefront-outline.svg", filter: "invert(100%)" }} />
-                    <div>Market</div>
-                </div>
-                <div style={{ display: "flex" }} className={styles.result}>
-                    <ImageDiv width={30} height={30} netImage={{ backgroundColor: "", image: "/Images/icons/newspaper-outline.svg", filter: "invert(100%)" }} />
-                    <div>Forum</div>
-                </div>
-               
-            </div>
-            <div style={{flex:1, backgroundColor:"#333333"}}>
-
-            </div>
+        <div style={{display:"flex", flexDirection:"column"}}>
+            <FileList className={styles.bubble__item} 
+                fileView={{ 
+                    type: "icons", 
+                    direction: "column", 
+                    iconSize: { width: 100, height: 100, scale:.5 } }} 
+                    tableStyle={{ 
+                        maxHeight: pageSize.height - 400 
+                    }} 
+                    files={
+                        [ 
+                            { 
+                                to: "/home/peernetwork/downloads", 
+                                name: "Downloads", 
+                                type: "folder", 
+                                crc: "", 
+                                lastModified: null, 
+                                size: null, 
+                                netImage: {scale:.5, opacity: .7, backgroundColor: "", image: "/Images/icons/cloud-download-outline.svg", filter: "invert(100%)" } 
+                            },
+                        ]}    
+                />
         </div>
     )
 }

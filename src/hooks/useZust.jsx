@@ -10,7 +10,7 @@ import {Color, Texture } from 'three';
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
    peerDownload:[],
-   addPeerDownload:(value = {request:null, peers:[]}, callback) =>set(produce((state) =>{
+   addPeerDownload:(value = {id:0, request:null, peers:[], complete:0}, callback) =>set(produce((state) =>{
       const index = state.peerDownload.findIndex(dl => dl.request.file.crc == value.request.file.crc )
       const dlState = state.peerDownload;
       const length = dlState.length > 0;

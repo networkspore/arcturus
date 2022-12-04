@@ -465,7 +465,7 @@ export const LocalStoragePage = () => {
                 }
                 {showIndex == 0 && configFile.handle != null &&
                     
-                        <FileList className={styles.bubbleButtonLink} fileView={{type:"icons",direction:"column", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
+                        <FileList   fileView={{type:"icons",direction:"column", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
                                 { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", crc: "", lastModified: null, size: null, netImage: {opacity:.7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
                         { to: "/home/localstorage/models", name: "models", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },

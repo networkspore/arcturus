@@ -155,11 +155,12 @@ export const RealmsPage = () =>{
         setSelectedItem(r)
     }
 
-    const onCreateRealm = (e) =>[
+    const onCreateRealm = (e) =>{
+        setShowMenu(false)
         navigate("/realms/create", {state:{selectedItem:selectedItem}})
-    ]
-
+}
     const onEndRealm = (e) =>{
+        setShowMenu(false)
         setShowIndex(-2)
     }
 
@@ -183,6 +184,7 @@ export const RealmsPage = () =>{
             setShowIndex(0)
             navigate("/realms")
         }else{
+            setShowIndex(0)
             setSocketCmd({
                 cmd: "deleteRealm", params: {realmID: realmID }, callback: (callback) => {
                 if("error" in callback){
@@ -199,7 +201,7 @@ export const RealmsPage = () =>{
                 setSelectedRealm(null)
                 setCurrentRealmID(null)
                 setSelectedItem(null)
-                navigate("/realms")
+              //  navigate("/realms")
             }})
         }
         
@@ -456,14 +458,18 @@ export const RealmsPage = () =>{
         }
         {showMenu && selectedRealm != null && 
             <div  style={{backgroundColor:"black", display:"flex", flexDirection:"column", position:"fixed", left:135, top: 120, width:200, padding:5 }}>
-                    <div className={styles.result} onClick={onRealmGateway } style={{display:"flex", alignItems:"center", justifyContent:"left"}}>
+                    <div className={styles.result} onClick={(e)=>{
+                        setShowMenu(false)
+                        onRealmGateway(e)} } style={{display:"flex", alignItems:"center", justifyContent:"left"}}>
 
                     <ImageDiv width={30} height={30} netImage={{ image: "/Images/realm.png", filter: "invert(100%)" }} />
                     <div style={{paddingLeft:10}}>
                         Enter Gateway
                     </div>
                 </div>
-                    <div className={styles.result} onClick={onEndRealm} style={{ display: "flex", alignItems: "center", justifyContent: "left" }}>
+                    <div className={styles.result} onClick={(e) =>{
+                        
+                        onEndRealm(e)}} style={{ display: "flex", alignItems: "center", justifyContent: "left" }}>
 
                         <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/flash-outline.svg", filter: "invert(100%)" }} />
                         <div style={{ paddingLeft: 10 }}>

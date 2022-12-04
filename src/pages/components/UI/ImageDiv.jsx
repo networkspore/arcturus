@@ -8,6 +8,7 @@ import useZust from "../../../hooks/useZust";
 export const ImageDiv = (props = {}) => {
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
+    const peerDownload = useZust((state) => state.peerDownload)
     const divRef = useRef()
     const prevCRC = useRef({ value: null })
 
@@ -36,19 +37,44 @@ export const ImageDiv = (props = {}) => {
   
     const [updated, setUpdated] = useState(null) 
 
+    const waitingForDownload = useRef({value:null})
+
+
+
     const onUpdate = (response) => {
-     
-        if("success" in response && response.success){
-            switch (response.request.command){
-                case "getIcon":
-                    setUpdated({ success: true, url: response.file.icon, crc: response.file.crc })
-                break;
-                case "getImage":
-                    
-                    setUpdated({ success: true, url: response.file.value, crc: response.file.crc })
+
+        console.log(response)
+        if("success" in response){
+
+            if (response.success){
+                
+                waitingForDownload.current.value = null;
+
+                switch (response.request.command){
+                    case "getIcon":
+                        setUpdated({ success: true, url: response.file.icon, crc: response.file.crc })
                     break;
+                    case "getImage":
+                        
+                        setUpdated({ success: true, url: response.file.value, crc: response.file.crc })
+                        break;
+                }
+            }else if("downloading" in response){
+                console.log("downloading")
+                const downloadID = response.id;
+                const waitingID = waitingForDownload.current.value == null ? null : waitingForDownload.current.value.id;
+
+                if(waitingID != downloadID){
+                    waitingForDownload.current.value = response;
+
+                }
+            }else{
+                waitingForDownload.current.value = null;
+                console.log("couldn't wait for download")
+                setUpdated({ error: new Error("file request error") })
             }
         }else{
+            waitingForDownload.current.value = null;
             setUpdated({error: new Error("file request error")})
         }
     }
@@ -69,6 +95,25 @@ export const ImageDiv = (props = {}) => {
         
         }
     },[props.netImage.update])
+
+    useEffect(()=>{
+        if(waitingForDownload.current.value != null)
+        {
+            console.log(waitingForDownload.current.value)
+            const waitingID = waitingForDownload.current.value.id
+
+            const index = peerDownload.findIndex(pDl => pDl.id == waitingID)
+            if(index != -1){
+                const pDl = peerDownload[index]
+                if(pDl.complete == 1)
+                {
+                    const request = pDl.request;
+
+                    addFileRequest(request)
+                }
+            }
+        }
+    },[peerDownload])
 
     useLayoutEffect(() => {
         const isLocal = configFile.value != null

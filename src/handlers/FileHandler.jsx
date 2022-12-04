@@ -140,16 +140,9 @@ export const FileHandler = ( props = {}) =>{
                                         console.log('getting peers')
                                         getImagePeers(request).then((peersResult) => {
                                             console.log('getting peers')
-                                            getImagePeers(request).then((peerImage) => {
-                                                console.log(peersResult)
-                                                if ("success" in peersResult && peersResult.success) {
-                                                    const file = peerImage.file;
-                                                    const imageResult = { success: true, file: file, request: request }
-                                                    resolve(imageResult)
-                                                } else {
-                                                    resolve({ error: "file not found" })
-                                                }
-                                            })
+                                           
+                                            resolve(peersResult)
+                                         
                                         })
                                     } else {
                                         resolve({ error: "not connected" })
@@ -181,15 +174,9 @@ export const FileHandler = ( props = {}) =>{
                             } else if (request != null){
                                 if (request.p2p) {
                                     console.log('getting peers')
-                                    getImagePeers(request).then((peerImage) => {
-                                        console.log(peersResult)
-                                        if ("success" in peersResult && peersResult.success) {
-                                            const file = peerImage.file;
-                                            const imageResult = { success: true, file: file, request: request }
-                                            resolve(imageResult)
-                                        } else {
-                                            resolve({ error: "file not found" })
-                                        }
+                                    getImagePeers(request).then((peersResult) => {
+                                        console.log('getting peers')
+                                        resolve(peersResult)
                                     })
                                 }else{
                                     resolve({ error: "not connected" })
@@ -214,9 +201,10 @@ export const FileHandler = ( props = {}) =>{
 
     const getImagePeers = (request) => {
         return new Promise(resolve => {
-            const fileID = request.file.fileID;
-            if (fileID != undefined && fileID != null && fileID > -1) {
-                
+            
+            if (request.file.fileID != undefined && request.file.fileID != null && request.file.fileID > -1) {
+                const fileID = request.file.fileID;
+                console.log(request)
                 setSocketCmd({
                     cmd: "getImagePeers", params: { fileID: fileID }, callback: (foundPeers) => {
                         if("success" in foundPeers && foundPeers.success)
@@ -225,10 +213,12 @@ export const FileHandler = ( props = {}) =>{
                             const newPeerDownload = {
                                 request: request, peers: peers, complete:0
                             }
-                            addPeerDownload(peerCmd, (downloadID) => {
-                                resolve({downloading:true, downloadID: downloadID})
+                            addPeerDownload(newPeerDownload, (downloadID) => {
+                                console.log(downloadID)
+                                resolve({success:false, downloading:true, id: downloadID})
                             })
                         }else{
+                            console.log(foundPeers)
                             resolve({error: new Error("Image not found")})
                         }
                     

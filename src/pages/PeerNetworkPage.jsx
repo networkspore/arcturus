@@ -10,6 +10,7 @@ import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { getFileInfo } from '../constants/utility';
 import { PeerNetworkMenu } from './PeerNetworkMenu';
+import { PeerDownloadPage } from './PeerDownloadPage';
 
 
 export const PeerNetworkPage = () => {
@@ -26,7 +27,7 @@ export const PeerNetworkPage = () => {
     const peerConnection = useZust((state)=> state.peerConnection)
     const userPeerID = useZust((state) => state.userPeerID)
 
-    
+   // const setPeerConnection = useZust((state) => state.setPeerConnection)
  
     const configFile = useZust((state) => state.configFile)
 
@@ -59,6 +60,9 @@ export const PeerNetworkPage = () => {
             case "/settings":
                 setShowIndex(1)
                 break;
+            case "/downloads":
+                setShowIndex(3)
+                break;
             default:
                 if(config != null){
                     if(config.peer2peer){
@@ -82,9 +86,11 @@ export const PeerNetworkPage = () => {
     const turnOffPeerNetwork = () => {
         navigate("/home/localstorage/init")
     }
-    const setPeerConnection = useZust((state) => state.setPeerConnection)
+
     const onReload = () =>{
-        setPeerConnection(null)
+        if(peerConnection != null){
+            peerConnection.reconnect()
+        }
     }
 
     return (
@@ -177,7 +183,7 @@ export const PeerNetworkPage = () => {
                                     filter: peerConnection == null ? "Invert(25%)" : "invert(100%)"
                                 }} />
                             </div>
-                            {peerConnection != null &&
+                            {configFile.value != null && configFile.value.peer2peer &&
                                 <div style={{ color:  "#cdd4da",}}>
                                     webRTC://
                                 </div>
@@ -237,6 +243,9 @@ export const PeerNetworkPage = () => {
                         <div style={{ flex: 1, display: "block", color: "white" }}>
                             config
                         </div>
+                    }
+                    {showIndex == 3 &&
+                        <PeerDownloadPage />
                     }
             </div>
         </div>

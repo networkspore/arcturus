@@ -147,7 +147,14 @@ export const PeerNetworkHandler = (props ={}) => {
     callback: onUpdate */
 
     useEffect(()=>{
-        
+        const count = peerDownload.length
+        console.log(peerDownload)
+        if(count > 0)
+        {
+            peerDownload.forEach(dlItem => {
+                console.log(dlItem)
+            });
+        }
     },[peerDownload])
 
 
@@ -159,6 +166,12 @@ export const PeerNetworkHandler = (props ={}) => {
                     navigate("/home/peernetwork")
                 }} width={25} height={30} netImage={{ image: "/Images/icons/cloud-offline-outline.svg", scale:.7, filter:"invert(100%)" }} /> 
           }
+            {
+                peerDownload.length > 0 &&
+                <ImageDiv onClick={(e) => {
+                    navigate("/home/peernetwork/downloads")
+                }} width={25} height={30} netImage={{ image: "/Images/icons/cloud-download-outline.svg", scale: .7, filter: "invert(100%)" }} />
+            }
         </>
     )
 }

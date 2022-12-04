@@ -119,6 +119,7 @@ const FileList = (props = {}, ref) => {
             }
 
             const scale = "scale" in fileView.iconSize ? fileView.iconSize.scale : 1
+            console.log(scale)
             const backgroundColor = "backgroundColor" in fileView.iconSize ? fileView.iconSize.backgroundColor : ""
             const backgroundImage = "backgroundImage" in fileView.iconSize ? fileView.iconSize.backgroundImage : ""
        
@@ -174,7 +175,7 @@ const FileList = (props = {}, ref) => {
                     } : file.netImage
                    // if(update != null) iImage.update = update
                  
-              
+                    
                     switch(fileView.type)
                     {
                         case "icons":
