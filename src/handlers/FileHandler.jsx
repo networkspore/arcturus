@@ -27,7 +27,7 @@ export const FileHandler = ( props = {}) =>{
     const updateImages = useZust((state) => state.updateImages)
 
 
-    const addPeerDownload = useZust((state) => state.addPeerDownload)
+    const setDownloadRequest = useZust((state) => state.setDownloadRequest)
 
     const fileRequest = useZust((state) => state.fileRequest)
     //const updateFileRequest = useZust((state) => state.updateFileRequest)
@@ -138,7 +138,7 @@ export const FileHandler = ( props = {}) =>{
                                     console.log(request)
                                     if (request.p2p) {
                                         console.log('getting peers')
-                                        getImagePeers(request).then((peersResult) => {
+                                        getFilePeers(request).then((peersResult) => {
                                             console.log('getting peers')
                                            
                                             resolve(peersResult)
@@ -174,7 +174,7 @@ export const FileHandler = ( props = {}) =>{
                             } else if (request != null){
                                 if (request.p2p) {
                                     console.log('getting peers')
-                                    getImagePeers(request).then((peersResult) => {
+                                    getFilePeers(request).then((peersResult) => {
                                         console.log('getting peers')
                                         resolve(peersResult)
                                     })
@@ -199,24 +199,28 @@ export const FileHandler = ( props = {}) =>{
     }
 
 
-    const getImagePeers = (request) => {
+    const getFilePeers = (request) => {
         return new Promise(resolve => {
             
             if (request.file.fileID != undefined && request.file.fileID != null && request.file.fileID > -1) {
                 const fileID = request.file.fileID;
                 console.log(request)
                 setSocketCmd({
-                    cmd: "getImagePeers", params: { fileID: fileID }, callback: (foundPeers) => {
+                    cmd: "getFilePeers", params: { fileID: fileID }, callback: (foundPeers) => {
                         if("success" in foundPeers && foundPeers.success)
                         {
                             const peers = foundPeers.peers
+                            const crc = request.file.crc
+
                             const newPeerDownload = {
-                                request: request, peers: peers, complete:0
+                               crc:crc, request: request, peers: peers, complete: 0, status: ""
                             }
-                            addPeerDownload(newPeerDownload, (downloadID) => {
+                            
+                            setDownloadRequest({download:newPeerDownload, callback:(downloadID) => {
                                 console.log(downloadID)
                                 resolve({success:false, downloading:true, id: downloadID})
-                            })
+                            }})
+
                         }else{
                             console.log(foundPeers)
                             resolve({error: new Error("Image not found")})
@@ -353,7 +357,7 @@ export const FileHandler = ( props = {}) =>{
             {
                 isProcessing &&
                 <ImageDiv onClick={(e) => {
-                    navigate("/home/peernetwork/transfers")
+                    navigate("/home/localstorage")
                 }} width={25} height={30} netImage={{ image: "/Images/icons/file-tray-stacked.svg", scale: .7, filter: "invert(100%)" }} />
             }
         </>

@@ -6,22 +6,24 @@ import {Color, Texture } from 'three';
 
 
 
+
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   uploadRequest: { upload: null, callback:null },
+   setUploadRequest: (value) => set({ uploadRequest: value }),
+   downloadRequest:{download:null},
+   setDownloadRequest: (value) => set({downloadRequest: value}),
+   peerUpload:[],
+   addPeerUpload: (value = { id: 0, request: null, complete: 0, status: "Waiting for connection..." }) => set(produce((state) => {
+      state.peerUpload.push(value)
+   })),
    peerDownload:[],
-   addPeerDownload:(value = {id:0, request:null, peers:[], complete:0}, callback) =>set(produce((state) =>{
-      const index = state.peerDownload.findIndex(dl => dl.request.file.crc == value.request.file.crc )
-      const dlState = state.peerDownload;
-      const length = dlState.length > 0;
-      const id = length > 0 ? dlState[length -1].id + 1 : 1
-      if(index == -1){
-         value.id = id
-         state.peerDownload.push(value)
-         callback(id)
-      }else{
-         callback(dlState[index].id)
-      }
+   addPeerDownload:(value = {id:0, request:null, peers:[], complete:0, status:"Connecting to peers..."}) =>set(produce((state) =>{   
+      state.peerDownload.push(value)
+   })),
+   updateDownload:(value = {}, i = 0) => set(produce((state) =>{
+      state.peerDownload[i] = value;
    })),
    /*peerCmd: { request: null, peers: [], callback: null },
    setPeerCmd: (value = { request: null, peers: [], callback: null }) => set(produce((state) => {

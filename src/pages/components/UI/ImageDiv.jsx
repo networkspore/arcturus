@@ -43,7 +43,7 @@ export const ImageDiv = (props = {}) => {
 
     const onUpdate = (response) => {
 
-        console.log(response)
+        
         if("success" in response){
 
             if (response.success){
@@ -60,7 +60,7 @@ export const ImageDiv = (props = {}) => {
                         break;
                 }
             }else if("downloading" in response){
-                console.log("downloading")
+           
                 const downloadID = response.id;
                 const waitingID = waitingForDownload.current.value == null ? null : waitingForDownload.current.value.id;
 
@@ -84,7 +84,7 @@ export const ImageDiv = (props = {}) => {
         {
             const update = props.netImage.update
 
-            if (prevCRC.current.value != null && update.file.crc != null && update.file.crc != prevCRC.current.value){
+            if (prevCRC.current.value != null && update.file != null && update.file.crc != null && update.file.crc != prevCRC.current.value){
                 setUpdated(null)
                 prevCRC.current.value = update.file.crc
             } else if (update.file != undefined && update.file.crc != null){
@@ -99,7 +99,7 @@ export const ImageDiv = (props = {}) => {
     useEffect(()=>{
         if(waitingForDownload.current.value != null)
         {
-            console.log(waitingForDownload.current.value)
+           
             const waitingID = waitingForDownload.current.value.id
 
             const index = peerDownload.findIndex(pDl => pDl.id == waitingID)
@@ -270,7 +270,7 @@ export const ImageDiv = (props = {}) => {
 
      
     
-    }, [props, pageSize, updated, configFile.value])
+    }, [props,  updated, configFile.value])
 
 
 

@@ -19,7 +19,8 @@ export const SocketHandler = (props = {}) => {
     const socketConnected = useZust((state) => state.socketConnected)
     const setSocketConnected = useZust((state) => state.setSocketConnected)
     const [showLogin, setShowLogin] = useState(false)
-
+    const setUploadRequest = useZust((state) => state.setUploadRequest)
+    
     const sock = useRef({value:null})
     const tryCount = useRef({value:0})
 
@@ -44,14 +45,16 @@ export const SocketHandler = (props = {}) => {
             setSocketConnected(false)
           
             setShowLogin(true)
-            
+           
            
         } else if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected){
+            console.log(sock.current.value)
             sock.current.value = null
             setSocketConnected(false)
    
            
             setShowLogin(true)
+
             
         }else{
            
@@ -59,14 +62,15 @@ export const SocketHandler = (props = {}) => {
         }
         
      
-    }, [sock.current.value, user])
+    }, [sock.current, user])
 
     const socketConnect = () =>{
         sock.current.value = io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
 
         sock.current.value.on("connect", () => {
             console.log("connected")
-
+            console.log(socketCmd)
+            if(sock.current.value != null){
             sock.current.value.emit("login", socketCmd.params, (response) => {
                 if ("success" in response && response.success) {
                     // setSocket(sock.current.value)
@@ -75,6 +79,7 @@ export const SocketHandler = (props = {}) => {
                     socketCmd.callback(response)
                     setShowLogin(false)
                     tryCount.current.value = 1
+                    addDefaultListeners()
                     sock.current.value.on("disconnect", (res) => {
                         switch (res) {
                             case "io server disconnect":
@@ -94,13 +99,13 @@ export const SocketHandler = (props = {}) => {
                 }
 
             })
-
+}
         })
     }
 
     useEffect(() =>{
     
-        if(!loggedIn.current.value)
+        if (sock.current.value == null)
         {
           
             if (socketCmd.cmd == "login" && !(("anonymous") in socketCmd)) {
@@ -280,13 +285,18 @@ export const SocketHandler = (props = {}) => {
                         socketCmd.callback(response)
                     })
                     break;
-                case "getImagePeers":
-                    sock.current.value.emit("getImagePeers", socketCmd.params.fileID, (response) => {
+                case "getFilePeers":
+                    sock.current.value.emit("getFilePeers", socketCmd.params.fileID, (response) => {
+                        socketCmd.callback(response)
+                    })
+                    break;
+                case "peerFileRequest": 
+                    sock.current.value.emit("peerFileRequest", socketCmd.params,  (response) => {
                         socketCmd.callback(response)
                     })
                     break;
                 default:
-                    if(socketCmd.cmd != null){
+                    if (socketCmd.cmd != null && socketCmd.callback != null){
                        
                         socketCmd.callback({error: new Error( "not implemented")})
                     }
@@ -295,11 +305,27 @@ export const SocketHandler = (props = {}) => {
         }
     },[socketCmd])
 
+    
+    const addDefaultListeners = () =>{
+    
+        if(sock.current.value != null)
+        {
+            sock.current.value.on("peerFileRequest", (uploadRequest, response) =>{
+                console.log(uploadRequest)
+                setUploadRequest({upload: uploadRequest, callback:(uploadResponse)=>{
+                    response(uploadResponse)
+                }})
+                
+            })
+        }
+    }
+
 
     function handleSubmit(e) {
         e.preventDefault();
     
         const pass = passRef.current.value;
+    
         if(pass.length > 5 && user.userID > 0){
             const code = sha256(pass).toString();
             login(user.userName, code);
@@ -314,7 +340,7 @@ export const SocketHandler = (props = {}) => {
             setSocketCmd({
           
                 cmd: "login", params: { nameEmail: name_email, password: pass }, callback: (response) => {
-                   
+                    console.log(response)
                     if("success" in response && response.success)
                     {
                         tryCount.current.value = 0;

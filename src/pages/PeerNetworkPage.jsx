@@ -11,6 +11,7 @@ import { ImageDiv } from './components/UI/ImageDiv';
 import { getFileInfo } from '../constants/utility';
 import { PeerNetworkMenu } from './PeerNetworkMenu';
 import { PeerDownloadPage } from './PeerDownloadPage';
+import { PeerUploadPage } from './PeerUploadPage';
 
 
 export const PeerNetworkPage = () => {
@@ -62,6 +63,9 @@ export const PeerNetworkPage = () => {
                 break;
             case "/downloads":
                 setShowIndex(3)
+                break;
+            case "/uploads":
+                setShowIndex(4)
                 break;
             default:
                 if(config != null){
@@ -214,7 +218,7 @@ export const PeerNetworkPage = () => {
                     </div>
                   
                 </div>
-            <div style={{  display: "flex", flex:1, height:(pageSize.height-100), padding:"15px" }}>
+            <div style={{  display: "flex", flex:1, height:(pageSize.height-100), margin:"30px" }}>
 
              
                
@@ -246,6 +250,9 @@ export const PeerNetworkPage = () => {
                     }
                     {showIndex == 3 &&
                         <PeerDownloadPage />
+                    }
+                    {showIndex == 4 &&
+                        <PeerUploadPage />
                     }
             </div>
         </div>

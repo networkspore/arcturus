@@ -83,7 +83,7 @@ const App = () => {
                                                 <SolarSystem position={[0, 0, 0]} />
 
 
-                                                <Stars radius={400} depth={2000} count={5000} factor={4}  />
+                                                <Stars radius={1000} depth={3000} count={5000} factor={4}  />
                                             </>
                                         )}
                                     </Canvas>

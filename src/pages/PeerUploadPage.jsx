@@ -3,11 +3,11 @@ import useZust from "../hooks/useZust"
 import { ImageDiv } from "./components/UI/ImageDiv"
 import styles from './css/home.module.css';
 
-export const PeerDownloadPage = (props = {}) =>{
+export const PeerUploadPage = (props = {}) =>{
 
-    const peerDownload = useZust((state) => state.peerDownload)
+    const peerUpload= useZust((state) => state.peerUpload)
     
-    const [downloadList, setDownloadList] = useState([])
+    const [uploadList, setUploadList] = useState([])
     const pageSize = useZust((state) => state.pageSize)
     
     function formatBytes(bytes, decimals = 2) {
@@ -23,11 +23,11 @@ export const PeerDownloadPage = (props = {}) =>{
     }
 
     useLayoutEffect(()=>{
-        if(peerDownload.length > 0)
+        if(peerUpload.length > 0)
         {
-            const dlList = []
-            peerDownload.forEach(downloadItem => {
-                const file = downloadItem.request.file
+            const upList = []
+            peerUpload.forEach(uploadItem => {
+                const file = uploadItem.request.file
                 console.log(file)
                 let iIcon = "/Images/icons/images-outline.svg"
                
@@ -35,11 +35,11 @@ export const PeerDownloadPage = (props = {}) =>{
                 const iCrc = file.crc
                 const iName = file.name
                 const iSize = formatBytes(file.size)
-                const complete = downloadItem.complete
+                const complete = uploadItem.complete
                 const completePercent = (complete * 100) + "%"
                 const uncompletePercent = complete == 0 ? 0 : (complete * 100) +"%"
-                const status = downloadItem.status
-                dlList.push(
+                const status = uploadItem.status
+                upList.push(
                       <div key={iCrc} style={{ display:"flex", alignItems:"center", justifyContent:"start", paddingTop:20 }}>
                         <div style={{ flex: .05, display: "flex", justifyContent: "center", }}>
                                 <ImageDiv style={{ borderRadius: 5, overflow: "hidden" }} width={20} height={20} netImage={{ image: iIcon, filter:"invert(100%)" }} />
@@ -67,11 +67,11 @@ export const PeerDownloadPage = (props = {}) =>{
                         </div >
                 )
             });
-            setDownloadList(dlList)
+            setUploadList(upList)
         }else{
-            setDownloadList([])
+            setUploadList([])
         }
-    },[peerDownload])
+    },[peerUpload])
 
     return (
         <div style={{display:"flex", width:"100%", flex:1, flexDirection:"column",}}>
@@ -101,9 +101,9 @@ export const PeerDownloadPage = (props = {}) =>{
                 height: pageSize.height - 180,
                 overflowY: "scroll",
             }}>
-            {peerDownload.length == 0 ? <div style={{ display: "flex", flex: 1, color: "#777777", padding: 10, opacity: .8, justifyContent: "center", }}>
-                    No Downloads
-                </div> : downloadList
+            {peerUpload.length == 0 ? <div style={{ display: "flex", flex: 1, color: "#777777", padding: 10, opacity: .8, justifyContent: "center", }}>
+                    No Uploads
+                </div> : uploadList
             }
             </div>
         </div>
