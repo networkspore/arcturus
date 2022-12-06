@@ -313,6 +313,7 @@ export const SocketHandler = (props = {}) => {
             sock.current.value.on("peerFileRequest", (uploadRequest, response) =>{
                 console.log(uploadRequest)
                 setUploadRequest({upload: uploadRequest, callback:(uploadResponse)=>{
+                
                     response(uploadResponse)
                 }})
                 

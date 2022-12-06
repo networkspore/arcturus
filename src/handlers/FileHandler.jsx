@@ -5,9 +5,9 @@ import { ImageDiv } from "../pages/components/UI/ImageDiv"
 import produce from "immer"
 import { get, set } from "idb-keyval"
 
-import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { useRef } from "react"
 
+import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 
 const createWorker = createWorkerFactory(() => import('../constants/utility'));
 
@@ -18,8 +18,8 @@ export const FileHandler = ( props = {}) =>{
 
     const [active, setActive] = useState()
   
+    const cacheFiles = useZust((state) => state.cacheFiles)
     const imagesFiles = useZust((state) => state.imagesFiles)
-
     const modelsFiles = useZust((state) => state.modelsFiles)
     const terrainFiles = useZust((state) => state.terrainFiles)
     const mediaFiles = useZust((state) => state.mediaFiles)
@@ -116,7 +116,24 @@ export const FileHandler = ( props = {}) =>{
            
             
             switch (request.command) {
-                
+                case "getFile":
+                    const mimeType = request.file.mimeType
+                    
+                    switch(mimeType)
+                    {
+                        case "image":
+                            checkLocalImages(request).then((localResult) =>{
+                                if(localResult != null)
+                                {
+                                    resolve({success:true, file: localResult, request:request})
+                                }else{
+                                    resolve({error: new Error("File not found")})
+                                }
+                            })
+                            break;
+                    }
+                    
+                    break;
                 case "getIcon":
                     if (request.file.mimeType == "image") {
 
@@ -290,59 +307,146 @@ export const FileHandler = ( props = {}) =>{
         }
     }
 
+    async function searchLocalFiles(request){
 
+        switch(request.file.mimeType)
+        {
+            case "image":
+                const imgIndex = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+                
+                if(imgIndex != -1) return imagesFiles[imgIndex]
+
+                const cacheIndex = cacheFiles.findIndex(iFile => iFile.crc == request.file.crc)
+            
+                return cacheIndex == -1 ? undefined : cacheFiles[cacheIndex]
+
+                break;
+        }
+
+    }
+
+    async function getLocalData(request){
+        try{
+            
+
+            const localFile = await searchLocalFiles(request)
+            
+            if (localFile == undefined) throw new Error("File not found")
+            
+            const data = await worker.getFileData(localFile)
+
+            set(localFile.crc + ".arcdata", data)
+
+            const objNames = Object.getOwnPropertyNames(request.file)
+            let newFile = {}
+            objNames.forEach(name => {
+                newFile[name] = request.file[name]
+            });
+
+            const localNames = Object.getOwnPropertyNames(localFile)
+
+            localNames.forEach(name => {
+                newFile[name] = localFile[name]
+            });
+
+            newFile.data = data
+
+            return { success: true, file: newFile, request: request }
+
+        }catch(err){
+      
+            console.log(err)
+            return {error: new Error("Error getting local data")}
+        }
+    }
+
+    /*
+    const quota = await navigator.storage.estimate();
+    const totalSpace = quota.quota;
+    const usedSpace = quota.usage;
+    */
 
     const checkLocalImages = (request) => {
         return new Promise(resolve => { 
-       
-            if(request.command == "getIcon") {
-         
-                get(request.file.crc + ".arcicon").then((iconDataURL) =>{
-                 
-                    if (iconDataURL != undefined) {
-                
-                        const objNames = Object.getOwnPropertyNames(request.file)
-                        let newFile = {}
-                        objNames.forEach(name => {
-                            newFile[name] = request.file[name]
-                        });
-                
-                        newFile.icon = iconDataURL
-                     
-                        resolve(newFile)
-                    } else {
-                        const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+            switch (request.command)
+            {
+                case "getFile":
+                    get(request.file.crc + ".arcdata").then((imageData) =>{
+                        if(imageData != undefined)
+                        {
+                            const objNames = Object.getOwnPropertyNames(request.file)
+                            let newFile = {}
+                            objNames.forEach(name => {
+                                newFile[name] = request.file[name]
+                            });
 
-                        if (i > -1) {
-                            resolve(imagesFiles[i])
-                        } else {
-                            resolve(null)
+                            newFile.data = imageData
+
+                            resolve(newFile)
+                        }else{
+                           
+                            getLocalData(request).then((result)=>{
+                                resolve(result)
+                            })
+        
                         }
-                    }
-                })
-            } else if (request.command == "getImage") {
-                get(request.file.crc + ".arcimage").then((iconDataURL) => {
-                    if (iconDataURL != undefined) {
-                        const objNames = Object.getOwnPropertyNames(request.file)
-                        let newFile = {}
-                        objNames.forEach(name => {
-                            newFile[name] = request.file[name]
-                        });
+                    })
+                   
+                    break;
+                case "getIcon":
+                    get(request.file.crc + ".arcicon").then((iconDataURL) => {
 
-                        newFile.value = iconDataURL
-           
-                        resolve( newFile)
-                    } else {
-                        const i = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+                        if (iconDataURL != undefined) {
 
-                        if (i > -1) {
-                            resolve(imagesFiles[i])
+                            const objNames = Object.getOwnPropertyNames(request.file)
+                            let newFile = {}
+                            objNames.forEach(name => {
+                                newFile[name] = request.file[name]
+                            });
+
+                            newFile.icon = iconDataURL
+
+                            resolve(newFile)
                         } else {
-                            resolve(null)
+                            searchLocalFiles(request).then((localFile)=>{
+                                if (localFile != undefined) {
+                                    resolve(localFile)
+                                } else {
+                                    resolve(null)
+                                }
+                            })
+                            
                         }
-                    }
-                })
+                    })
+                    break;
+                case "getImage":
+                    get(request.file.crc + ".arcimage").then((iconDataURL) => {
+                        if (iconDataURL != undefined) {
+                            const objNames = Object.getOwnPropertyNames(request.file)
+                            let newFile = {}
+                            objNames.forEach(name => {
+                                newFile[name] = request.file[name]
+                            });
+
+                            newFile.value = iconDataURL
+
+                            resolve(newFile)
+                        } else {
+                            searchLocalFiles(request).then((localFile) => {
+                                if (localFile != undefined) {
+                                    resolve(localFile)
+                                } else {
+                                    resolve(null)
+                                }
+                            })
+                        }
+                    })
+                    break;
+                default:
+                    resolve(null)
+                    break;
             }
+       
            
         })
     

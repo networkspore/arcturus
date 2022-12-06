@@ -102,6 +102,9 @@ const useZust = create((set) => ({
    userPeerID:"",
    setUserPeerID:(value = "") => set({userPeerID:value}),
 
+   cachesDirectory: { name: "cache", handle: null, directories: []},
+   setCachesDirectory: (value = { name: "cache", handle: null, directories: [] }) => set({ cachesDirectory: value }),
+
    imagesDirectory: {  name: "images", handle: null, directories: [] },
    setImagesDirectory: (value = {  name: "images", handle: null, directories: [] }) => set({ imagesDirectory: value }),
 
@@ -126,10 +129,26 @@ const useZust = create((set) => ({
    realmsFiles: [],
    setRealmsFiles: (value = []) => set({ realmsFiles: value }),
  
+   cacheFiles: [],
+   setCacheFiles: (value = []) => set({cacheFiles: value}),
+
+   addCacheFile: (value) => set(produce((state) => {
+      const index = state.cacheFiles.findIndex(file => file.crc == value.crc)
+
+      if (index != -1) {
+         state.cacheFiles.push(value)
+      }
+   })),
    imagesFiles: [],
    setImagesFiles: (value = []) => set({imagesFiles:value}),
- 
+   addImagesFile: (value) =>set(produce((state) =>{
+      const index = state.imagesFiles.findIndex(img => img.crc == value.crc)
 
+      if(index != -1)
+      {
+         state.imagesFiles.push(value)
+      }
+   })),
    modelsFiles: [],
    setModelsFiles: (value = []) => set({ modelsFiles: value }),
 

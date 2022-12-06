@@ -43,13 +43,13 @@ const HomeMenu = ({ props }) => {
     const location = useLocation()
     const userPeerID = useZust((state) => state.userPeerID)
 
-
-
+    const setCachesDirectory = useZust((state) => state.setCachesDirectory)
     const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
 
+    const setCacheFiles = useZust((state) => state.setCacheFiles)
     const setImagesFiles = useZust((state) => state.setImagesFiles)
     const setModelsFiles = useZust((state) => state.setModelsFiles)
     const setTerrainFiles = useZust((state) => state.setTerrainFiles)
@@ -430,6 +430,11 @@ const HomeMenu = ({ props }) => {
         const engineKey = config.engineKey;
 
         try {
+            const cacheHandle =  await localDirectory.handle.getDirectoryHandle("cache", { create: true });
+
+            const caches = await worker.getFirstDirectoryAllFiles(cacheHandle)
+            
+
             const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
 
             const granted = await getPermissionAsync(imageHandle)
@@ -461,9 +466,11 @@ const HomeMenu = ({ props }) => {
 
 
             const media = mediaGranted ? await worker.getFirstDirectoryFiles(mediaHandle, "media", config.folders.media.fileTypes) : null;
-
-
-
+            
+          
+            setCachesDirectory({name: "cache", handle: cacheHandle, directories: caches.directories})
+            setCacheFiles(cacheHandle)
+           
             if (images != null) {
                 setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
                 setImagesFiles(images.files)
@@ -587,12 +594,10 @@ const HomeMenu = ({ props }) => {
     return (
         <>
 
-            {
-                showIndex == -1 &&
+            {showIndex == -1 &&
 
                 <LoadingPage onComplete={onComplete} state={loadState} />
             }
-
 
             {showIndex == 1 &&
                 <LoginPage />

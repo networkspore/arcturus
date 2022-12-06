@@ -6,14 +6,19 @@ import { useEffect, useRef } from "react";
 import Peer from "peerjs";
 import { useNavigate } from "react-router-dom";
 import { status } from "../constants/constants";
+import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 
+const createWorker = createWorkerFactory(() => import('../constants/utility'));
 
 export const PeerNetworkHandler = (props ={}) => {
     const navigate = useNavigate()
-
+    const worker = useWorker(createWorker)
+    const user = useZust((state) => state.user)
+    const localDirectory = useZust((state) => state.localDirectory)
     const configFile = useZust((state) => state.configFile)
     const userPeerID = useZust((state) => state.userPeerID)
     const setUserPeerID = useZust((state) => state.setUserPeerID)
+    const addCacheFile = useZust((state) => state.addCacheFile)
 
     const peerConnection = useZust((state) => state.peerConnection);
     const setPeerConnection = useZust((state) => state.setPeerConnection);
@@ -25,9 +30,11 @@ export const PeerNetworkHandler = (props ={}) => {
 
     const addFileRequest = useZust((state) => state.addFileRequest)
     const addPeerUpload = useZust((state) => state.addPeerUpload)
+
     const processingDownload = useRef({ value: [] })
     const processingUpload = useRef({value:[]})
     const uploadFiles = useRef({value:[]})
+
     
     const peerDownload = useZust((state) => state.peerDownload)
     const peerUpload = useZust((state) => state.peerUpload)
@@ -98,10 +105,14 @@ export const PeerNetworkHandler = (props ={}) => {
             if(peerConnection != null){
                 if (configFile.value != null) {
                     if (configFile.value.peer2peer){
-                        if (peerConnection.disonnected) {
-                            console.log("reconnecting...")
-                            peerConnection.reconnect()
-                            peerReconnect()
+                        if(!peerConnection.destroyed){
+                            if (peerConnection.disconnected) {
+                                console.log("reconnecting...")
+                                peerConnection.reconnect()
+                                peerReconnect()
+                            }
+                        }else{
+                            onPeerClose()
                         }
                     }
                 }
@@ -148,14 +159,6 @@ export const PeerNetworkHandler = (props ={}) => {
        
     }, [peerConnection])
 
-   
-/*   p2p: isP2P, 
-    command: "getIcon", 
-    page: "imgDiv", 
-    id: imgDivId, 
-    file: tmp.update.file, 
-    callback: onUpdate */
-
 
     useEffect(()=>{
         if(downloadRequest.download != null){
@@ -183,19 +186,14 @@ export const PeerNetworkHandler = (props ={}) => {
     const onUploadRequest = (uRequest, peerID) =>{
       
         const callback = uRequest.callback
-        
-   
         const upload = uRequest.upload
         
-
         const uploadUserID = upload.userID
         const uploadPeerID = upload.peerID
         const request = upload.request
-        console.log(request)
       
         const length = processingUpload.current.value.length;
         
-        console.log(processingUpload.current.value)
         const index = length > 0 ? processingUpload.current.value.findIndex(up => up.request.file.crc == request.file.crc && up.userID == upload.userID) : -1
 
         if(index == -1)
@@ -211,57 +209,46 @@ export const PeerNetworkHandler = (props ={}) => {
                 status: "Getting file"
            
             }
-            console.log(newUpload)
+
             processingUpload.current.value.push(newUpload)
             
+            const fileIndex = uploadFiles.current.value.findIndex(f => f.crc == request.file.crc)
 
-            const checkFile = {
-                p2p: false,
-                command: request.command,
-                page: "peerUpload",
-                id: id,
-                file: request.file,
-                callback: (response) => {
-                    if ("success" in response && response.success) {
-                        console.log("found file")
-                        addPeerUpload({ complete: 0, request: request, id: id, status: "Waing for peer..." })
-                        const file = response.file
-                        
-                        const fileIndex = uploadFiles.current.value.findIndex(f => f.crc == file.crc)
-
-                        if(fileIndex == -1)
-                        {
+       
+            if (fileIndex == -1) {
+                const checkFile = {
+                    p2p: false,
+                    command: "getFile",
+                    page: "peerUpload",
+                    id: id,
+                    file: request.file,
+                    callback: (response) => {
+                        if ("success" in response && response.success) {
+                            console.log("found file")
+                            addPeerUpload({ complete: 0, request: request, id: id, status: "Waing for peer..." })
+                            const file = response.file
                             uploadFiles.current.value.push(file)
-                     
+
+                            callback({ id: id, peerID: peerID })
                         }else{
-                            //const oldFile = uploadFiles.current.value[index]
-                            const names = Object.getOwnPropertyNames(uploadFiles.current.value[index])
-                            const newNames = Object.getOwnPropertyNames(file)
+                            const updateIndex = processingUpload.current.value.findIndex(up => up.id == id)
 
-                            newNames.forEach(propertyName => {
-                                const nameIndex = names.findIndex(n => n == propertyName)
-
-                                if(nameIndex == -1)
-                                {
-                                    uploadFiles.current.value[index][propertyName] = file[propertyName]
-                                }
-                            });
-
+                            processingUpload.current.value[updateIndex].status = "Error"
+                            callback({error: new Error("File not found")})
                         }
-
-                        console.log("Returning peerID: " + peerID + " id: " + id)                        
-
-                        callback({ id: id, peerID: peerID })
-                    }else{
-                        const updateIndex = processingUpload.current.value.findIndex(up => up.id == id)
-
-                        processingUpload.current.value[updateIndex].status = "Error"
-                        callback({error: new Error("File not found")})
                     }
-                }
-            };
-            console.log(checkFile)
-            addFileRequest(checkFile)
+                };
+    
+                addFileRequest(checkFile)
+
+
+            } else {
+                
+
+                callback({ id: id, peerID: peerID })
+            }
+
+           
 
          
         }else{
@@ -288,22 +275,21 @@ export const PeerNetworkHandler = (props ={}) => {
         
         
             if (index == -1) {
-                const length = processingDownload.current.value.length;
-                const id = length > 0 ? processingDownload.current.value[length - 1].id + 1 : 1
 
-                let newDownload = {
-                    id: id,
-                    status: "Connecting to peers...",
-                    request: download.request, 
-                    peers: download.peers, 
-                    complete: 0,
-                }
-                processingDownload.current.value.push(newDownload)
-                
-                addPeerDownload(download)
-                startDownload(newDownload)
-                downloadRequest.callback(id)
-                
+                worker.generateCode([user.userEmail, download.request.file.crc, userPeerID ]).then((id) =>{
+                    let newDownload = {
+                        id: id,
+                        status: "Connecting to peers...",
+                        request: download.request, 
+                        peers: download.peers, 
+                        complete: 0,
+                    }
+                    processingDownload.current.value.push(newDownload)
+                    
+                    addPeerDownload(download)
+                    startDownload(newDownload)
+                    downloadRequest.callback(id)
+                }) 
             } else{
                 console.log("download started")
                 const id = processingDownload.current.value[index].id
@@ -314,10 +300,14 @@ export const PeerNetworkHandler = (props ={}) => {
         }
     }
 
+    function abortDownload(download)
+    {
+        console.log("aborting")
+    }
+
     function startDownload(download){
         console.log("starting Download")
-        //add to processing queue
-         //for display state
+  
         const request = download.request;
         const peers = download.peers;
         let i = 0;
@@ -329,11 +319,58 @@ export const PeerNetworkHandler = (props ={}) => {
             console.log(peer)
         
             setSocketCmd({cmd:"peerFileRequest", params:{request:request, contactID: contactID, userFileID:userFileID, userPeerID:userPeerID}, callback:(peerResponse) =>{
-                console.log(peerResponse)
-            }})
-            i += 1;
+                //Make only one connection 
+                if("id" in peerResponse) 
+                {
+                    const id = peerResponse.id
+                    const peerID = peerResponse.peerID
 
-            if(i < peers.length ) tryPeers()
+                    const dataConnection = peerConnection.connect(peerID, {label: peerID, metadata:id, reliable:true})
+                    
+                    dataConnection.on('open', ()=>{
+
+                        dataConnection.on('data', (receivedData)=>{
+                            try{
+                                const file = receivedData.file
+                                const fileCRC = request.file.crc
+                                const fileData = file.data
+
+                                worker.crc32FromArrayBufferAsync(fileData).then((crc)=>{
+                                    if(fileCRC == crc)
+                                    {
+                                        worker.cacheFile(localDirectory, file, user.userName).then((cacheFile) =>{
+                                            switch(cacheFile.mimeType)
+                                            {
+                                                case "image":
+                                                    addCacheFile(cacheFile)
+                                                    break;
+                                            }
+                                              
+                                        })
+
+
+                                    }else{
+                                        throw new Error("Wrong CRC")
+                                    }
+                                })
+                            }catch(err){
+                                console.log(err)
+                                i += 1;
+
+                                if (i < peers.length) tryPeers()
+                            }
+                        })
+
+                        dataConnection.on()
+                    })
+
+                }else{
+                    i += 1;
+
+                    if (i < peers.length) tryPeers()
+                }
+            }})
+            
         }
         console.log(peers)
         console.log(userPeerID)
