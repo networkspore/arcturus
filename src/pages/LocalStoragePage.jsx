@@ -120,7 +120,7 @@ export const LocalStoragePage = () => {
                         setShowIndex(2)
                         break;
                     case "/models":
-                        setModelsDirectory(modelsDirectory.directories)
+                        setCurrentDirectories(modelsDirectory.directories)
                         setCurrentFiles(modelsFiles)
                         setShowIndex(2)
                         break;

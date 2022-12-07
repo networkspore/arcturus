@@ -109,8 +109,7 @@ const FileList = (props = {}, ref) => {
             const numColumns = fileView.direction == "row" ? bounds != null ? floor == 0 ? 1 : floor  : null : null;
             const numRows = numColumns != null ? numColumns != 0 ? Math.ceil(files.length / numColumns) : 1 : null
             rows = numColumns != null && numRows != null && fileView.type == "icons" && fileView.direction == "row" ? new Array(numRows) : null
-            console.log(numRows)
-            console.log(numColumns)
+
             if(rows != null)
             {
                 for(let i = 0; i < rows.length ; i++)
@@ -120,7 +119,7 @@ const FileList = (props = {}, ref) => {
             }
 
             const scale = "scale" in fileView.iconSize ? fileView.iconSize.scale : 1
-            console.log(scale)
+        
             const backgroundColor = "backgroundColor" in fileView.iconSize ? fileView.iconSize.backgroundColor : ""
             const backgroundImage = "backgroundImage" in fileView.iconSize ? fileView.iconSize.backgroundImage : ""
        
@@ -393,7 +392,7 @@ const FileList = (props = {}, ref) => {
 
 
     return (
-        <div ref={divRef} style={{display:"flex", flexDirection:"column", flex:1}} >
+        <div ref={divRef} style={{display:"flex", flexDirection:"column", flex:1, alignItems: fileView.direction == "list" ? "center" :""}} >
             {fileView.type == "details" &&
                 <div style={{ display: "flex", flex: 1, flexDirection:"column", }}>
                     <div style={{ display: "flex", flex:1 }}>

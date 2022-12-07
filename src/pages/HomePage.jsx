@@ -94,7 +94,7 @@ export const HomePage = (props ={}) => {
                 default:
                     setshowIndex(0)
             }
-       
+        
         
     },[location])
 
@@ -189,8 +189,8 @@ export const HomePage = (props ={}) => {
                 
 
                    
-                    <NavLink className={styles.result}  to={"/home/localstorage"}>
-                        <div  style={{ color: subDirectory == "/localstorage" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                   
+                    <div onClick={(e) => { navigate("/home/localstorage") }} className={styles.result} style={{ color: subDirectory == "/localstorage" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
                             <div>
                                 <img style={{ filter: "invert(100%)" }} src="/Images/icons/server-outline.svg" width={20} height={20} />
@@ -199,24 +199,24 @@ export const HomePage = (props ={}) => {
                                 Local Storage
                             </div>
                         </div>
-                    </NavLink>
+                 
                     {subDirectory == "/localstorage" &&
                     <div style={{marginLeft:30}}>
                     {imagesDirectory.handle != null &&
-                        <NavLink className={styles.result}  to={"/home/localstorage/images"}>
-                                    <div style={{ color: location.pathname == "/home/localstorage/images" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
-                                <div>
-                                    <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
-                                </div>
-                                <div style={{ paddingLeft: "10px" }} >
-                                    Images
-                                </div>
+                     
+                        <div onClick={(e) => { navigate("/home/localstorage/images")}}  style={{ color: location.pathname == "/home/localstorage/images" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                            <div>
+                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
                             </div>
-                        </NavLink>
-                    }
+                            <div style={{ paddingLeft: "10px" }} >
+                                Images
+                            </div>
+                        </div>
+                     
+                    } 
                     {modelsDirectory.handle != null &&
-                        <NavLink className={styles.result}  to={"/home/localstorage/models"}>
-                                    <div style={{ color: location.pathname == "/home/localstorage/models" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                     
+                            <div onClick={(e) => { navigate("/home/localstorage/models") }}  style={{ color: location.pathname == "/home/localstorage/models" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                 <div>
                                     <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
                                 </div>
@@ -224,12 +224,12 @@ export const HomePage = (props ={}) => {
                                     Models
                                 </div>
                             </div>
-                        </NavLink>
+                    
                     }
-
+                           
                     {terrainDirectory.handle != null &&
-                        <NavLink className={styles.result}  to={"/home/localstorage/terrain"}>
-                                    <div style={{ color: location.pathname == "/home/localstorage/terrain" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                     
+                        <div onClick={(e) => { navigate("/home/localstorage/terrain") }} style={{ color: location.pathname == "/home/localstorage/terrain" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                             <div>
                                 <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
                             </div>
@@ -237,11 +237,11 @@ export const HomePage = (props ={}) => {
                                 Terrain
                             </div>
                         </div>
-                        </NavLink>
-                    }
+                  
+                            }
                     {mediaDirectory.handle != null &&
-                        <NavLink className={styles.result}  to={"/home/localstorage/media"}>
-                                    <div style={{ color: location.pathname == "/home/localstorage/media" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                 
+                        <div onClick={(e) => { navigate("/home/localstorage/media") }} style={{ color: location.pathname == "/home/localstorage/media" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                             <div>
                                 <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
                             </div>
@@ -249,11 +249,11 @@ export const HomePage = (props ={}) => {
                                 Media
                             </div>
                         </div>
-                        </NavLink>
-                    }
+                   
+                            }
                             {cachesDirectory.handle != null &&
-                                <NavLink className={styles.result} to={"/home/localstorage/cache"}>
-                                    <div style={{ color: location.pathname == "/home/localstorage/cache" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                
+                                <div onClick={(e) => { navigate("/home/localstorage/cache") }} style={{ color: location.pathname == "/home/localstorage/cache" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                         <div>
                                             <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
                                         </div>
@@ -261,7 +261,7 @@ export const HomePage = (props ={}) => {
                                             Cache
                                         </div>
                                     </div>
-                                </NavLink>
+                              
                             }
                     </div>
                     }
