@@ -327,7 +327,7 @@ export const InitStoragePage = (props = {}) => {
             setValid(false)
             setupConfigFile(user.userName).then(result=>{
                     setValid(true);
-                    console.log(result)
+                   
                     if(!("error" in result)){
                         if(result.success)
                         {
@@ -336,7 +336,7 @@ export const InitStoragePage = (props = {}) => {
                             removeSystemMessage(1)
                             removeSystemMessage(2)
                             setConfigFile()
-                            console.log(newConfig)
+                          
                             navigate("/loading", { state: { configFile: newConfig, navigate: "/home/localstorage" } })
                         }
                     }else{
@@ -371,7 +371,7 @@ export const InitStoragePage = (props = {}) => {
         const userID = user.userID;
         const userEmail = user.userEmail;
       
-        generateCode([userName, userID, userEmail]).then((code)=>{
+        generateCode(userName + userID + userEmail).then((code)=>{
             setEngineKey("ARC" + code)
         })
 

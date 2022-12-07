@@ -6,18 +6,18 @@ import { get, set, update } from "idb-keyval";
 
 import { randInt } from "three/src/math/MathUtils";
 
-function xmur3Sync(str){
+function xmur3(str){
     for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {
         h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
         h = h << 13 | h >>> 19;
-    } return function () {
+    } return () => {
         h = Math.imul(h ^ (h >>> 16), 2246822507);
         h = Math.imul(h ^ (h >>> 13), 3266489909);
         return (h ^= h >>> 16) >>> 0;
     }
 }
 
-function sfc32Sync(a, b, c, d) {
+function sfc32(a, b, c, d) {
     return function () {
         a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
         var t = (a + b) | 0;
@@ -32,66 +32,40 @@ function sfc32Sync(a, b, c, d) {
 }
 
 export function getRandomIntSync(min, max, seedStr) {
-    var seed = xmur3Sync(seedStr + '')
+    var seed = xmur3(seedStr + '')
     min = Math.ceil(min);
     max = Math.floor(max);
-    const rand = sfc32Sync(seed(), seed(), seed(), seed())();
+    const rand = sfc32(seed(), seed(), seed(), seed())();
 
     return Math.floor(rand * (max - min + 1)) + min;
 }
 
-export function randSync(seedStr) {
-    var seed = xmur3Sync(seedStr + '')
+export function rand(seedStr) {
 
-    return sfc32Sync(seed(), seed(), seed(), seed())();
+    var seed = xmur3(seedStr + '')
+
+    return sfc32(seed(), seed(), seed(), seed())();
 }
 
 export function randSyncTime(){
     const seedStr = formatedNow(new Date(), false)
 
-    var seed = xmur3Sync(seedStr + '')
-
-    return sfc32Sync(seed(), seed(), seed(), seed())();
-}
-
-async function xmur3(str) {
-    for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {
-        h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
-        h = h << 13 | h >>> 19;
-    } return function () {
-        h = Math.imul(h ^ (h >>> 16), 2246822507);
-        h = Math.imul(h ^ (h >>> 13), 3266489909);
-        return (h ^= h >>> 16) >>> 0;
-    }
-}
-async function sfc32(a, b, c, d) {
-    return function () {
-        a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
-        var t = (a + b) | 0;
-        a = b ^ b >>> 9;
-        b = c + (c << 3) | 0;
-        c = (c << 21 | c >>> 11);
-        d = d + 1 | 0;
-        t = t + d | 0;
-        c = c + t | 0;
-        return (t >>> 0) / 4294967296;
-    }
-}
-
-export async function getRandomInt(min, max, seedStr) {
-    var seed = await xmur3(seedStr + '')
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    const rand = sfc32(seed(),seed(),seed(),seed())();
-
-    return Math.floor(rand * (max - min + 1)) + min;
-}
-
-export async  function rand(seedStr){
-    var seed = await xmur3(seedStr + '')
+    var seed = xmur3(seedStr + '')
 
     return sfc32(seed(), seed(), seed(), seed())();
 }
+
+
+export async function getRandomInt(min, max, seedStr) {
+  
+    min = Math.ceil(min);
+    max = Math.floor(max);
+   
+    const randResult = rand(seedStr)
+
+    return Math.floor(randResult * (max - min + 1)) + min;
+}
+
 
 //fisher-yates shuffle
 export async function shuffle(array, seedStr) {
@@ -402,7 +376,7 @@ export async function getAllFileInfo(entry, dirHandle) {
             
             const firstIndex = file.type.indexOf("/")
 
-            const fileType = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex + 1)
+            const fileType = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
 
             console.log(fileType)
 
@@ -411,7 +385,7 @@ export async function getAllFileInfo(entry, dirHandle) {
                 crc32FromArrayBuffer(arrayBuffer, (crc) => {
 
                     get(crc + ".arcicon").then((iconInIDB) => {
-                        if (iconInIDB == undefined && type == "image") {
+                        if (iconInIDB == undefined && fileType == "image") {
                             getThumnailFile(file).then((dataUrl) => {
                                 set(crc + ".arcicon", dataUrl)
                             }).catch((err) => console.log(err))
@@ -478,12 +452,13 @@ export async function getJsonFile(fileHandle){
 
 }
 
-export async function cacheFile(localDirectory, file) {
+export async function cacheFile(localDirectoryHandle, fileData, crc, name) {
     try {
-        const fileName = `(${file.crc}) ${file.name}`  ;
-        const fileData = file.data
+        const fileName = `(${crc}) ${name}`;
+    
+        console.log(localDirectoryHandle)
 
-        const cacheHandle = await localDirectory.getDirectoryHandle("cache", {create:true})
+        const cacheHandle = await localDirectoryHandle.getDirectoryHandle("cache", {create:true})
 
         const newHandle = await writeFileData(cacheHandle, fileName, fileData)
 
@@ -507,7 +482,7 @@ export async function writeFileData(dirHandle, name, data){
 
         await fileStream.close()
 
-        const newFileHandle = dirHandle.getFileHandle(name)
+        const newFileHandle = await dirHandle.getFileHandle(name)
 
         return newFileHandle
 
@@ -593,19 +568,8 @@ export async function getThumnailFile(file, size = { width: 100, height: 100 }) 
 }
 
 
-export async function generateCode(words){
+export async function generateCode(word){
     
-       
-    let word = ""
-    
-    if(Array.isArray(words))
-    {
-        words.forEach(element => {
-            word.concat(element);
-        });
-    }else{
-        word = words + ""
-    }
     
     const randomNumber1 = await getRandomInt(10, 20, word)
 
@@ -621,7 +585,7 @@ export async function generateCode(words){
     const code2 = SHA512(formatedNow()).toString().slice(randomNumber2, randomNumber4)
 
     const result = code1 + code2
-    console.log(result)
+
     return result
     
 }

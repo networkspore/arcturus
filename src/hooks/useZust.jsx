@@ -13,18 +13,41 @@ const useZust = create((set) => ({
    uploadRequest: { upload: null, callback:null },
    setUploadRequest: (value) => set({ uploadRequest: value }),
    downloadRequest:{download:null},
-   setDownloadRequest: (value) => set({downloadRequest: value}),
+   setDownloadRequest: (value = {download:null}) => set({downloadRequest: value}),
    peerUpload:[],
-   addPeerUpload: (value = { id: 0, request: null, complete: 0, status: "Waiting for connection..." }) => set(produce((state) => {
-      state.peerUpload.push(value)
+   setPeerUpload: (value) => set({ peerUpload: value }),
+
+   removePeerUpload: (id) => set(produce((state) => {
+      const index = state.peerUpload.findIndex(pU => pU.id == id)
+      const length = state.peerUpload.length
+      if (index > -1)
+      {
+         if (length == 1) {
+            state.peerUpload.pop()
+         }else{
+            state.peerUpload.splice(index, 1)
+         }
+         
+      }
+
    })),
-   peerDownload:[],
-   addPeerDownload:(value = {id:0, request:null, peers:[], complete:0, status:"Connecting to peers..."}) =>set(produce((state) =>{   
-      state.peerDownload.push(value)
+   peerDownload:new Array(),
+   setPeerDownload: (value) => set({ peerDownload: value }),
+   removePeerDownload: (id) => set(produce((state) => {
+      const index = state.peerDownload.findIndex(pU => pU.id == id)
+      const length = state.peerDownload.length
+
+      if (index > -1) {
+         if (length == 1) {
+            state.peerDownload = []
+         } else {
+            state.peerDownload.splice(index, 1)
+         }
+      }
+
+
    })),
-   updateDownload:(value = {}, i = 0) => set(produce((state) =>{
-      state.peerDownload[i] = value;
-   })),
+
    /*peerCmd: { request: null, peers: [], callback: null },
    setPeerCmd: (value = { request: null, peers: [], callback: null }) => set(produce((state) => {
       state.peerCmd = value
@@ -57,17 +80,7 @@ const useZust = create((set) => ({
          state.quickBar.splice(0, 0, value)
       }
    })),
-   downloads:[],
-   addDownload: (value = { fileCRC:"", status:"", request:null }) => set(produce(state=>{
-      if (state.downloads.length > 0) {
-         
-         const index = state.downloads.findIndex(download => download.fileCRC == value.fileCRC)
-         if (index > -1) {
-            state.downloads.push(value)
-         }
-    
-      }
-   })),
+ 
    fileRequest: [],
   
    addFileRequest: (value) => set(produce(state => { 
@@ -135,7 +148,7 @@ const useZust = create((set) => ({
    addCacheFile: (value) => set(produce((state) => {
       const index = state.cacheFiles.findIndex(file => file.crc == value.crc)
 
-      if (index != -1) {
+      if (index == -1) {
          state.cacheFiles.push(value)
       }
    })),
@@ -144,7 +157,7 @@ const useZust = create((set) => ({
    addImagesFile: (value) =>set(produce((state) =>{
       const index = state.imagesFiles.findIndex(img => img.crc == value.crc)
 
-      if(index != -1)
+      if(index == -1)
       {
          state.imagesFiles.push(value)
       }

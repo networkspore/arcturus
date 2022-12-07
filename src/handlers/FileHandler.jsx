@@ -152,11 +152,11 @@ export const FileHandler = ( props = {}) =>{
                                         })
                                     }
                                 } else {
-                                    console.log(request)
+                                 
                                     if (request.p2p) {
                                         console.log('getting peers')
                                         getFilePeers(request).then((peersResult) => {
-                                            console.log('getting peers')
+                                          
                                            
                                             resolve(peersResult)
                                          
@@ -221,7 +221,7 @@ export const FileHandler = ( props = {}) =>{
             
             if (request.file.fileID != undefined && request.file.fileID != null && request.file.fileID > -1) {
                 const fileID = request.file.fileID;
-                console.log(request)
+            
                 setSocketCmd({
                     cmd: "getFilePeers", params: { fileID: fileID }, callback: (foundPeers) => {
                         if("success" in foundPeers && foundPeers.success)
@@ -234,12 +234,13 @@ export const FileHandler = ( props = {}) =>{
                             }
                             
                             setDownloadRequest({download:newPeerDownload, callback:(downloadID) => {
-                                console.log(downloadID)
-                                resolve({success:false, downloading:true, id: downloadID})
+                                
+                                resolve({success:false, downloading:downloadID != null, id: downloadID})
+                              
                             }})
 
                         }else{
-                            console.log(foundPeers)
+                         
                             resolve({error: new Error("Image not found")})
                         }
                     
@@ -316,7 +317,9 @@ export const FileHandler = ( props = {}) =>{
                 
                 if(imgIndex != -1) return imagesFiles[imgIndex]
 
-                const cacheIndex = cacheFiles.findIndex(iFile => iFile.crc == request.file.crc)
+              
+
+                const cacheIndex = cacheFiles.findIndex(file => file.crc == request.file.crc)
             
                 return cacheIndex == -1 ? undefined : cacheFiles[cacheIndex]
 

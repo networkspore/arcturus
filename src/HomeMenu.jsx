@@ -433,7 +433,7 @@ const HomeMenu = ({ props }) => {
             const cacheHandle =  await localDirectory.handle.getDirectoryHandle("cache", { create: true });
 
             const caches = await worker.getFirstDirectoryAllFiles(cacheHandle)
-            
+
 
             const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
 
@@ -469,7 +469,7 @@ const HomeMenu = ({ props }) => {
             
           
             setCachesDirectory({name: "cache", handle: cacheHandle, directories: caches.directories})
-            setCacheFiles(cacheHandle)
+            setCacheFiles(caches.files)
            
             if (images != null) {
                 setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })

@@ -24,7 +24,7 @@ export const HomePage = (props ={}) => {
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
-
+    const cachesDirectory = useZust((state) => state.cachesDirectory)
     const className = styles.bubble__item;
 
     const pageSize = useZust((state) => state.pageSize)
@@ -251,7 +251,18 @@ export const HomePage = (props ={}) => {
                         </div>
                         </NavLink>
                     }
-
+                            {cachesDirectory.handle != null &&
+                                <NavLink className={styles.result} to={"/home/localstorage/cache"}>
+                                    <div style={{ color: location.pathname == "/home/localstorage/cache" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                        <div>
+                                            <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
+                                        </div>
+                                        <div style={{ paddingLeft: "10px" }} >
+                                            Cache
+                                        </div>
+                                    </div>
+                                </NavLink>
+                            }
                     </div>
                     }
                     <NavLink className={styles.result}  to={"/home/peernetwork"}>

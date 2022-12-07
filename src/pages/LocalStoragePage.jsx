@@ -20,6 +20,7 @@ export const LocalStoragePage = () => {
    
     const [directoryOptions, setDirectoryOptions] = useState([])
 
+    const cachesDirectory = useZust((state) => state.cachesDirectory)
     const terrainDirectory = useZust((state) => state.terrainDirectory);
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
@@ -29,12 +30,12 @@ export const LocalStoragePage = () => {
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
+    const setCachesDirectory = useZust((state) => state.setCachesDirectory)
 
-
+    const cacheFiles = useZust((state) => state.cacheFiles)
     const terrainFiles = useZust((state) => state.terrainFiles);
     const imagesFiles = useZust((state) => state.imagesFiles);
     const modelsFiles = useZust((state) => state.modelsFiles);
-    const texturesFiles = useZust((state) => state.textureFiles);
     const mediaFiles = useZust((state) => state.mediaFiles);
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
@@ -81,7 +82,7 @@ export const LocalStoragePage = () => {
     async function onReload() {
         const granted = await getPermissionAsync(localDirectory.handle)
         if(!granted) return false;
-
+        await turnOffLocalStorage()
         await handleFirst(localDirectory.handle)
             
         return true
@@ -119,19 +120,23 @@ export const LocalStoragePage = () => {
                         setShowIndex(2)
                         break;
                     case "/models":
+                        setModelsDirectory(modelsDirectory.directories)
                         setCurrentFiles(modelsFiles)
                         setShowIndex(2)
                         break;
                     case "/terrain":
+                        setCurrentDirectories(terrainDirectory.directories)
                         setCurrentFiles(terrainFiles)
                         setShowIndex(2)
                         break;
-                    case "/textures":
-                        setCurrentFiles(texturesFiles)
+                    case "/media":
+                        setCurrentDirectories(mediaDirectory.directories)
+                        setCurrentFiles(mediaFiles)
                         setShowIndex(2)
                         break;
-                    case "/media":
-                        setCurrentFiles(mediaFiles)
+                    case "/cache":
+                        setCurrentFiles(cacheFiles)
+                        setCurrentDirectories(cachesDirectory.directories)
                         setShowIndex(2)
                         break;
                     default:
@@ -147,8 +152,10 @@ export const LocalStoragePage = () => {
 
     async function pickAssetDirectory() {
         try{
+            
             const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-         
+            await turnOffLocalStorage()
+           
             handleFirst(dirHandle)
             
         }catch (error) {
@@ -167,19 +174,22 @@ export const LocalStoragePage = () => {
 
             const name = await dirHandle.name;
 
-            turnOffLocalStorage()
+            console.log(name)
 
             const lDirectory = { name: name, handle: dirHandle }
+            
             setLocalDirectory(lDirectory)
             
-            set("localDirectory" + user.userID, lDirectory)
+            await set("localDirectory" + user.userID, lDirectory)
   
-       
-            const homeHandle = await localDirectory.handle.getDirectoryHandle("home", { create: true })
+            console.log("set local directory")
+            const homeHandle = await dirHandle.getDirectoryHandle("home", { create: true })
+            console.log(homeHandle)
             const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true })
-
+            console.log(userHomeHandle)
             const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.config")
-         
+            console.log(handle)
+
             const handleFile = await handle.getFile()
             console.log(handleFile)
             if (handleFile != undefined) {
@@ -249,27 +259,33 @@ export const LocalStoragePage = () => {
     
 
 
-    const turnOffLocalStorage = (nav = "/home/localstorage") =>{
+    async function turnOffLocalStorage(nav = "/home/localstorage"){
        
         
+        try{
+            setTerrainDirectory();
+
+            setImagesDirectory();
+
+            setModelsDirectory();
+
+            setMediaDirectory();
+            setCachesDirectory()
+            setCurrentDirectories([])
+            
+            setCurrentFiles([])
+
+            del("localDirectory" + user.userID).catch((err) => {console.log("no local directory in idb")})
+            del(configFile.name + user.userID).catch((err) => {console.log("no configfile in idb")}) 
+
         
-        del("localDirectory" + user.userID)
-        setLocalDirectory({name:"", handel:null});
-
-        del(configFile.name + user.userID)
-       
-        setConfigFile();
- 
-        setTerrainDirectory();
-
-        setImagesDirectory();
-
-       setModelsDirectory();
-
-        setMediaDirectory();
-        setCurrentFiles([])
-
-        
+            setLocalDirectory({ name: "", handel: null });
+            setConfigFile();
+            return true;
+        }catch(err){
+            console.log(err)
+            return false
+        }
         
     }
 
@@ -470,6 +486,7 @@ export const LocalStoragePage = () => {
                         { to: "/home/localstorage/models", name: "models", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                        { to: "/home/localstorage/cache", name: "cache", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/init", name: configFile.name, type: "Config", crc: configFile.crc, lastModified: configFile.lastModified, size: configFile.size, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)"  }},
                         ]} />
                   

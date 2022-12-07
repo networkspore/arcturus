@@ -6,9 +6,10 @@ import useZust from "../../../hooks/useZust";
 
 
 export const ImageDiv = (props = {}) => {
-    const pageSize = useZust((state) => state.pageSize)
+
     const configFile = useZust((state) => state.configFile)
     const peerDownload = useZust((state) => state.peerDownload)
+    const userPeerID = useZust((state) => state.userPeerID)
     const divRef = useRef()
     const prevCRC = useRef({ value: null })
 
@@ -37,18 +38,34 @@ export const ImageDiv = (props = {}) => {
   
     const [updated, setUpdated] = useState(null) 
 
-    const waitingForDownload = useRef({value:null})
+    const waiting = useRef({value:null})
+
+    
+
+
+ 
+
+    useEffect(()=>{
+        if(userPeerID != "")
+        {
+     
+            if(waiting.current.value == "error"){                
+                waiting.current.value = null
+                setUpdated(null)
+            }
+        }
+    },[userPeerID])
 
 
 
     const onUpdate = (response) => {
 
-        
+        console.log(response)
         if("success" in response){
 
             if (response.success){
                 
-                waitingForDownload.current.value = null;
+               // waiting.current.value = null;
 
                 switch (response.request.command){
                     case "getIcon":
@@ -59,25 +76,63 @@ export const ImageDiv = (props = {}) => {
                         setUpdated({ success: true, url: response.file.value, crc: response.file.crc })
                         break;
                 }
-            }else if("downloading" in response){
-           
-                const downloadID = response.id;
-                const waitingID = waitingForDownload.current.value == null ? null : waitingForDownload.current.value.id;
+            } else if ("downloading" in response) {
 
-                if(waitingID != downloadID){
-                    waitingForDownload.current.value = response;
-
+                if(response.downloading){
+                   
+                    waiting.current.value = response.id;
+                    setUpdated(null)
+                }else{
+                    waiting.current.value = "error"
+                    setUpdated({error: new Error("No peer network")})
                 }
-            }else{
-                waitingForDownload.current.value = null;
-                console.log("couldn't wait for download")
-                setUpdated({ error: new Error("file request error") })
+
             }
         }else{
-            waitingForDownload.current.value = null;
+          //  waiting.current.value = null;
             setUpdated({error: new Error("file request error")})
         }
     }
+
+    useEffect(()=>{
+        const waitingID = waiting.current.value
+        if (waitingID != null) {
+
+
+
+            if (waitingID != "error") {
+
+
+                const index = peerDownload.findIndex(pDl => pDl.id == waitingID)
+
+                if (index != -1 && props.netImage.update != undefined && props.netImage.update != null) {
+
+                    if (peerDownload[index].status == "Complete") {
+                        //  const request = pDl.request;
+
+
+                        console.log(waiting.current.value)
+
+                        waiting.current.value = null
+                        const request = {
+                            p2p: false,
+                            command: props.netImage.update.command,
+                            page: "imgDiv",
+                            id: imgDivId,
+                            file: props.netImage.update.file,
+                            callback: onUpdate
+                        };
+
+                        addFileRequest(request)
+
+                    }
+                } else {
+
+                    //  waiting.current.value = null
+                }
+            }
+        }
+    }, [props.netImage.update, peerDownload])
     
     useEffect(()=>{
         if (props.netImage.update != undefined && props.netImage.update != null)
@@ -96,26 +151,9 @@ export const ImageDiv = (props = {}) => {
         }
     },[props.netImage.update])
 
-    useEffect(()=>{
-        if(waitingForDownload.current.value != null)
-        {
-           
-            const waitingID = waitingForDownload.current.value.id
-
-            const index = peerDownload.findIndex(pDl => pDl.id == waitingID)
-            if(index != -1){
-                const pDl = peerDownload[index]
-                if(pDl.complete == 1)
-                {
-                    const request = pDl.request;
-
-                    addFileRequest(request)
-                }
-            }
-        }
-    },[peerDownload])
 
     useLayoutEffect(() => {
+  
         const isLocal = configFile.value != null
         const isP2P = configFile.value != null && configFile.value.peer2peer != null && configFile.value.peer2peer
        
