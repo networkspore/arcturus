@@ -11,7 +11,7 @@ export const PeerNetworkMenu = (props ={}) =>{
             <FileList className={styles.bubble__item} 
                 fileView={{ 
                     type: "icons", 
-                    direction: "column", 
+                    direction: "row", 
                     iconSize: { width: 100, height: 100, scale:.5 } }} 
                     tableStyle={{ 
                         maxHeight: pageSize.height - 400 

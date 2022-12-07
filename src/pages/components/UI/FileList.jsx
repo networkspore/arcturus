@@ -105,11 +105,12 @@ const FileList = (props = {}, ref) => {
     
         if (files != null && divRef.current) {
             const bounds = divRef.current != null ? divRef.current.getBoundingClientRect() : null
-
-            const numColumns = fileView.direction == "row" ? bounds != null ? Math.floor(bounds.width / fileView.iconSize.width) : null : null;
+            const floor = Math.floor(bounds.width / fileView.iconSize.width)
+            const numColumns = fileView.direction == "row" ? bounds != null ? floor == 0 ? 1 : floor  : null : null;
             const numRows = numColumns != null ? numColumns != 0 ? Math.ceil(files.length / numColumns) : 1 : null
             rows = numColumns != null && numRows != null && fileView.type == "icons" && fileView.direction == "row" ? new Array(numRows) : null
-
+            console.log(numRows)
+            console.log(numColumns)
             if(rows != null)
             {
                 for(let i = 0; i < rows.length ; i++)
@@ -187,7 +188,8 @@ const FileList = (props = {}, ref) => {
                                         const rowIndex = Math.floor(i/numColumns)
                                         const columnIndex = ((( i / numColumns ) -rowIndex) * numColumns)
                                         
-
+                                        if (!isNaN(rowIndex) && !isNaN(columnIndex))
+                                        {
                                         rows[rowIndex][columnIndex] = <ImageDiv key={i}
                                             style={{ margin: 10, overflow: "hidden" }}
                                             about={iName}
@@ -203,7 +205,7 @@ const FileList = (props = {}, ref) => {
                                             width={fileView.iconSize.height}
                                             netImage={iImage}
                                             
-                                        />
+                                        />}
                                     }
                                 break;
                                 case "list":
@@ -391,7 +393,7 @@ const FileList = (props = {}, ref) => {
 
 
     return (
-        <div ref={divRef} style={{ overflowX: "clip" }}>
+        <div ref={divRef} style={{display:"flex", flexDirection:"column", flex:1}} >
             {fileView.type == "details" &&
                 <div style={{ display: "flex", flex: 1, flexDirection:"column", }}>
                     <div style={{ display: "flex", flex:1 }}>

@@ -448,7 +448,7 @@ export const LocalStoragePage = () => {
                     </div>
                   
                 </div>
-            <div style={{  display: "flex", flex:1, height:(pageSize.height-100), padding:"15px" }}>
+            <div style={{ margin:30, display: "flex", flex:1, height:(pageSize.height-100), minWidth:"600", overflowX:"scroll", padding:"15px" }}>
 
              
                
@@ -481,7 +481,7 @@ export const LocalStoragePage = () => {
                 }
                 {showIndex == 0 && configFile.handle != null &&
                     
-                        <FileList   fileView={{type:"icons",direction:"column", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
+                        <FileList className={styles.bubbleButtonLink} longClassName={styles.bubbleButtonLinkScroll}  fileView={{type:"icons",direction:"row", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
                                 { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", crc: "", lastModified: null, size: null, netImage: {opacity:.7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
                         { to: "/home/localstorage/models", name: "models", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },

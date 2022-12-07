@@ -66,26 +66,41 @@ export const ContactsBox = (props = {}) => {
         if(Array.isArray(props.contacts)){
             const contacts = props.contacts
             const contactRows = []
-
+            
             contacts.forEach((contact) => {
+                const contactUserID = contact.user.userID
+                const contactImage = contact.user.image ;
+                const contactUserName = contact.user.userName
                 console.log(contact)
                 contactRows.push(
-                    <div key={contact.userID} className={styles.result} style={{
-                        padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                    <div key={contactUserID} className={styles.result} style={{
+                        paddingBottom: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
                     }}  >  
-                       
-                    < ImageDiv width={30} height={30} netImage={{
-                        filter:"icon" in contact.image ? "" : "invert(100%)" , 
-                        image: "icon" in contact.image ? contact.image.icon : "/Images/icons/person.svg",
-                            backgroundColor: "#44444490",
-                     
-                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-                    }}/>
-                    <div style={{width:10}}> &nbsp;</div>
+                        <div style={{display:"flex", paddingTop:3}}>
+                        <ImageDiv width={30} height={30} netImage={contact.user.image.fileID != null && contact.user.image.fileID > 0 ? {
+                            scale: 1,
+                            update: {
+                                command: "getIcon",
+                                file: contactImage,
+                                waiting: { url: "/Images/spinning.gif" },
+                                error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                            },
+                            backgroundColor: "#44444450",
+                            backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                        } : {
+                            image: "/Images/icons/person.svg",
+                            filter: "invert(100%)",
+                            backgroundColor: "#44444450",
+                            backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                        }} />
+
+                        <div style={{width:10}}> &nbsp;</div>
+                        
                         <div style={{fontFamily:"WebPapyrus", fontSize:16, display:"flex", alignItems:"center"}}>
-                        {contact.userName}
-                    </div>
-                   
+                            {contactUserName}
+                        </div>
+                        </div>
                     </div>
                 )
                     
