@@ -155,7 +155,7 @@ export const FileHandler = ( props = {}) =>{
                                  
                                     if (request.p2p) {
                                         console.log('getting peers')
-                                        getFilePeers(request).then((peersResult) => {
+                                        makeDownloadRequest(request).then((peersResult) => {
                                           
                                            
                                             resolve(peersResult)
@@ -191,7 +191,7 @@ export const FileHandler = ( props = {}) =>{
                             } else if (request != null){
                                 if (request.p2p) {
                                     console.log('getting peers')
-                                    getFilePeers(request).then((peersResult) => {
+                                    makeDownloadRequest(request).then((peersResult) => {
                                         console.log('getting peers')
                                         resolve(peersResult)
                                     })
@@ -216,36 +216,24 @@ export const FileHandler = ( props = {}) =>{
     }
 
 
-    const getFilePeers = (request) => {
+    const makeDownloadRequest = (request) => {
         return new Promise(resolve => {
-            
-            if (request.file.fileID != undefined && request.file.fileID != null && request.file.fileID > -1) {
-                const fileID = request.file.fileID;
-            
-                setSocketCmd({
-                    cmd: "getFilePeers", params: { fileID: fileID }, callback: (foundPeers) => {
-                        if("success" in foundPeers && foundPeers.success)
-                        {
-                            const peers = foundPeers.peers
-                            const crc = request.file.crc
+            const fileID = request.file.fileID;
+            const crc = request.file.crc
+            if (fileID != undefined && fileID != null && fileID > -1 && crc != null) {
+                
+                
 
-                            const newPeerDownload = {
-                               crc:crc, request: request, peers: peers, complete: 0, status: ""
-                            }
-                            
-                            setDownloadRequest({download:newPeerDownload, callback:(downloadID) => {
-                                
-                                resolve({success:false, downloading:downloadID != null, id: downloadID})
-                              
-                            }})
-
-                        }else{
-                         
-                            resolve({error: new Error("Image not found")})
-                        }
+                const newDownload = {
+                    crc: crc, request: request, complete: 0, status: ""
+                }
+            
+                setDownloadRequest({download:newDownload, callback:(downloadID) => {
                     
-                    }
-                })
+                    resolve({success:false, downloading:downloadID != null, id: downloadID})
+                    
+                }})
+              
             } else {
                 resolve({ error: new Error("fileID not valid") })
             }
