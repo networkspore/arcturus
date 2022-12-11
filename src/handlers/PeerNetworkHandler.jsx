@@ -244,8 +244,9 @@ export const PeerNetworkHandler = (props ={}) => {
         if(peerDownload.length > 0)
         {
             peerDownload.forEach(download => {
-                if(download.status == "Complete")
+                switch(download.status)
                 {
+                    case "Complete":
                     if (download.request.command == "getImage" || download.request.command == "getIcon")
                     {
                         const downloadID = download.id
@@ -259,7 +260,10 @@ export const PeerNetworkHandler = (props ={}) => {
                             }
                         }, 50);
                     }
+                    break;
+                  
                 }
+
             });
         }
     },[peerDownload])
@@ -278,22 +282,47 @@ export const PeerNetworkHandler = (props ={}) => {
                         
                         const peerID = upload.peerID
 
-                        processingUpload.current.value.splice(index, 1)
+                      //  processingUpload.current.value.splice(index, 1)
+                        let tmp = []
+                        processingUpload.current.value.forEach(element => {
+                           if(element.id != uploadID){
+                            tmp.push(element)
+                           }
+                        });
+
+                        processingUpload.current.value = tmp
 
                         const uploadIndex = processingUpload.current.value.findIndex(pUp => pUp.peerID == peerID)
 
                         if(uploadIndex == -1)
                         {
-                            peerDataConnections.current.value[uploadIndex].close()
-                            peerDataConnections.current.value.splice(uploadIndex, 1)
+                            let tmp2 = []
+                            if (peerDataConnections.current.value[uploadIndex].open) peerDataConnections.current.value[uploadIndex].close()
+
+                            peerDataConnections.current.value.forEach(element => {
+                                if(element.peer != peerID)
+                                {
+                                    tmp2.push(element)
+                                }
+                            });
+                            peerDataConnections.current.value = tmp2
                         }
                         const uploadFileIndex = processingUpload.current.value.findIndex(pUp => pUp.request.file.crc == fileCRC)
 
-                        if(uploadFileIndex == -1)
+                        if(uploadFileIndex != -1)
                         {
-                            const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
+                          //  const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
 
-                            uploadFiles.current.value.splice(fileIndex, 1)
+                         //   uploadFiles.current.value.splice(fileIndex, 1)
+                            let tmp3 = []
+                            uploadFiles.current.value.forEach(file => {
+                                if(file.crc  != fileCRC)
+                                {
+                                    tmp3.push(file)
+                                }
+                            })
+                            uploadFiles.current.value = tmp3
+
                         }
 
                         setPeerUpload(processingUpload.current.value)
@@ -439,9 +468,15 @@ export const PeerNetworkHandler = (props ={}) => {
                 dRequest.callback(id)
               
             } else{
-              
-                const id = processingDownload.current.value[index].id
-                setPeerDownload(processingDownload.current.value)
+                const download = processingDownload.current.value[index];
+                console.log(download)
+                const id = download.id
+
+                if(download.status == "Waiting")
+                {
+                    startDownload(download)
+                }
+       
                 dRequest.callback(id)
             }
     
@@ -455,54 +490,83 @@ export const PeerNetworkHandler = (props ={}) => {
     
 
     const onPeerConnection = (dataConnection) => {
-        console.log("peer connection request")
-    
+      
         const id = dataConnection.metadata
 
         const index = processingUpload.current.value.findIndex(up => up.id == id)
         
+        console.log("connection")
+
         const peerID = dataConnection.peer
 
         if (index == -1 ) {
             console.log("id not found")
             dataConnection.close()
         } else {
-            
-            
             const upload = processingUpload.current.value[index]
+
+            console.log(upload)
             
-            if(upload.peerID == peerID)
+            if (upload.peerID == peerID && upload.status == "Getting file")
             {
 
                 peerDataConnections.current.value.push(dataConnection)
 
-                const fileCRC = upload.request.file.crc;
-                const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
+             //   const fileCRC = upload.request.file.crc;
+             //   const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
 
 
 
                 dataConnection.on('data', (data) => {
-                    if(data == "ready")
+                    console.log(data)
+                    if("command" in data && data.command == "requestFile")
                     {
-                        if (fileIndex == -1) {
 
-                            updatePeerUploadStatus(id, "Error")
+                        const fileRequestID = data.id
+                        const fileCRC = data.fileCRC
+                        const upIndex = processingUpload.current.value.findIndex(up => up.id == fileRequestID)
+
+                        if(upIndex == -1){
+                            console.log("upload not found")
+                            updatePeerUploadStatus(fileRequestID, "Error")
                             dataConnection.close()
-                        } else {
-                            const file = uploadFiles.current.value[fileIndex]
                             
-                            updatePeerUploadStatus(id, "Uploading")
-                            dataConnection.send(file.data)
-                        }
-                        if (data == "success") {
-                            updatePeerUploadStatus(id, "Complete")
-                            dataConnection.close()
+                        }else{
+
+                            const nextUpload = processingUpload.current.value[upIndex]
+                          
+                            const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
+
+                            if (fileIndex == -1 && nextUpload.peerID != peerID && nextUpload.status != "Waiting") {
+
+                                updatePeerUploadStatus(fileRequestID, "Error")
+                                dataConnection.close()
+
+                            } else {
+
+                                const file = uploadFiles.current.value[fileIndex]
+                                
+                                updatePeerUploadStatus(fileRequestID, "Uploading")
+                                dataConnection.send({
+                                    command:"sendFile",
+                                    id: id,
+                                    file: file
+                                })
+
+                            }
+                           
                         }
                     }
-                    if (data == "error") {
+                    if ("fileRecieved" in data) {
+                        const receivedID = data.id
 
-                        processingUpload.current.value.splice(index, 1)
-                     
+                        updatePeerUploadStatus(receivedID, "Complete")
+                        
+                    }
+                    if ("error" in data) {
+                        const errorID =  data.id
+                      //  processingUpload.current.value.splice(index, 1)
+                        updatePeerUploadStatus(errorID, "Error")
                         dataConnection.close()
                     }
                     
@@ -524,15 +588,15 @@ export const PeerNetworkHandler = (props ={}) => {
         const fileID = download.request.file.fileID
         const peerID = userPeerID
         const downloadID = download.id
+        const index = processingDownload.current.value.findIndex(pDL => pDL.id == downloadID)
 
-        console.log(peerID)
-        if(peerID != ""){
+        if(peerID != "" && index != -1){
             setSocketCmd({
                 cmd: "getFilePeers", params: { fileID: fileID }, callback: (foundPeers) => {
                     if ("success" in foundPeers && foundPeers.success) {
                         const peers = foundPeers.peers
                         let i = 0;
-
+                        console.log("Found peers")
                         const tryPeers = () => {
                             const peer = peers[i]
                             const contactID = peer.userID
@@ -545,13 +609,14 @@ export const PeerNetworkHandler = (props ={}) => {
                                     if ("id" in peerResponse) {
                                         
 
-                                        console.log(downloadID)
-                                        const index = processingDownload.current.value.findIndex(pDL => pDL.id == downloadID)
+                                      
+
+                                    
                                         const id = peerResponse.id
                                         const peerID = peerResponse.peerID
                                         const file = request.file
                                         const fileCRC = file.crc
-                                        const fileName = file.name
+                                      //  const fileName = file.name
                                         
                                         const dataConnectionIndex = peerDataConnections.current.value.findIndex(dataC => dataC.peer == peerID)
 
@@ -562,12 +627,12 @@ export const PeerNetworkHandler = (props ={}) => {
                                         try {
                                             const requestFile = () => {
                                                
-                                                console.log("connection open")
+                                                console.log("requesting file")
 
                                                 updatePeerDownloadStatus(downloadID, "Downloading")
 
                                                 
-                                                dataConnection.send({command:"requestFile", fileCRC: fileCRC})
+                                                dataConnection.send({command:"requestFile", fileCRC: fileCRC, id:id})
                                                 
                                             }
                     
@@ -575,7 +640,11 @@ export const PeerNetworkHandler = (props ={}) => {
                                             if(!dataConnection.open){
                                                 dataConnection.on('open', requestFile)
                                                 dataConnection.on('data', (data)=>{
-                                                    receiveFile(file,downloadID,dataConnection,data)
+                                                    console.log("receiving data")
+                                                    console.log(data)
+                                                    if("command" in data && data.command == "sendFile"){
+                                                        receiveFile(dataConnection, data)
+                                                    }
                                                 })
                                             }else{
                                                 requestFile()
@@ -588,19 +657,21 @@ export const PeerNetworkHandler = (props ={}) => {
                                             if (i < peers.length) {
                                                 tryPeers()
                                             } else {
-                                                
+                                                console.log("waiting")
                                                 updatePeerDownloadStatus(downloadID, "Waiting for peers")
                                                
                                             }
                                         }
                                     } else {
+                                        console.log("didn't get an ID")
                                         i += 1;
 
                                         if (i < peers.length) {
+                                            console.log("trying peers")
                                             tryPeers()
                                         } else {
-                                            
-                                               updatePeerDownloadStatus(downloadID, "Waiting for peers")
+                                            console.log("waiting")
+                                               updatePeerDownloadStatus(downloadID, "Waiting")
                                             
                                         }
                                         
@@ -614,15 +685,15 @@ export const PeerNetworkHandler = (props ={}) => {
                         if (peers.length > 0 && userPeerID != "") {
                             tryPeers()
                         }else{
-                           
-                            updatePeerDownloadStatus(downloadID, "Waiting for peers")
+                            console.log("Peers not responding")
+                            updatePeerDownloadStatus(downloadID, "Waiting")
                             
                         }
 
 
                     }else{
-                       
-                        updatePeerDownloadStatus(downloadID, "Waiting for peers")
+                        console.log("No peers found")
+                        updatePeerDownloadStatus(downloadID, "Waiting")
                        
                     }
 
@@ -633,31 +704,39 @@ export const PeerNetworkHandler = (props ={}) => {
         
     }
 
-    const receiveFile = (file, downloadID, dataConnection, data) => {
+    const receiveFile = (dataConnection, data) => {
         return new Promise(resolve => {
-
-            const file = file.name
+            const file = data.file
+            const id = data.id
             const fileCRC = file.crc
+            const fileName = file.name
 
-            if (data.fileCRC == fileCRC) {
-                const fileData = data.fileData
+            const index = processingDownload.current.value.findIndex(pDl => pDl.request.file.crc == fileCRC)
+            console.log(index)
+            console.log(processingDownload.current.value)
+            if(index != -1)
+            {
+                const download = processingDownload.current.value[index]
+                console.log(download)
+                
+                const fileData = file.data
 
                 worker.crc32FromArrayBufferAsync(fileData).then((crc) => {
                     if (fileCRC == crc) {
 
-                        dataConnection.send({ success: true, fileCRC: fileCRC })
+                        dataConnection.send({ fileRecieved: true, id: id})
 
                         worker.cacheFile(localDirectory.handle, fileData, crc, fileName).then((cacheFile) => {
                             if (cacheFile == undefined) {
                                 const err = new Error("Write failed")
-                                updatePeerDownloadStatus(downloadID, "Error: Cannot write file")
+                                updatePeerDownloadStatus(download.id, "Error")
                                 throw err
                             } else {
 
                                 addCacheFile(cacheFile)
 
-                                updatePeerDownloadStatus(downloadID, "Complete")
-
+                                updatePeerDownloadStatus(download.id, "Complete")
+                          
                                 resolve(true)
                             }
 
@@ -666,11 +745,17 @@ export const PeerNetworkHandler = (props ={}) => {
 
                     } else {
                         const err = new Error("Wrong CRC")
-                        updatePeerDownloadStatus(downloadID, "Error: File corrupt")
-                        dataConnection.send({error: err})
+                        updatePeerDownloadStatus(download.id, "Error")
+                        dataConnection.send({error: err, id: id})
                         throw err
                     }
                 })
+                
+            }else{
+                const err = new Error("Not Downloading file")
+                updatePeerDownloadStatus(download.id, "Error")
+                dataConnection.send({ error: err, id: id })
+                throw err
             }
         })
     }

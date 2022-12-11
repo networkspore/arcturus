@@ -1,3 +1,4 @@
+import CryptoJS from "crypto-js";
 import  SHA512  from "crypto-js/sha512";
 import MD5 from "crypto-js/md5";
 import WordArray from "crypto-js/lib-typedarrays";
@@ -73,28 +74,47 @@ export async function getRandomInt(min, max, seedStr) {
     return Math.floor(randResult * (max - min + 1)) + min;
 }
 
+function getRandomIntSFC(min, max, sfc) {
+
+    min = Math.ceil(min);
+    max = Math.floor(max);
+
+    const randResult = sfc()
+
+    //mix up the results a lot
+
+
+    return Math.floor(randResult * (max - min + 1)) + min;
+}
 
 export async function generateCode(word = "") {
-    word.concat(formatedNow(new Date(),false))
+    word = word.concat(formatedNow(new Date(),false))
 
-    const randomNumber1 = await getRandomInt(5, 20, word)
+    const wordArrString = WordArray.random(getRandomIntSync(20, 30,word)).toString()
+    word =  word.concat( wordArrString)
+ 
+    var seed = xmur3(word + '')
 
-    word.concat(WordArray.random(randomNumber1).toString(CryptoJS.enc.Utf8))
+    const SFC = sfc32(seed(), seed(), seed(), seed());
 
-    const randomNumber2 = await getRandomInt(50, 300, word)
-
-    const word2 = WordArray.random(randomNumber2).toString(CryptoJS.enc.Utf8)
-
-
-    const code = SHA512(word2).toString(CryptoJS.enc.Utf8).slice(randomNumber1, 30 + randomNumber1);
+  
     
-
+    for (let i = 0; i < 20; i++) {
+       SFC()
+    }
+    let code = ""
+    
+    for (let i = 0; i < 30 ; i ++)
+    {
+        const char =  String.fromCharCode(getRandomIntSFC(33, 126, SFC))
+        code = code.concat(char)
+    }
 
     return code
 
 }
 
-//fisher-yates shuffle
+
 export async function shuffle(array, seedStr) {
     var currentIndex = array.length, temporaryValue, randomIndex;
 
