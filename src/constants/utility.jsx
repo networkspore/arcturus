@@ -44,15 +44,19 @@ export function rand(seedStr) {
 
     var seed = xmur3(seedStr + '')
 
-    return sfc32(seed(), seed(), seed(), seed())();
+    const mix = sfc32(seed(), seed(), seed(), seed());
+
+    for (let i = 0; i < 20; i++) {
+        mix()
+    }
+
+    return mix()
 }
 
 export function randSyncTime(){
     const seedStr = formatedNow(new Date(), false)
 
-    var seed = xmur3(seedStr + '')
-
-    return sfc32(seed(), seed(), seed(), seed())();
+    return rand(seedStr);
 }
 
 
@@ -63,9 +67,32 @@ export async function getRandomInt(min, max, seedStr) {
    
     const randResult = rand(seedStr)
 
+    //mix up the results a lot
+  
+
     return Math.floor(randResult * (max - min + 1)) + min;
 }
 
+
+export async function generateCode(word = "") {
+    word.concat(formatedNow(new Date(),false))
+
+    const randomNumber1 = await getRandomInt(5, 20, word)
+
+    word.concat(WordArray.random(randomNumber1).toString(CryptoJS.enc.Utf8))
+
+    const randomNumber2 = await getRandomInt(50, 300, word)
+
+    const word2 = WordArray.random(randomNumber2).toString(CryptoJS.enc.Utf8)
+
+
+    const code = SHA512(word2).toString(CryptoJS.enc.Utf8).slice(randomNumber1, 30 + randomNumber1);
+    
+
+
+    return code
+
+}
 
 //fisher-yates shuffle
 export async function shuffle(array, seedStr) {
@@ -568,27 +595,6 @@ export async function getThumnailFile(file, size = { width: 100, height: 100 }) 
 }
 
 
-export async function generateCode(word){
-    
-    
-    const randomNumber1 = await getRandomInt(10, 20, word)
-
-    word.concat(WordArray.random(randomNumber1).toString())
-
-    const randomNumber2 = await getRandomInt(0, 15, word)
-    const randomNumber3 = await getRandomInt(20, 30, word)
-
-    const code1 = SHA512(word).toString().slice(randomNumber2, randomNumber3);
-
-    const randomNumber4 = await getRandomInt(10, 15, code1)
-
-    const code2 = SHA512(formatedNow()).toString().slice(randomNumber2, randomNumber4)
-
-    const result = code1 + code2
-
-    return result
-    
-}
 
 export async function getPermissionAsync(handle){
     const opts = { mode: 'readwrite' };
