@@ -1,89 +1,229 @@
-import React from "react";
-import { useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useZust from "../../hooks/useZust";
 import FileList from "../components/UI/FileList";
 import { ImageDiv } from "../components/UI/ImageDiv";
+import { EditRealmCharacters } from "./EditRealmCharacters";
+import styles from "../css/home.module.css"
+import SelectBox from "../components/UI/SelectBox";
 
 export const RealmAssets = (props ={}) =>{
     const navigate = useNavigate()
     const pageSize = useZust((state) => state.pageSize)
+    const localDirectory = useZust((state) => state.localDirectory)
+
+    const searchInputRef = useRef()
+    
+   
+    const [directoryOptions, setDirectoryOptions] = useState([])
+
+    const [currentRealm, setCurrentRealm] = useState(null)
+    const [subDirectory, setSubDirectory] = useState("")
+
+    const [showIndex, setShowIndex] = useState(null)
 
     useEffect(()=>{
-        console.log("loaded")
-    })
+        console.log(props.currentRealm)
+        if(props.currentRealm != undefined){
+            setCurrentRealm(props.currentRealm)
+        }
+    }, [props.currentRealm])
 
-    return (
-        <div id='RealmAssets' style={{
+    useEffect(() => {
+
+
+        const currentLocation = props.currentLocation + ""
+        const directory = "/realm/gateway/assets";
+
+        if (currentLocation != directory) {
+            const thirdSlash = currentLocation.indexOf("/", directory.length)
+
+            const fourthSlash = currentLocation.indexOf("/", directory.length + 2)
+
+            const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash, fourthSlash == -1 ? undefined : fourthSlash) : "";
+           // setSubDirectory(l)
+          //  console.log(subDirectory)
+
+            if (props.admin) {
+                switch (l) {
+                    case "/pcs":
+                        setShowIndex(1)
+                        break;
+                   
+                }
+            }
+        } else {
+
+            setSubDirectory("")
+            setShowIndex(-1)
+        }
+
+    }, [props.currentLocation, props.admin])
+
+    const directoryChanged = (changed) =>{
+
+    }
+
+    const handleChange = (e) =>{
+
+    }
+
+    return ( 
+        <>
+        {currentRealm != null &&
+        <div style={{
             position: "fixed",
-            backgroundColor: "rgba(0,3,4,.95)",
-            width: 700,
+            backgroundColor: "rgba(0,3,4,.9)",
+            width: pageSize.width - 410,
+            height: pageSize.height,
+            left: 410,
+            top: 0,
+            display: "flex",
+            flexDirection: "column",
 
-            left: ((pageSize.width + 360) / 2),
-            top: (pageSize.height / 2),
-            transform: "translate(-50%,-50%)",
-            boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
         }}>
             <div style={{
-                paddingBottom: 10,
-                display:"flex",
-                alignItems:"center",
-                justifyContent:"center",
+                paddingBottom: "10px",
+                textAlign: "center",
                 width: "100%",
-                paddingTop: "10px",
+                paddingTop: "18px",
                 fontFamily: "WebRockwell",
                 fontSize: "18px",
                 fontWeight: "bolder",
                 color: "#cdd4da",
                 textShadow: "2px 2px 2px #101314",
                 backgroundImage: "linear-gradient(#131514, #000304EE )",
+
             }}>
-                <div style={{width:50}}>&nbsp;</div>
+                Assets
+            </div>
+            <div style={{
+                display: "flex",
+                height: "50px",
+                backgroundColor: "#66666650",
+
+                alignItems: "center",
+                marginLeft: "10px",
+                marginRight: "10px",
+                paddingLeft: "10px"
+            }}>
+
+
+
                 <div style={{
+                    display: "flex",
+                    flex: 1,
+                    cursor: "pointer",
+                    fontFamily: "Webrockwell",
+                    fontSize: "14px",
+                }}>
+                    <div onClick={(e) => {
+
+                       // pickAssetDirectory()
+
+                    }} style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "30px",
+                        backgroundImage: "linear-gradient(to right, #00000050,#11111150,#00000050)",
+                        marginLeft: "10px",
+
+                        height:30
+                    }}>
+                        <div style={{
+                            paddingLeft: "15px",
+                         
+                            paddingRight: "5px"
+                        }}>
+                            <div style={{cursor:"pointer"}} onClick={(e) => {
+
+                            }}>
+                            <ImageDiv width={20} height={20}  netImage={{
+                                scale: 1,
+                                update: {
+                                    command: "getImage",
+                                    file: currentRealm.image,
+                                    waiting: { url: "/Images/spinning.gif" },
+                                    error: { url: "/Images/cloud-offline-outline.svg", style: { filter: "invert(70%)" } },
+
+                                },
+                                backgroundColor: "#44444450",
+                                backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+
+                            }} /></div>
+                        </div>
+                     
+                        <div style={{ color: "#cdd4da", }}>
+                            fsa://
+                        </div>
                     
-                    display:"flex",
-                    flex:1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    }}>Assets</div>
-                <div onClick={(e)=>{
-                    navigate("/realm/gateway")
-                }} style={{cursor:"pointer", width:50, textAlign:"right" }}>
-                    <ImageDiv width={30} height={30} netImage={{scale:.9, image: "/Images/icons/close-outline.svg", filter:"invert(60%)"}}/>
+                        <div style={{ flex: 1 }}>
+                            <div style={{
+
+                                paddingLeft: "2px",
+                                width: "100%",
+                                height: "18px",
+                                textAlign: "left",
+                                border: "0px",
+                                color: localDirectory.name == "" ? "#777777" : "#cdd4da",
+                                backgroundColor: "#00000000",
+
+
+                            }}>
+                                {localDirectory.name + "/realm/" + currentRealm.realmName}{subDirectory}
+                            </div>
+
+                        </div>
+                        <div style={{ width: 20 }}>&nbsp;</div>
+
+                    </div>
                 </div>
-            </div>
-            <div style={{padding:70}}>
-            <FileList fileView={{ 
-                    type: "icons", 
-                    direction: "row", 
-                    iconSize: { width: 100, height: 100 } }} 
-                tableStyle={{ height: 600 }} 
-            files={[
-                { 
-                    to: "/realm/gateway/assets/pcs", 
-                    name: "Playable Characters", 
-                    type: "folder", 
-                    crc: "", 
-                    lastModified: null, 
-                    size: null, 
-                    netImage: { 
-                        backgroundColor: "", 
-                        image: "/Images/icons/man-outline.svg", filter: "invert(80%)" } },
-                
-                { to: "/realm/gateway/assets/npcs", name: "Non-Playable Characters", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", 
-                    image: "/Images/icons/paw-outline.svg", filter: "invert(80%)" } },
-                
-                { to: "/realm/gateway/assets/placeables", name: "Placeable Models", type: "folder", crc: "", lastModified: null, size: null, netImage: { backgroundColor: "", 
-                    image: "/Images/icons/cube-outline.svg",  filter: "invert(80%)" } },
-                {
-                    to: "/realm/gateway/assets/textures", name: "Textures", type: "folder", crc: "", lastModified: null, size: null, netImage: {
-                        backgroundColor: "",  image: "/Images/icons/images-outline.svg", filter: "invert(80%)"
+              
+                <div style={{ width: 20 }}></div>
+                <div style={{
+                    height: 30,
+
+                    display: "flex", justifyContent: "right", borderRadius: "30px",
+                }}>
+                    <div style={{ margin: 3, backgroundColor: "#33333320", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <input ref={searchInputRef} name={"imageSearch"} onChange={handleChange} style={{
+                            color: "white",
+                            backgroundColor: "#33333300",
+                            fontFamily: "webpapyrus",
+                            fontSize: 12,
+                            width: 200,
+                            outline: 0,
+                            border: 0
+                        }} type={"text"} />
+                    </div>
+                    <div style={{ width: 100, margin: 3 }}>
+                        <SelectBox onChange={directoryChanged} textStyle={{ fontSize: 14, backgroundColor: "#33333320", border: 0, outline: 0, color: "white" }} placeholder={"All"} options={directoryOptions} />
+                    </div>
+                    <div onClick={(e) => { searchInputRef.current.focus() }} style={{
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer"
+                    }}>
+                        <ImageDiv width={20} height={20} netImage={{ backgroundColor: "", filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
+                    </div>
+                </div>
+
+
+
+                <div style={{ width: 20 }}>
+
+                    {showIndex == 1 &&
+                        <EditRealmCharacters currentRealm={currentRealm} />
                     }
-                },
-            
-            
-            ]} />
+
+
+                </div>
+
             </div>
+        
         </div>
+        }
+        </>
     )
 }

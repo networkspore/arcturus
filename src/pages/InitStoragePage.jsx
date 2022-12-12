@@ -25,19 +25,19 @@ export const InitStoragePage = (props = {}) => {
     const setConfigFile = useZust((state) => state.setConfigFile)
     const configFile = useZust((state) => state.configFile)
 
-    const terrainDirectory = useZust((state) => state.terrainDirectory);
+  
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
     const realmsDirectory = useZust((state) => state.realmsDirectory);
-    const homeDirectory = useZust((state) => state.homeDirectory)
+ 
 
 
     
 
     const [engineKey, setEngineKey] = useState("Generate a key")
 
-    const [terrainDefault, setTerrainDefault] = useState(true);
+ 
     const [imagesDefault, setImagesDefault] = useState(true);
     const [modelsDefault, setModelsDefault] = useState(true);
     const [texturesDefault, setTexturesDefault] = useState(true);
@@ -98,7 +98,7 @@ export const InitStoragePage = (props = {}) => {
                     setEngineKey(config.engineKey)
                     P2PRef.current.setValue(config.peer2peer)
                     ergoRef.current.setValue(config.ergo)
-                    const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.models.default) || !(configFile.value.folders.terrain.default) || !(configFile.value.folders.media.default));
+                    const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.models.default) || !(configFile.value.folders.media.default));
 
                     setDefaultFolders(def)
 
@@ -200,11 +200,7 @@ export const InitStoragePage = (props = {}) => {
                                     default: modelsDefault,
                                     fileTypes: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"]
                                 },
-                                terrain: {
-                                    name: !terrainDefault ? customFolders.terrain : terrainDirectory.name,
-                                    default: terrainDefault,
-                                    fileTypes: ["json"]
-                                },
+                               
                                 media: {
                                     name: !mediaDefault ? customFolders.media : mediaDirectory.name,
                                     default: mediaDefault,
@@ -236,9 +232,7 @@ export const InitStoragePage = (props = {}) => {
                                         if (!modelsDefault) {
                                             set("models" + engineKey, customFolders.models)
                                         }
-                                        if (!terrainDefault) {
-                                            set("terrain" + engineKey, customFolders.terrain)
-                                        }
+                                      
                                         if (!mediaDefault) {
                                             set("media" + engineKey, customFolders.media)
                                         }
@@ -387,7 +381,7 @@ export const InitStoragePage = (props = {}) => {
 
     }
 
-    const [customFolders, setCustomFolders] = useState({images:null, models:null,terrain:null,media:null})
+    const [customFolders, setCustomFolders] = useState({images:null, models:null, media:null})
 
     const onUseConfig = (e) =>{
         if(stateConfig != null){
@@ -735,56 +729,7 @@ export const InitStoragePage = (props = {}) => {
                                             </div>
                                             
 
-                                            <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                                <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    Terrain Folder:
-                                                </div>
-                                                <div style={{ flex: 1 }}>
-
-                                                    <div onClick={async function (e) {
-                                                        try {
-                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-
-                                                            const name = await dirHandle.name;
-                                                            setCustomFolders(
-                                                                produce((state) => {
-                                                                    state.terrain = { name: name, handle: dirHandle };
-                                                                })
-                                                            )
-
-                                                            setTerrainDefault(false)
-                                                        } catch (error) {
-                                                            if (error == DOMException.ABORT_ERR) {
-
-                                                            }
-                                                            setTerrainDefault(true)
-                                                        }
-                                                    }}
-
-                                                        style={{
-                                                            cursor: "pointer",
-                                                            width: 250,
-                                                            fontSize: 14,
-                                                            marginTop: 5,
-                                                            textAlign: "left",
-                                                            border: "0px",
-                                                            outline: 0,
-                                                            color: terrainDefault ? "#ffffff80" : "white",
-                                                            fontFamily: "webrockwell"
-                                                        }} >
-                                                        {terrainDirectory.name}
-                                                    </div>
-
-                                                </div>
-                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setTexturesDefault(prev => !prev) }} >
-                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                        default:
-                                                    </div>
-                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                        <div className={texturesDefault ? styles.checked : styles.check} />
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            
                                             <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
                                                  <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
                                                     Media Folder:

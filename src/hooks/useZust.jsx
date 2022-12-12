@@ -15,7 +15,16 @@ const useZust = create((set) => ({
    downloadRequest:{download:null},
    setDownloadRequest: (value = {download:null}) => set({downloadRequest: value}),
    peerUpload:[],
-   setPeerUpload: (value) => set({ peerUpload: value }),
+   setPeerUpload: (value) => set(produce((state) =>{
+      if (Array.isArray(value)) {
+         let tmp = []
+         value.forEach(pUp => {
+            tmp.push(pUp)
+         });
+
+         state.peerUpload = tmp
+      }
+   })),
 
    removePeerUpload: (id) => set(produce((state) => {
       const index = state.peerUpload.findIndex(pU => pU.id == id)
@@ -32,7 +41,17 @@ const useZust = create((set) => ({
 
    })),
    peerDownload:new Array(),
-   setPeerDownload: (value) => set({ peerDownload: value }),
+   setPeerDownload: (value) => set(produce((state)=>{
+      if(Array.isArray(value))
+      {
+         let tmp = []
+         value.forEach(pDown => {
+            tmp.push(pDown)
+         });
+
+         state.peerDownload = tmp
+      }
+   })),
    removePeerDownload: (id) => set(produce((state) => {
       const index = state.peerDownload.findIndex(pU => pU.id == id)
       const length = state.peerDownload.length
@@ -130,8 +149,8 @@ const useZust = create((set) => ({
    mediaDirectory: { name: "media", handle: null, directories: [] },
    setMediaDirectory: (value = { lname: "media", handle: null, directories: [] }) => set({mediaDirectory: value }),
    
-   realmsDirectory: { name: "realms", handle: null, directories: [] },
-   setRealmsDirectory: (value = { name: "realms", handle: null, directories: [] }) => set({ realmsDirectory: value }),
+   realmsDirectory: { name: "realms", handle: null },
+   setRealmsDirectory: (value = { name: "realms", handle: null }) => set({ realmsDirectory: value }),
 
    userHomeDirectory: { name: "", handle: null, directories: [] },
    setUserHomeDirectory: (value = { name: null, handle: null, directories: [] }) => set({ userHomeDirectory: value }),

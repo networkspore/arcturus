@@ -13,6 +13,7 @@ import { UpdateRealmInformation } from "./UpdateRealmInformation";
 import { flushSync } from 'react-dom';
 import { RealmAssets } from "./RealmAssets";
 import { ImagePicker } from "../components/UI/ImagePicker";
+import { EditRealmCharacters } from "./EditRealmCharacters";
 
 
 export const RealmGateway= (props = {}) =>{
@@ -115,35 +116,26 @@ export const RealmGateway= (props = {}) =>{
     useEffect(() => {
     
 
-        const currentLocation = props.currentLocation
+        const currentLocation = props.currentLocation + ""
         const directory = "/realm/gateway";
 
         if(currentLocation != directory){
             const thirdSlash = currentLocation.indexOf("/", directory.length)
 
-            const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
-            setSubDirectory(l)
+            const fourthSlash = currentLocation.indexOf("/", directory.length + 2)
 
+            const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash, fourthSlash == -1 ? undefined : fourthSlash) : "";
+            setSubDirectory(l)
+            console.log(subDirectory)
             if(props.admin){
-                switch (currentLocation) {
-                    case "/realm/gateway/information":
+                switch (l) {
+                    case "/information":
                         setShowIndex(0)
                         break;
-                    case "/realm/gateway/assets":
+                    case "/assets":
                         setShowIndex(1)
                         break;
-                    case "/realm/gateway/assets/pcs":
-                        setShowIndex(2);
-                        break;
-                    case "/realm/gateway/assets/npcs":
-                        setShowIndex(3)
-                        break;
-                    case "/realm/gateway/assets/placeables":
-                        setShowIndex(4)
-                        break;
-                    case "/realm/gateway/assets/textures":
-                        setShowIndex(5)
-
+                    
 
                 }
             }
@@ -418,6 +410,16 @@ export const RealmGateway= (props = {}) =>{
                                     Textures
                                 </div>
                             </div>
+
+                            <div onClick={(e) => { navigate("/realm/gateway/assets/terrain") }} className={styles.result} style={{
+                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                            }}>
+                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/terrain" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/earth-outline.svg" }} width={25} height={25} />
+
+                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/terrain" ? "white" : "" }} >
+                                    Terrain
+                                </div>
+                            </div>
                         </div>
                     </>}
                     
@@ -436,11 +438,12 @@ export const RealmGateway= (props = {}) =>{
             }
             {admin && 
                 showIndex == 1 &&
-                <RealmAssets />
+                <RealmAssets admin={admin} currentRealm={currentRealm} />
             }
             {admin && showIndex == 10 &&
                 <ImagePicker selectedImage={currentRealm.image} onCancel={()=>{setShowIndex(null)}} onOk={onUpdateRealmImage}/>
             }
+            
        </>
     )
 }

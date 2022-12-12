@@ -21,19 +21,18 @@ export const LocalStoragePage = () => {
     const [directoryOptions, setDirectoryOptions] = useState([])
 
     const cachesDirectory = useZust((state) => state.cachesDirectory)
-    const terrainDirectory = useZust((state) => state.terrainDirectory);
+   
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
 
-    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory)
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
     const setCachesDirectory = useZust((state) => state.setCachesDirectory)
 
     const cacheFiles = useZust((state) => state.cacheFiles)
-    const terrainFiles = useZust((state) => state.terrainFiles);
+
     const imagesFiles = useZust((state) => state.imagesFiles);
     const modelsFiles = useZust((state) => state.modelsFiles);
     const mediaFiles = useZust((state) => state.mediaFiles);
@@ -122,11 +121,6 @@ export const LocalStoragePage = () => {
                     case "/models":
                         setCurrentDirectories(modelsDirectory.directories)
                         setCurrentFiles(modelsFiles)
-                        setShowIndex(2)
-                        break;
-                    case "/terrain":
-                        setCurrentDirectories(terrainDirectory.directories)
-                        setCurrentFiles(terrainFiles)
                         setShowIndex(2)
                         break;
                     case "/media":
@@ -484,10 +478,8 @@ export const LocalStoragePage = () => {
                         <FileList className={styles.bubbleButtonLink} longClassName={styles.bubbleButtonLinkScroll}  fileView={{type:"icons",direction:"row", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
                                 { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", crc: "", lastModified: null, size: null, netImage: {opacity:.7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
                         { to: "/home/localstorage/models", name: "models", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                        { to: "/home/localstorage/terrain", name: "terrain", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/cache", name: "cache", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                        { to: "/home/localstorage/init", name: configFile.name, type: "Config", crc: configFile.crc, lastModified: configFile.lastModified, size: configFile.size, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)"  }},
                         ]} />
                   
                 }

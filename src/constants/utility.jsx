@@ -104,7 +104,7 @@ export async function generateCode(word = "") {
     }
     let code = ""
     
-    for (let i = 0; i < 30 ; i ++)
+    for (let i = 0; i < 40 ; i ++)
     {
         const char =  String.fromCharCode(getRandomIntSFC(33, 126, SFC))
         code = code.concat(char)

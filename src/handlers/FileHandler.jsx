@@ -21,7 +21,7 @@ export const FileHandler = ( props = {}) =>{
     const cacheFiles = useZust((state) => state.cacheFiles)
     const imagesFiles = useZust((state) => state.imagesFiles)
     const modelsFiles = useZust((state) => state.modelsFiles)
-    const terrainFiles = useZust((state) => state.terrainFiles)
+  
     const mediaFiles = useZust((state) => state.mediaFiles)
 
     const updateImages = useZust((state) => state.updateImages)
@@ -154,7 +154,7 @@ export const FileHandler = ( props = {}) =>{
                                 } else {
                                  
                                     if (request.p2p) {
-                                        console.log('getting peers')
+                                    
                                         makeDownloadRequest(request).then((peersResult) => {
                                           
                                            
@@ -190,9 +190,9 @@ export const FileHandler = ( props = {}) =>{
                                 
                             } else if (request != null){
                                 if (request.p2p) {
-                                    console.log('getting peers')
+                               
                                     makeDownloadRequest(request).then((peersResult) => {
-                                        console.log('getting peers')
+                                  
                                         resolve(peersResult)
                                     })
                                 }else{

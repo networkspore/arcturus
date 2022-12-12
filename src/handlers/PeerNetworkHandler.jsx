@@ -74,6 +74,22 @@ export const PeerNetworkHandler = (props ={}) => {
         }
             
      }
+
+    const removeDownload = (id) =>{
+        const index = processingDownload.current.value.findIndex(pDl => pDl.id == id)
+   
+        if(index != -1){
+            const length = processingDownload.current.value.length
+            if(length == 1)
+            {
+                processingDownload.current.value.pop()
+            }else{
+                processingDownload.current.value.splice(index, 1)
+            }
+            
+        }
+  
+    }
     
     const updatePeerUploadStatus = (id, value) => {
         const index = processingUpload.current.value.findIndex(pU => pU.id == id)
@@ -255,7 +271,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
                             if(index != -1)
                             {
-                                processingDownload.current.value.splice(index, 1)
+                                removeDownload(downloadID)
                                 setPeerDownload(processingDownload.current.value)
                             }
                         }, 50);
@@ -266,7 +282,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
             });
         }
-    },[peerDownload])
+    },[peerDownload, processingDownload.current])
 
     useEffect(() => {
         if (peerUpload.length > 0) {
@@ -283,29 +299,42 @@ export const PeerNetworkHandler = (props ={}) => {
                         const peerID = upload.peerID
 
                       //  processingUpload.current.value.splice(index, 1)
-                        let tmp = []
-                        processingUpload.current.value.forEach(element => {
-                           if(element.id != uploadID){
-                            tmp.push(element)
-                           }
-                        });
+                        const tmp = []
+                        const uploadIDIndex = processingUpload.current.value.findIndex(pUp => pUp.id == uploadID)
 
-                        processingUpload.current.value = tmp
+                        if (uploadIDIndex != -1){
+                            const length = processingUpload.current.value.length
+
+                            if(length  == 1)
+                            {
+                                processingUpload.current.value.pop()
+                            }else{
+                                processingUpload.current.value.splice(uploadIDIndex, 1)
+                            }
+
+                        }
+                        
 
                         const uploadIndex = processingUpload.current.value.findIndex(pUp => pUp.peerID == peerID)
 
-                        if(uploadIndex == -1)
+                        if(uploadIndex != -1)
                         {
-                            let tmp2 = []
-                            if (peerDataConnections.current.value[uploadIndex].open) peerDataConnections.current.value[uploadIndex].close()
+                            const dConnIndex = peerDataConnections.current.value.findIndex(dConn => dConn.peer == peerID )
 
-                            peerDataConnections.current.value.forEach(element => {
-                                if(element.peer != peerID)
+                            if(dConnIndex != -1){
+                            if (peerDataConnections.current.value[dConnIndex].open) peerDataConnections.current.value[dConnIndex].close()
+
+                                const length = peerDataConnections.current.value.length
+                           
+                                if(length == 1)
                                 {
-                                    tmp2.push(element)
+                                    peerDataConnections.current.value.pop()
+                                }else{
+                                    peerDataConnections.current.value.splice(dConnIndex, 1)
                                 }
-                            });
-                            peerDataConnections.current.value = tmp2
+                                
+                            }
+                            
                         }
                         const uploadFileIndex = processingUpload.current.value.findIndex(pUp => pUp.request.file.crc == fileCRC)
 
@@ -314,15 +343,23 @@ export const PeerNetworkHandler = (props ={}) => {
                           //  const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
 
                          //   uploadFiles.current.value.splice(fileIndex, 1)
-                            let tmp3 = []
-                            uploadFiles.current.value.forEach(file => {
-                                if(file.crc  != fileCRC)
+                          
+                            const uploadFileIndex = uploadFiles.current.value.findIndex(file => file.crc == fileCRC)
+                            
+                            if(uploadFileIndex != -1)
+                            {
+                                const length = uploadFiles.current.value.length
+                                
+                                if(length == 1)
                                 {
-                                    tmp3.push(file)
+                                    uploadFiles.current.value.pop()
+                                }else{
+                                    uploadFiles.current.value.splice(uploadFileIndex, 1)
                                 }
-                            })
-                            uploadFiles.current.value = tmp3
-
+                            }
+                            
+                        
+                        
                         }
 
                         setPeerUpload(processingUpload.current.value)
@@ -332,7 +369,7 @@ export const PeerNetworkHandler = (props ={}) => {
                 }
             });
         }
-    }, [peerUpload])
+    }, [peerUpload, processingUpload.current, uploadFiles.current, peerDataConnections.current])
 
 
     useEffect(() =>{
@@ -461,6 +498,8 @@ export const PeerNetworkHandler = (props ={}) => {
                     request: download.request, 
                     complete: 0,
                 }
+          
+                
                 processingDownload.current.value.push(newDownload)
                 
                 setPeerDownload(processingDownload.current.value)
@@ -589,10 +628,11 @@ export const PeerNetworkHandler = (props ={}) => {
         const peerID = userPeerID
         const downloadID = download.id
         const index = processingDownload.current.value.findIndex(pDL => pDL.id == downloadID)
-
+        console.log(processingDownload)
         if(peerID != "" && index != -1){
             setSocketCmd({
                 cmd: "getFilePeers", params: { fileID: fileID }, callback: (foundPeers) => {
+                  
                     if ("success" in foundPeers && foundPeers.success) {
                         const peers = foundPeers.peers
                         let i = 0;
@@ -641,7 +681,7 @@ export const PeerNetworkHandler = (props ={}) => {
                                                 dataConnection.on('open', requestFile)
                                                 dataConnection.on('data', (data)=>{
                                                     console.log("receiving data")
-                                                    console.log(data)
+                                                 
                                                     if("command" in data && data.command == "sendFile"){
                                                         receiveFile(dataConnection, data)
                                                     }
@@ -693,7 +733,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
                     }else{
                         console.log("No peers found")
-                        updatePeerDownloadStatus(downloadID, "Waiting")
+                        removeDownload(downloadID)
                        
                     }
 

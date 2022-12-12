@@ -37,14 +37,15 @@ const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
 
 
-const HomeMenu = ({ props }) => {
+const HomeMenu = () => {
     const worker = useWorker(createWorker)
 
     const location = useLocation()
-    const userPeerID = useZust((state) => state.userPeerID)
+
 
     const setCachesDirectory = useZust((state) => state.setCachesDirectory)
-    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory);
+    const setRealmsDirectory = useZust((state) => state.setRealmsDirectory);
+
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
@@ -52,7 +53,7 @@ const HomeMenu = ({ props }) => {
     const setCacheFiles = useZust((state) => state.setCacheFiles)
     const setImagesFiles = useZust((state) => state.setImagesFiles)
     const setModelsFiles = useZust((state) => state.setModelsFiles)
-    const setTerrainFiles = useZust((state) => state.setTerrainFiles)
+
     const setMediaFiles = useZust((state) => state.setMediaFiles)
 
 
@@ -204,7 +205,12 @@ const HomeMenu = ({ props }) => {
 
         if (user.userID > 0) {
 
-            loadUser(user)
+            loadUser(user).then((returned)=>{
+
+                if(!returned) navigate("/")
+            })
+       
+        
 
         }
     }, [user])
@@ -215,7 +221,11 @@ const HomeMenu = ({ props }) => {
             const value = await get("localDirectory" + user.userID)
             const verified = await getPermissionAsync(value.handle)
             console.log(verified)
-            if(!verified) return false
+            if(!verified)
+            {
+                console.log("Permission not granted")
+                return false
+            } 
 
             setLocalDirectory(value)
 
@@ -239,19 +249,18 @@ const HomeMenu = ({ props }) => {
                                 fileInfo.storageID = crcResult.storageID;
 
                                 navigate("/loading", { state: { configFile: fileInfo, navigate: "/" } })
-
+                                return true
                             } else {
-                                console.log("json failed")
-
+                                console.log("Permission not granted")
                                 addSystemMessage(initStorage)
-                                //  navigate("/network")
+                                return false
                             }
                             
                         })
                     } else {
-                        console.log("crc check failed")
-                        addSystemMessage(initStorage)
-                        //  navigate("/network")
+                        console.log("CRC check failed")
+                      
+                        return false
                     }
                     
                 }
@@ -259,9 +268,9 @@ const HomeMenu = ({ props }) => {
             
         }catch(err){
 
-            console.log(err)
-            addSystemMessage(initStorage)
-            navigate("/")
+            console.log(err.message)
+         
+            return false
         }                 
     }
 
@@ -453,12 +462,11 @@ const HomeMenu = ({ props }) => {
             const models = modelsGranted ? await worker.getFirstDirectoryFiles(modelsHandle, "model", config.folders.models.fileTypes) : null;
 
 
-            const terrainHandle = config.folders.terrain.default ? await localDirectory.handle.getDirectoryHandle("terrain", { create: true }) : await get("terrain" + engineKey);
+            const realmsHandle =  await localDirectory.handle.getDirectoryHandle("realms", { create: true });
 
-            const terrainGranted = await getPermissionAsync(terrainHandle)
+          //  const realmsGranted = await getPermissionAsync(realmsHandle)
 
 
-            const terrain = terrainGranted ? await worker.getFirstDirectoryFiles(terrainHandle, "terrain", config.folders.terrain.fileTypes) : null;
 
             const mediaHandle = config.folders.media.default ? await localDirectory.handle.getDirectoryHandle("media", { create: true }) : await get("media" + engineKey);
 
@@ -480,9 +488,9 @@ const HomeMenu = ({ props }) => {
                 setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
                 setModelsFiles(models.files)
             }
-            if (terrain != null) {
-                setTerrainDirectory({ name: terrainHandle.name, handle: terrainHandle, directories: terrain.directories })
-                setTerrainFiles(terrain.files)
+            if (realms != null) {
+                setRealmsDirectory({ name: realmsHandle.name, handle: realmsHandle })
+               
             }
             if (media != null) {
                 setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories })
@@ -553,11 +561,18 @@ const HomeMenu = ({ props }) => {
                         const realmImage = realm.image
                        
                         tmp.push(
-                            <div key={realmImage.crc} onClick={() => {
+
+                            
+                            <div key={realm.realmID} onClick={() => {
                                 setCurrentRealmID(realm.realmID)
                                 navigate("/realm/gateway")
                             }} style={{ outline: 0 }} className={showIndex == 7 && currentRealmID == realm.realmID ? styles.menuActive : styles.menu__item} about={realm.realmName}>
-                                <ImageDiv width={60} height={60}
+                               
+                                   
+                               
+                                <ImageDiv width={60} height={60} style={{
+                                    boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 40px #77777710"
+                                }}
                                     netImage={{
                                         update: {
                                             command: "getIcon",
@@ -567,10 +582,10 @@ const HomeMenu = ({ props }) => {
 
                                         },
                                        
-                                        backgroundColor: "",
+                                        backgroundColor: "#171717",
                                         opacity: 1,
-                                        image: null,
-                                        scale: 1
+                                       
+                                        scale: .8
                                     }}
                                 />
                             </div>

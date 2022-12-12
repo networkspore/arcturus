@@ -20,7 +20,7 @@ import { ImagePicker } from './components/UI/ImagePicker';
 
 export const HomePage = (props ={}) => {
                  
-    const terrainDirectory = useZust((state) => state.terrainDirectory);
+  
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
@@ -227,18 +227,7 @@ export const HomePage = (props ={}) => {
                     
                     }
                            
-                    {terrainDirectory.handle != null &&
-                     
-                        <div onClick={(e) => { navigate("/home/localstorage/terrain") }} style={{ color: location.pathname == "/home/localstorage/terrain" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
-                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/folder-outline.svg" width={20} height={20} />
-                            </div>
-                            <div style={{ paddingLeft: "10px" }} >
-                                Terrain
-                            </div>
-                        </div>
-                  
-                            }
+             
                     {mediaDirectory.handle != null &&
                  
                         <div onClick={(e) => { navigate("/home/localstorage/media") }} style={{ color: location.pathname == "/home/localstorage/media" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
