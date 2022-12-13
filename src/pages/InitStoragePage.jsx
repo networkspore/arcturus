@@ -239,7 +239,7 @@ export const InitStoragePage = (props = {}) => {
                                         const newFile = {
                                             mimeType: "config",
                                             name: fileInfo.name,
-                                            crc: fileInfo.crc,
+                                            hash: fileInfo.hash,
                                             size: fileInfo.size,
                                             type: fileInfo.type,
                                             lastModified: fileInfo.lastModified,

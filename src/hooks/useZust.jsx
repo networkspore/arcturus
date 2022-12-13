@@ -143,8 +143,7 @@ const useZust = create((set) => ({
    modelsDirectory: { name: "models", handle: null, directories: [] },
    setModelsDirectory: (value = { name: "models", handle: null, directories: [] }) => set({ modelsDirectory: value }),
 
-   terrainDirectory: { name: "terrain", handle: null, directories: [] },
-   setTerrainDirectory: (value = { name: "terrain", handle: null, directories: [] }) => set({ terrainDirectory: value }),
+
 
    mediaDirectory: { name: "media", handle: null, directories: [] },
    setMediaDirectory: (value = { lname: "media", handle: null, directories: [] }) => set({mediaDirectory: value }),
@@ -155,8 +154,46 @@ const useZust = create((set) => ({
    userHomeDirectory: { name: "", handle: null, directories: [] },
    setUserHomeDirectory: (value = { name: null, handle: null, directories: [] }) => set({ userHomeDirectory: value }),
    
+   //assets
+
+   assetsDirectory: { name: "", handle: null, directories: [] },
+   setAssetsDirectory: (value = { name: null, handle: null, directories: [] }) => set({ assetsDirectory: value }),
+
+   placeablesDirectory: { name: "placeables", handle: null, directories: [] },
+   setPlaceablesDirectory: (value = { name: "placeables", handle: null, directories: [] }) => set({ placeablesDirectory: value }),
+
+   pcsDirectory: { name: "", handle: null, directories: [] },
+   setPcsDirectory: (value = { name: null, handle: null, directories: [] }) => set({ pcsDirectory: value }),
+   
+   npcsDirectory: { name: "", handle: null, directories: [] },
+   setNpcsDirectory: (value = { name: null, handle: null, directories: [] }) => set({ npcsDirectory: value }),
+   
+   texturesDirectory: { name: "", handle: null, directories: [] },
+   setTexturesDirectory: (value = { name: null, handle: null, directories: [] }) => set({ texturesDirectory: value }),
+   
+   terrainDirectory: { name: "terrain", handle: null, directories: [] },
+   setTerrainDirectory: (value = { name: "terrain", handle: null, directories: [] }) => set({ terrainDirectory: value }),
+   
+   typesDirectory: { name: "types", handle: null, directories: [] },
+   setTypesDirectory: (value = { name: "types", handle: null, directories: [] }) => set({ typesDirectory: value }),
+
+   typesFiles: [],
+   setTypesFiles: (value = []) => set({ typesFiles: value }),
+
+   pcsFiles: [],
+   setPcsFiles: (value = []) => set({ pcsFiles: value }),
+   
+   npcsFiles: [],
+   setNpcsFiles: (value = []) => set({ npcsFiles: value }),
+   
+   texturesFiles: [],
+   setTexturesFiles: (value = []) => set({ texturesFiles: value }),
+   
+   placeablesFiles: [],
+   setPlaceablesFiles: (value = []) => set({ placeablesFiles: value }),
+
    userHomeFiles: [],
-   setUserHomeFiles: (value = []) => set({ realmsFiles: value }),
+   setUserHomeFiles: (value = []) => set({ userHomeFiles: value }),
 
    realmsFiles: [],
    setRealmsFiles: (value = []) => set({ realmsFiles: value }),
@@ -165,7 +202,7 @@ const useZust = create((set) => ({
    setCacheFiles: (value = []) => set({cacheFiles: value}),
 
    addCacheFile: (value) => set(produce((state) => {
-      const index = state.cacheFiles.findIndex(file => file.crc == value.crc)
+      const index = state.cacheFiles.findIndex(file => file.hash == value.hash)
 
       if (index == -1) {
          state.cacheFiles.push(value)
@@ -174,7 +211,7 @@ const useZust = create((set) => ({
    imagesFiles: [],
    setImagesFiles: (value = []) => set({imagesFiles:value}),
    addImagesFile: (value) =>set(produce((state) =>{
-      const index = state.imagesFiles.findIndex(img => img.crc == value.crc)
+      const index = state.imagesFiles.findIndex(img => img.hash == value.hash)
 
       if(index == -1)
       {
