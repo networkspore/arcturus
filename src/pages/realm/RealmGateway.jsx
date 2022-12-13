@@ -178,8 +178,10 @@ export const RealmGateway= (props = {}) =>{
 
 
     useEffect(()=>{
+        console.log(quickBar)
+        console.log(currentRealm)
         if (Array.isArray(quickBar)) {
-            const index = quickBar.findIndex(qbar => qbar.realmID == currentRealm.realmID)
+            const index = quickBar.includes(currentRealm.realmID)
 
             setIsQuickBar(index > -1)
            
@@ -257,15 +259,13 @@ export const RealmGateway= (props = {}) =>{
             setShowIndex(null)
             const fileInfo = {
                 name: update.name,
-                crc: update.crc,
+                hash: update.hash,
                 size: update.size,
                 type: update.type,
                 mimeType: update.mimeType,
                 lastModified: update.lastModified
             }
 
-            console.log("updating:")
-            console.log(fileInfo)
             setSocketCmd({
                 cmd: "updateRealmImage", params: {realmID:currentRealm.realmID, imageInfo: fileInfo }, callback: (updateResult) => {
                     console.log(updateResult)
@@ -373,6 +373,7 @@ export const RealmGateway= (props = {}) =>{
                         </div>
                         
                         <div style={{marginLeft:10}} >
+                            
                             <div onClick={(e) => { navigate("/realm/gateway/assets/pcs") }} className={styles.result} 
                             style={{ padding:5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
                                 <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/pcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/man-outline.svg" }} width={25} height={25} />
@@ -420,6 +421,17 @@ export const RealmGateway= (props = {}) =>{
                                     Terrain
                                 </div>
                             </div>
+
+                            <div onClick={(e) => { navigate("/realm/gateway/assets/types") }} className={styles.result} style={{
+                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                            }}>
+                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/types" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/shapes-outline.svg" }} width={25} height={25} />
+
+                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/types" ? "white" : "" }} >
+                                    Types
+                                </div>
+                            </div>
+                            
                         </div>
                     </>}
                     

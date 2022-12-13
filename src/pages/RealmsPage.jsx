@@ -113,7 +113,7 @@ export const RealmsPage = () =>{
         const newFile = {
             mimeType: realm.image.mimeType,
             name: realm.image.name,
-            crc: realm.image.crc,
+            hash: realm.image.hash,
             size: realm.image.size,
             type: realm.image.type,
             lastModified: realm.image.lastModified,

@@ -9,11 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@bitgo/blake2b": "^3.2.1",
     "@fleet-sdk/core": "^0.1.0-alpha.6",
     "@react-three/drei": "^9.2.0",
     "@react-three/fiber": "^8.0.10",
     "@react-three/postprocessing": "^2.3.2",
     "@shopify/react-web-worker": "^5.0.6",
+    "blake2b": "^2.1.4",
     "camera-controls": "^1.34.2",
     "crc": "^4.1.1",
     "crypto-js": "^4.1.1",

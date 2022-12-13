@@ -20,7 +20,8 @@ import { ImagePicker } from './components/UI/ImagePicker';
 
 export const HomePage = (props ={}) => {
                  
-  
+    const localDirectory = useZust((state) => state.localDirectory)
+
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
@@ -35,7 +36,7 @@ export const HomePage = (props ={}) => {
 
 
     const [subDirectory, setSubDirectory] = useState("")
-
+    const [subSubDirectory, setSubSubDirectory] = useState("")
     const location = useLocation();
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
@@ -79,7 +80,10 @@ export const HomePage = (props ={}) => {
             const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
            
             setSubDirectory(sD)
-            
+
+            const ssD = subLocation.slice(thirdSlash, subLocation.length)
+            setSubSubDirectory(ssD)
+
             switch(sD)
             {
                 case "/localstorage":
@@ -103,7 +107,7 @@ export const HomePage = (props ={}) => {
 
         const fileInfo = {
             name: file.name, 
-            crc: file.crc, 
+            hash: file.hash, 
             size: file.size, 
             type: file.type, 
             mimeType: file.mimeType, 
@@ -200,7 +204,7 @@ export const HomePage = (props ={}) => {
                             </div>
                         </div>
                  
-                    {subDirectory == "/localstorage" &&
+                    {subDirectory == "/localstorage" && localDirectory.handle != null &&
                     <div style={{marginLeft:30}}>
                     {imagesDirectory.handle != null &&
                      
@@ -240,6 +244,82 @@ export const HomePage = (props ={}) => {
                         </div>
                    
                             }
+
+                            <div onClick={(e) => { navigate("/home/localstorage/assets") }} className={styles.result}
+                                style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                                <ImageDiv netImage={{ filter: subDirectory == "/assets" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/albums-outline.svg" }} width={25} height={25} />
+
+                                <div style={{ paddingLeft: "10px", color: subDirectory == "/assets" ? "white" : "" }} >
+                                    Assets
+                                </div>
+                            </div>
+                            {subSubDirectory == "/assets" &&
+                            <div style={{ marginLeft: 10 }} >
+
+                                    <div onClick={(e) => { navigate("/home/localstorage/assets/pcs") }} className={styles.result}
+                                    style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                                    <ImageDiv netImage={{ filter: props.currentLocation == "/home/localstorage/assets/pcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/man-outline.svg" }} width={25} height={25} />
+
+                                    <div style={{ paddingLeft: "10px", color: props.currentLocation == "/home/localstorage/assets/pcs" ? "white" : "" }} >
+                                        Playable Characters
+                                    </div>
+                                </div>
+
+                                    <div onClick={(e) => { navigate("/home/localstorage/assets/npcs") }} className={styles.result}
+                                    style={{
+                                        padding: 5,
+                                        display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                    }}>
+                                    <ImageDiv netImage={{ filter: props.currentLocation == "/home/localstorage/assets/npcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/paw-outline.svg" }} width={25} height={25} />
+
+                                    <div style={{ paddingLeft: "10px", color: props.currentLocation == "/home/localstorage/assets/npcs" ? "white" : "" }} >
+                                        Non-Playable Characters
+                                    </div>
+                                </div>
+
+                                <div onClick={(e) => { navigate("/home/localstorage/assets/placeables") }} className={styles.result} style={{
+                                    padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                }}>
+                                    <ImageDiv netImage={{ filter: props.currentLocation == "/home/localstorage/assets/placeables" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/cube-outline.svg" }} width={25} height={25} />
+
+                                    <div style={{ paddingLeft: "10px", color: props.currentLocation == "/home/localstorage/assets/placeables" ? "white" : "" }} >
+                                        Placeable Models
+                                    </div>
+                                </div>
+
+                                <div onClick={(e) => { navigate("/home/localstorage/assets/textures") }} className={styles.result} style={{
+                                    padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                }}>
+                                    <ImageDiv netImage={{ filter: props.currentLocation == "/home/localstorage/assets/textures" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/images-outline.svg" }} width={25} height={25} />
+
+                                    <div style={{ paddingLeft: "10px", color: props.currentLocation == "/home/localstorage/assets/textures" ? "white" : "" }} >
+                                        Textures
+                                    </div>
+                                </div>
+
+                                <div onClick={(e) => { navigate("/home/localstorage/assets/terrain") }} className={styles.result} style={{
+                                    padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                }}>
+                                    <ImageDiv netImage={{ filter: props.currentLocation == "/home/localstorage/assets/terrain" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/earth-outline.svg" }} width={25} height={25} />
+
+                                    <div style={{ paddingLeft: "10px", color: props.currentLocation == "/home/localstorage/assets/terrain" ? "white" : "" }} >
+                                        Terrain
+                                    </div>
+                                </div>
+
+                                <div onClick={(e) => { navigate("/home/localstorage/assets/types") }} className={styles.result} style={{
+                                    padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                }}>
+                                    <ImageDiv netImage={{ filter: props.currentLocation == "/home/localstorage/assets/types" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/shapes-outline.svg" }} width={25} height={25} />
+
+                                    <div style={{ paddingLeft: "10px", color: props.currentLocation == "/home/localstorage/assets/types" ? "white" : "" }} >
+                                        Types
+                                    </div>
+                                </div>
+
+                            </div>
+                            }
+
                             {cachesDirectory.handle != null &&
                                 
                                 <div onClick={(e) => { navigate("/home/localstorage/cache") }} style={{ color: location.pathname == "/home/localstorage/cache" ? "white" : "#777171", paddingLeft: 10, display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >

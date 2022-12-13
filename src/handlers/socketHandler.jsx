@@ -189,15 +189,15 @@ export const SocketHandler = (props = {}) => {
                         socketCmd.callback(response)
                     })
                     break;
-                case "checkStorageCRC":
+                case "checkStorageHash":
                 
-                    sock.current.value.emit("checkStorageCRC", socketCmd.params.crc, (response) =>{
+                    sock.current.value.emit("checkStorageHash", socketCmd.params.hash, (response) =>{
                         socketCmd.callback(response)
                     })
                     break;
              
-                case "checkFileCRC":
-                    sock.current.value.emit("checkFileCRC", socketCmd.params.crc, (response) => {
+                case "checkFileHash":
+                    sock.current.value.emit("checkFileHash", socketCmd.params.hash, (response) => {
                         socketCmd.callback(response)
                     }) 
                     break;

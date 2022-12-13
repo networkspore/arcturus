@@ -22,7 +22,7 @@ export const PeerNetworkMenu = (props ={}) =>{
                                 to: "/home/peernetwork/downloads", 
                                 name: "Downloads", 
                                 type: "folder", 
-                                crc: "", 
+                                hash: "", 
                                 lastModified: null, 
                                 size: null, 
                                 netImage: {scale:.5, opacity: .7, backgroundColor: "", image: "/Images/icons/cloud-download-outline.svg", filter: "invert(100%)" } 
@@ -31,7 +31,7 @@ export const PeerNetworkMenu = (props ={}) =>{
                                 to: "/home/peernetwork/uploads",
                                 name: "Uploads",
                                 type: "folder",
-                                crc: "",
+                                hash: "",
                                 lastModified: null,
                                 size: null,
                                 netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/cloud-upload-outline.svg", filter: "invert(100%)" }

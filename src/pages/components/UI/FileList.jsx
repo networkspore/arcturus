@@ -151,7 +151,7 @@ const FileList = (props = {}, ref) => {
                     const iModified = formatedNow(new Date(file.lastModified));
                     
                     const iType = ("type" in file) ? file.type : "";
-                    const iCrc = file.crc;
+                    const iHash = file.hash;
                     const iTo = "to" in file ? file.to : null
                     const iHandle = file.handle;
                     const iIcon = ("icon" in file) ? file.icon : "/Images/icons/document-outline.svg";
@@ -255,7 +255,7 @@ const FileList = (props = {}, ref) => {
                                         }
                                     </div>
                                     <div style={{ flex: 0.2, color: "#888888", }}>{mimeType}</div>
-                                    <div style={{ flex: 0.2, color: "#888888", }}>{iCrc}</div>
+                                    <div style={{ flex: 0.2, color: "#888888", }}>{iHash}</div>
                                     <div style={{ flex: 1, color: "white", }}>{iName}</div>
                                     <div style={{ flex: 0.3, color: "#888888", }}>{iModified}</div>
                                     <div style={{ flex: 0.3, color: "#888888", }}>{iSize}</div>
@@ -305,11 +305,11 @@ const FileList = (props = {}, ref) => {
         ref,
         () => ({
             getName: files == null ? "" : selectedIndex == -1 ? "" : files[selectedIndex] === undefined ? "" : files[selectedIndex].name,
-            getCrc: files == null ? -1 : selectedIndex == -1 ? -1 : files[selectedIndex] === undefined ? -1 : files[selectedIndex].crc,
-            setByCrc: (crc) => {
+            getCrc: files == null ? -1 : selectedIndex == -1 ? -1 : files[selectedIndex] === undefined ? -1 : files[selectedIndex].hash,
+            setByCrc: (hash) => {
 
 
-                setSelectedCrc(crc)
+                setSelectedCrc(hash)
             },
             setSelectedIndex: (value) => {
                 if (value == -1 || value == null || value === undefined) {
@@ -317,7 +317,7 @@ const FileList = (props = {}, ref) => {
                 } else if (value > -1) {
                     if (files != null) {
                         if (files.length > 0) {
-                            setSelectedCrc(files[Number(value)].crc)
+                            setSelectedCrc(files[Number(value)].hash)
                         }
                     }
                 }

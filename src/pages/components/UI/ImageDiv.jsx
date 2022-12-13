@@ -69,11 +69,11 @@ export const ImageDiv = (props = {}) => {
 
                 switch (response.request.command){
                     case "getIcon":
-                        setUpdated({ success: true, url: response.file.icon, crc: response.file.crc })
+                        setUpdated({ success: true, url: response.file.icon, hash: response.file.hash })
                     break;
                     case "getImage":
                         
-                        setUpdated({ success: true, url: response.file.value, crc: response.file.crc })
+                        setUpdated({ success: true, url: response.file.value, hash: response.file.hash })
                         break;
                 }
             } else if ("downloading" in response) {
@@ -139,11 +139,11 @@ export const ImageDiv = (props = {}) => {
         {
             const update = props.netImage.update
 
-            if (prevCRC.current.value != null && update.file != null && update.file.crc != null && update.file.crc != prevCRC.current.value){
+            if (prevCRC.current.value != null && update.file != null && update.file.hash != null && update.file.hash != prevCRC.current.value){
                 setUpdated(null)
-                prevCRC.current.value = update.file.crc
-            } else if (update.file != undefined && update.file.crc != null){
-                prevCRC.current.value = update.file.crc
+                prevCRC.current.value = update.file.hash
+            } else if (update.file != undefined && update.file.hash != null){
+                prevCRC.current.value = update.file.hash
             }else{
                 prevCRC.current.value = null
             }

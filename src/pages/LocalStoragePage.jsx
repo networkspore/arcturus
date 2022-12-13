@@ -190,7 +190,7 @@ export const LocalStoragePage = () => {
                 getFileInfo(handle, dirHandle).then((file) => {
 
                     setSocketCmd({
-                        cmd: "checkUserStorageCRC", params: { crc: file.crc }, callback: (callback) => {
+                        cmd: "checkUserStorageHash", params: { hash: file.hash }, callback: (callback) => {
                         if ("error" in callback) {
                             addSystemMessage(initStorage)
                             navigate("/home/localstorage/init")
@@ -476,10 +476,10 @@ export const LocalStoragePage = () => {
                 {showIndex == 0 && configFile.handle != null &&
                     
                         <FileList className={styles.bubbleButtonLink} longClassName={styles.bubbleButtonLinkScroll}  fileView={{type:"icons",direction:"row", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
-                                { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", crc: "", lastModified: null, size: null, netImage: {opacity:.7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
-                        { to: "/home/localstorage/models", name: "models", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                        { to: "/home/localstorage/media", name: "media", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                        { to: "/home/localstorage/cache", name: "cache", type: "folder", crc: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", hash: "", lastModified: null, size: null, netImage: {opacity:.7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
+                        { to: "/home/localstorage/models", name: "models", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                        { to: "/home/localstorage/media", name: "media", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                        { to: "/home/localstorage/cache", name: "cache", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         ]} />
                   
                 }

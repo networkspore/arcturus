@@ -294,7 +294,7 @@ export const PeerNetworkHandler = (props ={}) => {
                     const index = processingUpload.current.value.findIndex(pDL => pDL.id == uploadID)
 
                     if (index != -1) {
-                        const fileCRC = upload.request.file.crc;
+                        const fileHash = upload.request.file.hash;
                         
                         const peerID = upload.peerID
 
@@ -336,15 +336,15 @@ export const PeerNetworkHandler = (props ={}) => {
                             }
                             
                         }
-                        const uploadFileIndex = processingUpload.current.value.findIndex(pUp => pUp.request.file.crc == fileCRC)
+                        const uploadFileIndex = processingUpload.current.value.findIndex(pUp => pUp.request.file.hash == fileHash)
 
                         if(uploadFileIndex != -1)
                         {
-                          //  const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
+                          //  const fileIndex = uploadFiles.current.value.findIndex(files => files.hash == fileHash)
 
                          //   uploadFiles.current.value.splice(fileIndex, 1)
                           
-                            const uploadFileIndex = uploadFiles.current.value.findIndex(file => file.crc == fileCRC)
+                            const uploadFileIndex = uploadFiles.current.value.findIndex(file => file.hash == fileHash)
                             
                             if(uploadFileIndex != -1)
                             {
@@ -400,12 +400,12 @@ export const PeerNetworkHandler = (props ={}) => {
       
         const length = processingUpload.current.value.length;
         
-        const index = length > 0 ? processingUpload.current.value.findIndex(up => up.request.file.crc == request.file.crc && up.userID == upload.userID) : -1
+        const index = length > 0 ? processingUpload.current.value.findIndex(up => up.request.file.hash == request.file.hash && up.userID == upload.userID) : -1
 
         if(index == -1)
         {
             console.log("starting upload")
-            worker.generateCode(user.userEmail + request.file.crc).then((id)=>{
+            worker.generateCode(user.userEmail + request.file.hash).then((id)=>{
 
                 let newUpload = {
                     id: id,
@@ -422,7 +422,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
                 const downloadTicket = { id: id, peerID: peerID }
 
-                const fileIndex = uploadFiles.current.value.findIndex(f => f.crc == request.file.crc)
+                const fileIndex = uploadFiles.current.value.findIndex(f => f.hash == request.file.hash)
 
         
                 if (fileIndex == -1) {
@@ -482,7 +482,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
             console.log(peerID)
 
-            const index = processingDownload.current.value.findIndex(dl => dl.request.file.crc == download.request.file.crc)
+            const index = processingDownload.current.value.findIndex(dl => dl.request.file.hash == download.request.file.hash)
         
         
             if (index == -1) {
@@ -551,8 +551,8 @@ export const PeerNetworkHandler = (props ={}) => {
 
                 peerDataConnections.current.value.push(dataConnection)
 
-             //   const fileCRC = upload.request.file.crc;
-             //   const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
+             //   const fileHash = upload.request.file.hash;
+             //   const fileIndex = uploadFiles.current.value.findIndex(files => files.hash == fileHash)
 
 
 
@@ -562,7 +562,7 @@ export const PeerNetworkHandler = (props ={}) => {
                     {
 
                         const fileRequestID = data.id
-                        const fileCRC = data.fileCRC
+                        const fileHash = data.fileHash
                         const upIndex = processingUpload.current.value.findIndex(up => up.id == fileRequestID)
 
                         if(upIndex == -1){
@@ -574,7 +574,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
                             const nextUpload = processingUpload.current.value[upIndex]
                           
-                            const fileIndex = uploadFiles.current.value.findIndex(files => files.crc == fileCRC)
+                            const fileIndex = uploadFiles.current.value.findIndex(files => files.hash == fileHash)
 
                             if (fileIndex == -1 && nextUpload.peerID != peerID && nextUpload.status != "Waiting") {
 
@@ -655,7 +655,7 @@ export const PeerNetworkHandler = (props ={}) => {
                                         const id = peerResponse.id
                                         const peerID = peerResponse.peerID
                                         const file = request.file
-                                        const fileCRC = file.crc
+                                        const fileHash = file.hash
                                       //  const fileName = file.name
                                         
                                         const dataConnectionIndex = peerDataConnections.current.value.findIndex(dataC => dataC.peer == peerID)
@@ -672,7 +672,7 @@ export const PeerNetworkHandler = (props ={}) => {
                                                 updatePeerDownloadStatus(downloadID, "Downloading")
 
                                                 
-                                                dataConnection.send({command:"requestFile", fileCRC: fileCRC, id:id})
+                                                dataConnection.send({command:"requestFile", fileHash: fileHash, id:id})
                                                 
                                             }
                     
@@ -748,10 +748,11 @@ export const PeerNetworkHandler = (props ={}) => {
         return new Promise(resolve => {
             const file = data.file
             const id = data.id
-            const fileCRC = file.crc
+            const fileHash = file.hash
             const fileName = file.name
+            const fileID = file.fileID
 
-            const index = processingDownload.current.value.findIndex(pDl => pDl.request.file.crc == fileCRC)
+            const index = processingDownload.current.value.findIndex(pDl => pDl.request.file.hash == fileHash)
             console.log(index)
             console.log(processingDownload.current.value)
             if(index != -1)
@@ -760,13 +761,12 @@ export const PeerNetworkHandler = (props ={}) => {
                 console.log(download)
                 
                 const fileData = file.data
-
-                worker.crc32FromArrayBufferAsync(fileData).then((crc) => {
-                    if (fileCRC == crc) {
+                worker.getChunkHash(fileData).then((hash) => {
+                    if (fileHash == hash) {
 
                         dataConnection.send({ fileRecieved: true, id: id})
 
-                        worker.cacheFile(localDirectory.handle, fileData, crc, fileName).then((cacheFile) => {
+                        worker.cacheFile(localDirectory.handle, fileData, fileID, fileName).then((cacheFile) => {
                             if (cacheFile == undefined) {
                                 const err = new Error("Write failed")
                                 updatePeerDownloadStatus(download.id, "Error")
@@ -784,7 +784,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
 
                     } else {
-                        const err = new Error("Wrong CRC")
+                        const err = new Error("Wrong Hash")
                         updatePeerDownloadStatus(download.id, "Error")
                         dataConnection.send({error: err, id: id})
                         throw err

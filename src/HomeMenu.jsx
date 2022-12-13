@@ -56,6 +56,20 @@ const HomeMenu = () => {
 
     const setMediaFiles = useZust((state) => state.setMediaFiles)
 
+    const setAssetsDirectory = useZust((state) => state.setAssetsDirectory)
+    const setPcsDirectory = useZust((state) => state.setPcsDirectory)
+    const setNpcsDirectory = useZust((state) => state.setNpcsDirectory)
+    const setTexturesDirectory = useZust((state) => state.setTexturesDirectory)
+    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory)
+    const setPlaceablesDirectory = useZust((state) => state.setPlaceablesDirectory)
+    const setTypesDirectory = useZust((state) => state.setTypesDirectory)
+
+    const setTypesFiles = useZust((state) => state.setTypesFiles)
+    const setPlaceablesFiles = useZust((state) => state.setPlaceablesFiles)
+    const setPcsFiles = useZust((state) => state.setPcsFiles)
+    const setNpcsFiles = useZust((state) => state.setNpcsFiles)
+    const setTexturesFiles = useZust((state) => state.setTexturesFiles)
+    const setTerrainFiles = useZust((state) => state.setTerrainFiles)
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
@@ -237,16 +251,16 @@ const HomeMenu = () => {
 
          
             setSocketCmd({
-                cmd: "checkStorageCRC", params: { crc: fileInfo.crc }, callback: (crcResult) => {
+                cmd: "checkStorageHash", params: { hash: fileInfo.hash }, callback: (hashResult) => {
                
-                    if ("success" in crcResult && crcResult.success) {
+                    if ("success" in hashResult && hashResult.success) {
                         readFileJson(handle).then((jsonResult) => {
                             
                             if ("success" in jsonResult && jsonResult.success) {
                                 const json = jsonResult.value;
                                 fileInfo.value = json[user.userName];
-                                fileInfo.fileID = crcResult.fileID;
-                                fileInfo.storageID = crcResult.storageID;
+                                fileInfo.fileID = hashResult.fileID;
+                                fileInfo.storageID = hashResult.storageID;
 
                                 navigate("/loading", { state: { configFile: fileInfo, navigate: "/" } })
                                 return true
@@ -258,7 +272,7 @@ const HomeMenu = () => {
                             
                         })
                     } else {
-                        console.log("CRC check failed")
+                        console.log("Hash check failed")
                       
                         return false
                     }
@@ -406,7 +420,7 @@ const HomeMenu = () => {
 
         if (userHomeFiles.length > 0) {
             setSocketCmd({
-                cmd: "checkUserFiles", params: { crcs: crcs }, callback: (results) => {
+                cmd: "checkUserFiles", params: { hashs: hashs }, callback: (results) => {
 
                     if (!("error" in results)) {
                         if (results.success) {
@@ -445,57 +459,83 @@ const HomeMenu = () => {
 
 
             const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
-
-            const granted = await getPermissionAsync(imageHandle)
-
-
-
-            const images = granted ? await worker.getFirstDirectoryFiles(imageHandle, "image", config.folders.images.fileTypes) : null;
+            const images = await worker.getFirstDirectoryFiles(imageHandle, "image", config.folders.images.fileTypes);
 
 
 
             const modelsHandle = config.folders.models.default ? await localDirectory.handle.getDirectoryHandle("models", { create: true }) : await get("models" + engineKey);
 
-            const modelsGranted = await getPermissionAsync(modelsHandle)
-
-
-            const models = modelsGranted ? await worker.getFirstDirectoryFiles(modelsHandle, "model", config.folders.models.fileTypes) : null;
+            const models =  await worker.getFirstDirectoryFiles(modelsHandle, "model", config.folders.models.fileTypes) ;
 
 
             const realmsHandle =  await localDirectory.handle.getDirectoryHandle("realms", { create: true });
 
-          //  const realmsGranted = await getPermissionAsync(realmsHandle)
-
-
-
             const mediaHandle = config.folders.media.default ? await localDirectory.handle.getDirectoryHandle("media", { create: true }) : await get("media" + engineKey);
 
-            const mediaGranted = await getPermissionAsync(mediaHandle)
-
-
-            const media = mediaGranted ? await worker.getFirstDirectoryFiles(mediaHandle, "media", config.folders.media.fileTypes) : null;
+            const media = await worker.getFirstDirectoryFiles(mediaHandle, "media", config.folders.media.fileTypes);
             
+            const assetsHandle = await localDirectory.handle.getDirectoryHandle("assets", {create: true})
+           
+
+            const typesHandle = await assetsHandle.getDirectoryHandle("types", { create: true })
+            const types = await worker.getFirstDirectoryFiles(typesHandle, "arctype", ["arctype"])
+
+            const pcsHandle = await assetsHandle.getDirectoryHandle("pcs", { create: true })
+            const pcs = await worker.getFirstDirectoryFiles(pcsHandle, "arcpc", ["arcpc"])
+
+            const npcsHandle = await assetsHandle.getDirectoryHandle("npcs", { create: true })
+            const npcs = await worker.getFirstDirectoryFiles(npcsHandle, "arcnpc", ["arcnpc"])
+
+            const placeablesHandle = await assetsHandle.getDirectoryHandle("placeables", { create: true })
+            const placeables = await worker.getFirstDirectoryFiles(placeablesHandle, "arcpl", ["arcpl"])
+
+            const texturesHandle = await assetsHandle.getDirectoryHandle("textures", { create: true })
+            const textures = await worker.getFirstDirectoryFiles(texturesHandle, "arctex", ["arctex"])
+
+            const terrainHandle = await assetsHandle.getDirectoryHandle("terrain", { create: true })
+            const terrain = await worker.getFirstDirectoryFiles(terrainHandle, "arcterr", ["arcterr"])
+
+           
+            setAssetsDirectory({ name: "assets", handle: assetsHandle })
+
+            setTypesDirectory({ name: "types", handle: typesHandle, directories: types.directories })
+            setTypesFiles(types.files)
+
+            setPcsDirectory({ name: "pcs", handle: pcsHandle, directories: pcs.directories })
+            setPcsFiles(pcs.files)
+
+            setNpcsDirectory({ name: "npcs", handle: npcsHandle, directories: npcs.directories })
+            setNpcsFiles(npcs.files)
+
+            setTexturesDirectory({ name: "textures", handle:texturesHandle, directories: textures.directories })
+            setTexturesFiles(textures.files)
+
+            setPlaceablesDirectory({ name: "placeables", handle: placeablesHandle, directories: placeables.directories })
+            setPlaceablesFiles(placeables.files)
+        
+
+            setTerrainDirectory({ name: "terrain", handle: terrainHandle, directories: terrain.directories })
+            setTerrainFiles(terrain.files)
           
             setCachesDirectory({name: "cache", handle: cacheHandle, directories: caches.directories})
             setCacheFiles(caches.files)
            
-            if (images != null) {
-                setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
-                setImagesFiles(images.files)
+          
+            setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
+            setImagesFiles(images.files)
 
-            }
-            if (models != null) {
-                setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
-                setModelsFiles(models.files)
-            }
-            if (realms != null) {
-                setRealmsDirectory({ name: realmsHandle.name, handle: realmsHandle })
-               
-            }
-            if (media != null) {
-                setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories })
-                setMediaFiles(media.files)
-            }
+        
+
+            setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
+            setModelsFiles(models.files)
+    
+            setRealmsDirectory({ name: realmsHandle.name, handle: realmsHandle })
+        
+            setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories })
+            setMediaFiles(media.files)
+         
+
+
         } catch (err) {
             console.log(err)
             return false

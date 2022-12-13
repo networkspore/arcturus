@@ -138,7 +138,7 @@ export const RealmCreatePage = (props = {}) =>{
         const img = imagesFiles[e];
 
         if(img != undefined){
-            if("crc" in img)
+            if("hash" in img)
             {
      
 

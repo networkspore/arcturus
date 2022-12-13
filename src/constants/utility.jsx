@@ -2,6 +2,7 @@ import CryptoJS from "crypto-js";
 import  SHA512  from "crypto-js/sha512";
 import MD5 from "crypto-js/md5";
 import WordArray from "crypto-js/lib-typedarrays";
+import blake2b from 'blake2b'
 
 import { get, set, update } from "idb-keyval";
 
@@ -88,7 +89,9 @@ function getRandomIntSFC(min, max, sfc) {
 }
 
 export async function generateCode(word = "") {
-    word = word.concat(formatedNow(new Date(),false))
+    const dateString = formatedNow(new Date(), false)
+
+    word = word.concat(dateString)
 
     const wordArrString = WordArray.random(getRandomIntSync(20, 30,word)).toString()
     word =  word.concat( wordArrString)
@@ -104,11 +107,15 @@ export async function generateCode(word = "") {
     }
     let code = ""
     
-    for (let i = 0; i < 40 ; i ++)
+    for (let i = 0; i < 20 ; i ++)
     {
         const char =  String.fromCharCode(getRandomIntSFC(33, 126, SFC))
         code = code.concat(char)
     }
+
+    const md5 = MD5(dateString)
+
+    code.concat(md5)
 
     return code
 
@@ -343,7 +350,7 @@ export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
 
             const typeIndex = allFileTypes.findIndex(fileTypes => fileTypes == ext)
 
-            const newFile = typeIndex != -1 ? await getAllFileInfo(entry, dirHandle) : null
+            const newFile = typeIndex != -1 ? await getFileInfo(entry, dirHandle) : null
 
             if (newFile != null) {
                 push(newFile)
@@ -413,9 +420,51 @@ export async function getDirectoryFiles(dirHandle, type, fileTypes = [], pushFil
     return true;
 
 }
+export const getChunkHash = (data) =>{
+    
+    return new Promise(resolve => {
+        const hashLength = new Uint8Array(64).length
+
+        const hex = blake2b(hashLength).update(data).digest('hex')
+        resolve(hex)
+    })
+}
+
+export const getFileHash = (file) =>{
+    
+    return Promise(resolve => {
+
+        const hashLength = new Uint8Array(64).length
+        const size = file.size
+        const MB = 1048576
+        const chunkSize = (5 * MB)
+        const chunks = Math.ceil(size / chunkSize)
+
+        let hash = ""
+        let i = 0
+
+        async function getHashRecursive(){
+            const blob = await file.slice(i * chunkSize, (i+1) * chunkSize)
+            const input = await blob.arrayBuffer()
+
+            const hex = blake2b(hashLength).update(input).digest('hex')
+
+            hash.concat(hex + (i + 1) < chunks ? ":" : "")
+            i++
+
+            if(i < chunks){
+                getHashRecursive()
+            }else{
+                resolve(hash)
+            }
+        }
+
+        getHashRecursive()
+    })
+}
 
 
-export async function getAllFileInfo(entry, dirHandle) {
+export async function getFileInfo(entry, dirHandle) {
    
     return new Promise(resolve => {
      
@@ -423,33 +472,46 @@ export async function getAllFileInfo(entry, dirHandle) {
             
             const firstIndex = file.type.indexOf("/")
 
-            const fileType = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
+            const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
 
-            console.log(fileType)
+            const customTypes = ["arctype",
+            "arcpc",
+            "arcnpc",
+            "arcpl",
+            "arctex",
+            "arcterr"]
 
-            file.arrayBuffer().then((arrayBuffer) => {
+            const name = entry.name + "";
 
-                crc32FromArrayBuffer(arrayBuffer, (crc) => {
+            const lastIndex = name.lastIndexOf(".");
 
-                    get(crc + ".arcicon").then((iconInIDB) => {
+            const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
+
+            const fileType = customTypes.includes(ext) ? ext : type
+            
+
+            getFileHash(file).then((hash) => {
+
+                    get(hash + ".arcicon").then((iconInIDB) => {
                         if (iconInIDB == undefined && fileType == "image") {
                             getThumnailFile(file).then((dataUrl) => {
-                                set(crc + ".arcicon", dataUrl)
+                                set(hash + ".arcicon", dataUrl)
                             }).catch((err) => console.log(err))
                         }
                     }).catch((err) => {
                         console.log(err)
                     })
 
-                    resolve({ directory: dirHandle, mimeType: fileType, name: file.name, crc: crc, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
-                })
+                    resolve({ directory: dirHandle, mimeType: fileType, name: file.name, hash: hash, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
             })
+            
 
             
         })
        
     })
 }
+/*
 export async function getFileInfo(entry, dirHandle, type) {
 
     return new Promise(resolve => {
@@ -474,7 +536,7 @@ export async function getFileInfo(entry, dirHandle, type) {
             })
         })
     })
-}
+}*/
 
 export async function getJsonFile(fileHandle){
 
@@ -499,9 +561,9 @@ export async function getJsonFile(fileHandle){
 
 }
 
-export async function cacheFile(localDirectoryHandle, fileData, crc, name) {
+export async function cacheFile(localDirectoryHandle, fileData, fileID, name) {
     try {
-        const fileName = `(${crc}) ${name}`;
+        const fileName = `(${fileID}) ${name}`;
     
         console.log(localDirectoryHandle)
 
@@ -509,7 +571,7 @@ export async function cacheFile(localDirectoryHandle, fileData, crc, name) {
 
         const newHandle = await writeFileData(cacheHandle, fileName, fileData)
 
-        const fileinfo = await getAllFileInfo(newHandle, cacheHandle)
+        const fileinfo = await getFileInfo(newHandle, cacheHandle)
 
         return fileinfo
 
@@ -545,9 +607,6 @@ export async function getFileData(localFile){
 
     const data = await file.arrayBuffer()
 
-    const crc = await crc32FromArrayBufferAsync(data)
-
-    if (crc != localFile.crc) throw new Error("File corrupt")
     return data;
 }
 

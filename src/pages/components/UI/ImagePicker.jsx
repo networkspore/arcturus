@@ -67,7 +67,7 @@ export const ImagePicker = (props ={}) =>{
 
     useEffect(()=>{
         props.selectedImage
-        if( props.selectedImage != undefined && props.selectedImage.crc != null)
+        if( props.selectedImage != undefined && props.selectedImage.hash != null)
         {
            
             const userImage = props.selectedImage
@@ -123,7 +123,7 @@ export const ImagePicker = (props ={}) =>{
         const img = imagesFiles[e];
 
         if (img != undefined) {
-            if ("crc" in img) {
+            if ("hash" in img) {
               
                 setImageSelected(img)
 

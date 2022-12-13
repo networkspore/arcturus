@@ -32,7 +32,7 @@ export const PeerUploadPage = (props = {}) =>{
                 let iIcon = "/Images/icons/images-outline.svg"
                
                 const mimeType = file.mimeType;
-                const iCrc = file.crc
+                const iHash = file.hash
                 const iName = file.name
                 const iSize = formatBytes(file.size)
                 const complete = uploadItem.complete
@@ -40,7 +40,7 @@ export const PeerUploadPage = (props = {}) =>{
                 const uncompletePercent = complete == 0 ? 0 : (complete * 100) +"%"
                 const status = uploadItem.status
                 upList.push(
-                      <div key={iCrc} style={{ display:"flex", alignItems:"center", justifyContent:"start", paddingTop:20 }}>
+                      <div key={iHash} style={{ display:"flex", alignItems:"center", justifyContent:"start", paddingTop:20 }}>
                         <div style={{ flex: .05, display: "flex", justifyContent: "center", }}>
                                 <ImageDiv style={{ borderRadius: 5, overflow: "hidden" }} width={20} height={20} netImage={{ image: iIcon, filter:"invert(100%)" }} />
                             </div>
@@ -60,7 +60,7 @@ export const PeerUploadPage = (props = {}) =>{
                             
                         <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{mimeType}</div>
                         <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{iSize}</div>
-                        <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{iCrc}</div>
+                        <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{iHash}</div>
                             
                            
                             

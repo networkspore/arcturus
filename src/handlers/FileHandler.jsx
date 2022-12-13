@@ -68,7 +68,7 @@ export const FileHandler = ( props = {}) =>{
            
                 fileRequest.forEach((request, i) => {
                   
-                    if (request.file != null && request.file.crc != null && request.file.crc != "" && request.file.mimeType != null) {
+                    if (request.file != null && request.file.hash != null && request.file.hash != "" && request.file.mimeType != null) {
 
                         if( addProcessing(request)){
                      
@@ -219,13 +219,13 @@ export const FileHandler = ( props = {}) =>{
     const makeDownloadRequest = (request) => {
         return new Promise(resolve => {
             const fileID = request.file.fileID;
-            const crc = request.file.crc
-            if (fileID != undefined && fileID != null && fileID > -1 && crc != null) {
+            const hash = request.file.hash
+            if (fileID != undefined && fileID != null && fileID > -1 && hash != null) {
                 
                 
 
                 const newDownload = {
-                    crc: crc, request: request, complete: 0, status: ""
+                    hash: hash, request: request, complete: 0, status: ""
                 }
             
                 setDownloadRequest({download:newDownload, callback:(downloadID) => {
@@ -246,7 +246,7 @@ export const FileHandler = ( props = {}) =>{
         try{
         
         const dataURL = await worker.getImageHandleDataURL(localFile);
-        set(localFile.crc + ".arcimage", dataURL)
+        set(localFile.hash + ".arcimage", dataURL)
         const objNames = Object.getOwnPropertyNames(request.file)
         let newFile = {}
         objNames.forEach(name => {
@@ -274,7 +274,7 @@ export const FileHandler = ( props = {}) =>{
 
             const dataURL = await worker.getThumnailFile(await localFile.handle.getFile())
 
-            set(localFile.crc + ".arcicon", dataURL)
+            set(localFile.hash + ".arcicon", dataURL)
 
             const objNames = Object.getOwnPropertyNames(request.file)
             let newFile = {}
@@ -301,13 +301,13 @@ export const FileHandler = ( props = {}) =>{
         switch(request.file.mimeType)
         {
             case "image":
-                const imgIndex = imagesFiles.findIndex(iFile => iFile.crc == request.file.crc)
+                const imgIndex = imagesFiles.findIndex(iFile => iFile.hash == request.file.hash)
                 
                 if(imgIndex != -1) return imagesFiles[imgIndex]
 
               
 
-                const cacheIndex = cacheFiles.findIndex(file => file.crc == request.file.crc)
+                const cacheIndex = cacheFiles.findIndex(file => file.hash == request.file.hash)
             
                 return cacheIndex == -1 ? undefined : cacheFiles[cacheIndex]
 
@@ -326,7 +326,7 @@ export const FileHandler = ( props = {}) =>{
             
             const data = await worker.getFileData(localFile)
 
-            set(localFile.crc + ".arcdata", data)
+            set(localFile.hash + ".arcdata", data)
 
             const objNames = Object.getOwnPropertyNames(request.file)
             let newFile = {}
@@ -362,7 +362,7 @@ export const FileHandler = ( props = {}) =>{
             switch (request.command)
             {
                 case "getFile":
-                    get(request.file.crc + ".arcdata").then((imageData) =>{
+                    get(request.file.hash + ".arcdata").then((imageData) =>{
                         if(imageData != undefined)
                         {
                             const objNames = Object.getOwnPropertyNames(request.file)
@@ -385,7 +385,7 @@ export const FileHandler = ( props = {}) =>{
                    
                     break;
                 case "getIcon":
-                    get(request.file.crc + ".arcicon").then((iconDataURL) => {
+                    get(request.file.hash + ".arcicon").then((iconDataURL) => {
 
                         if (iconDataURL != undefined) {
 
@@ -411,7 +411,7 @@ export const FileHandler = ( props = {}) =>{
                     })
                     break;
                 case "getImage":
-                    get(request.file.crc + ".arcimage").then((iconDataURL) => {
+                    get(request.file.hash + ".arcimage").then((iconDataURL) => {
                         if (iconDataURL != undefined) {
                             const objNames = Object.getOwnPropertyNames(request.file)
                             let newFile = {}
@@ -443,7 +443,6 @@ export const FileHandler = ( props = {}) =>{
     
     }
 
-    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
 
 
