@@ -5,6 +5,7 @@ import useZust from "../hooks/useZust";
 
 import styles from './css/home.module.css';
 import sha256 from "crypto-js/sha256";
+import { getStringHash } from "../constants/utility";
 
 
 
@@ -65,12 +66,13 @@ const NewUserPage = (props = {}) => {
 
 
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
         setEnabled(false);
-        var shapass = sha256(pass).toString();
 
-        callback({ userName: name, userPass: shapass, userEmail: newEmail })
+        var hashpass = await getStringHash(pass);
+
+        callback({ userName: name, userPass: hashpass, userEmail: newEmail })
         
 
         
@@ -183,9 +185,11 @@ return (
                     width: 400, textAlign: "center", fontSize: "15px", backgroundColor: "black", fontFamily: "WebPapyrus"
 
                 }} placeholder="Re-enter password" type="password" onChange={event => handleChange(event)} />
-                        <div style={{ display: ((confirm.length > 7) && (confirm != pass)) ? "block" : "none"  }} className={styles.disclaimer}>Passwords must match</div>
+                        
                 </div>
+                <div style={{ display: ((confirm.length > 7) && (confirm != pass)) ? "flex" : "none", color:"#77777780", width:"100%", alignItems:"center", justifyContent:"center" }} className={styles.disclaimer}>Passwords must match</div>
             </div>
+           
 
             <div style={{ display: "flex", paddingTop: "20px", marginBottom: 30, alignItems: "center", justifyContent: "center", }} >
 
@@ -227,7 +231,7 @@ return (
                     paddingTop: "10px",
                     paddingBottom: "10px",
                 }}
-                    class={(name.length > 2 && pass.length > 7 && confirm == pass && refID > 0) ? styles.OKButton : ""}
+                    className={(name.length > 2 && pass.length > 7 && confirm == pass && refID > 0) ? styles.OKButton : ""}
 
                 > Confirm </div>
             </div>

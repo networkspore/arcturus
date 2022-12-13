@@ -6,6 +6,7 @@ import sha256 from 'crypto-js/sha256';
 import useZust from "../hooks/useZust";
 
 import { useRef } from "react";
+import { getStringHash } from "../constants/utility";
 
 
  const LoginPage = (props = {}) =>  {
@@ -77,6 +78,7 @@ import { useRef } from "react";
             setDisable(true);
             setSocketCmd({anonymous:true,
                 cmd: "login", params: { nameEmail: "anonymous" }, callback: (response) => {
+                    console.log(response)
                 if(!("error" in response)){
                     if(response.success)
                     {
@@ -93,9 +95,9 @@ import { useRef } from "react";
         
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        let pass = sha256(data.loginPass).toString();
+        let pass = await getStringHash(data.loginPass);
         login(data.loginName, pass);
     }
     
@@ -220,17 +222,7 @@ return (
                   
                 </div>
                 
-                <div style={{paddingLeft:20,}} name="loginRemember" className={styles.checkPos} >
-                    <div className={data.loginRemember ? styles.checked : styles.check} name="loginRemember" onClick={onLoginRemember} />
-                    <div onClick={onLoginRemember} style={
-                        {
-                            fontFamily:"WebPapyrus",
-                        cursor: "pointer", 
-                        color: (data.loginRemember) ? "#ffffffDD" : "#777777",
-                        textShadow: (data.loginRemember) ? "1px 1px 2px #000000" : "",
-                        
-                        }} >Keep me signed in.</div>
-                </div>
+                
                 <div style={{ width:"100%", display:"flex", justifyContent:"right"}}>
                     <div onClick={handleSubmit} style={{
                         textAlign: "center",

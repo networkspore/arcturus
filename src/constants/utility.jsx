@@ -102,20 +102,19 @@ export async function generateCode(word = "") {
 
   
     
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 50; i++) {
        SFC()
     }
     let code = ""
     
-    for (let i = 0; i < 20 ; i ++)
+    for (let i = 0; i < 45 ; i ++)
     {
         const char =  String.fromCharCode(getRandomIntSFC(33, 126, SFC))
         code = code.concat(char)
     }
 
-    const md5 = MD5(dateString)
+   
 
-    code.concat(md5)
 
     return code
 
@@ -430,9 +429,21 @@ export const getChunkHash = (data) =>{
     })
 }
 
+export const getStringHash = (string) =>{
+    return new Promise(resolve => {
+       const hashLength = new Uint8Array(64).length
+      
+       const input = Uint8Array.from(Array.from(string).map(letter => letter.charCodeAt(0))); 
+   
+       const hex = blake2b(hashLength).update(input).digest('hex')
+       
+       resolve(hex)
+    })
+}
+
 export const getFileHash = (file) =>{
     
-    return Promise(resolve => {
+    return new Promise(resolve => {
 
         const hashLength = new Uint8Array(64).length
         const size = file.size
@@ -440,15 +451,21 @@ export const getFileHash = (file) =>{
         const chunkSize = (5 * MB)
         const chunks = Math.ceil(size / chunkSize)
 
+        console.log(file)
         let hash = ""
         let i = 0
 
         async function getHashRecursive(){
-            const blob = await file.slice(i * chunkSize, (i+1) * chunkSize)
-            const input = await blob.arrayBuffer()
+            const chunkEnd = (i + 1) * chunkSize
+
+            const blob = await file.slice(i * chunkSize, chunkEnd > size ? size : chunkEnd )
+            console.log(blob)
+            const arrayBuffer = await blob.arrayBuffer()
+            console.log(arrayBuffer)
+            const input = new Uint8Array(arrayBuffer);
 
             const hex = blake2b(hashLength).update(input).digest('hex')
-
+           console.log(hex)
             hash.concat(hex + (i + 1) < chunks ? ":" : "")
             i++
 

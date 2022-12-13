@@ -48,15 +48,17 @@ const WelcomePage = () => {
     function handleChange(e) {
         const { name, value } = e.target;
         
-  
+   
         if(name == "email") {
            
             if (/.+@.+\.[A-Za-z]+$/.test(value))
            {
+                console.log("checkingEmail")
                 setSocketCmd({
                     anonymous: true,
                     cmd: "checkEmail", params: { text: value }, callback: (callback) => {
-                        if (!callback) {
+                    
+                        if (callback) {
                             setEmail(value);
                         } else {
                             setEmail("");
@@ -73,7 +75,7 @@ const WelcomePage = () => {
                 setSocketCmd({
                     anonymous: true,
                     cmd: "checkRefCode", params: { refCode: value }, callback: (callback) => {
-
+                        
                     if(callback > 0)
                     {
                         setValid(prev => true);
@@ -259,7 +261,7 @@ const WelcomePage = () => {
         </div>
         }
         {current ==2 &&
-            <NewUserPage socket={socket} newEmail={newEmail} refCode={refID} createUser={(newUser)=>createUser(newUser)}/>
+            <NewUserPage newEmail={newEmail} refCode={refID} createUser={(newUser)=>createUser(newUser)}/>
         }
         </>     
     )

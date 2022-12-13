@@ -31,6 +31,14 @@ export const LocalStoragePage = () => {
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
     const setCachesDirectory = useZust((state) => state.setCachesDirectory)
 
+    const setAssetsDirectory = useZust((state) => state.setAssetsDirectory)
+    const setPcsDirectory = useZust((state) => state.setPcsDirectory)
+    const setNpcsDirectory = useZust((state) => state.setNpcsDirectory)
+    const setTexturesDirectory = useZust((state) => state.setTexturesDirectory)
+    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory)
+    const setPlaceablesDirectory = useZust((state) => state.setPlaceablesDirectory)
+    const setTypesDirectory = useZust((state) => state.setTypesDirectory)
+
     const cacheFiles = useZust((state) => state.cacheFiles)
 
     const imagesFiles = useZust((state) => state.imagesFiles);
@@ -249,15 +257,19 @@ export const LocalStoragePage = () => {
             navigate("/home/localstorage/init")
     }
 }
-        
+    const clearSearch = () =>{
+        searchInputRef.current.value = ""
+        setCurrentDirectories([])
+        setCurrentFiles([])
+    }
     
 
 
-    async function turnOffLocalStorage(nav = "/home/localstorage"){
+    async function turnOffLocalStorage(){
        
         
         try{
-            setTerrainDirectory();
+            
 
             setImagesDirectory();
 
@@ -265,9 +277,15 @@ export const LocalStoragePage = () => {
 
             setMediaDirectory();
             setCachesDirectory()
-            setCurrentDirectories([])
             
-            setCurrentFiles([])
+            setAssetsDirectory()
+            setPcsDirectory()
+            setTexturesDirectory()
+            setTerrainDirectory()
+            setPlaceablesDirectory()
+            setTypesDirectory()
+
+            clearSearch()
 
             del("localDirectory" + user.userID).catch((err) => {console.log("no local directory in idb")})
             del(configFile.name + user.userID).catch((err) => {console.log("no configfile in idb")}) 
@@ -488,7 +506,7 @@ export const LocalStoragePage = () => {
                         close={()=>{
                             setShowIndex(0)
                         }} resetLocalStorage={()=>{
-                            turnOffLocalStorage("/home/localstorage/init")
+                            turnOffLocalStorage()
                         }}
                     />
                     }

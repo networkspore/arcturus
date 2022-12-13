@@ -539,7 +539,7 @@ export const InitStoragePage = (props = {}) => {
                                         </div>
                                         <div style={{ flex:1}}>  {engineKey} </div>
                                         {firstRun &&
-                                            <div onClick={onGenerateClick} style={{ paddingTop: 5, height: 10, fontSize: 14, width: 100 }} className={styles.OKButton} > Generate </div>
+                                            <div onClick={onGenerateClick} style={{paddingBottom:5, paddingTop: 5, height: 15, fontSize: 14, width: 100 }} className={styles.OKButton} > Generate </div>
                                         }
                                     </div>
 
