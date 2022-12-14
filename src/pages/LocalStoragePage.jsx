@@ -22,9 +22,16 @@ export const LocalStoragePage = () => {
 
     const cachesDirectory = useZust((state) => state.cachesDirectory)
    
+    const assetsDirectory = useZust((state) => state.assetsDirectory)
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const mediaDirectory = useZust((state) => state.mediaDirectory);
+    const pcsDirectory = useZust((state) => state.pcsDirectory)
+    const npcsDirectory = useZust((state) => state.npcsDirectory)
+    const texturesDirectory = useZust((state) => state.texturesDirectory)
+    const terrainDirectory = useZust((state) => state.terrainDirectory)
+    const placeablesDirectory = useZust((state) => state.placeablesDirectory)
+    const typesDirectory = useZust((state) => state.typesDirectory)
 
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
@@ -44,6 +51,14 @@ export const LocalStoragePage = () => {
     const imagesFiles = useZust((state) => state.imagesFiles);
     const modelsFiles = useZust((state) => state.modelsFiles);
     const mediaFiles = useZust((state) => state.mediaFiles);
+
+    const pcsFiles = useZust((state) => state.pcsFiles)
+    const npcsFiles = useZust((state) => state.npcsFiles)
+    const texturesFiles = useZust((state) => state.texturesFiles)
+    const terrainFiles = useZust((state) => state.terrainFiles)
+    const placeablesFiles = useZust((state) => state.placeablesFiles)
+    const typesFiles = useZust((state) => state.typesFiles)
+
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
 
@@ -127,38 +142,52 @@ export const LocalStoragePage = () => {
                         setShowIndex(2)
                         break;
                     case "/assets":
-                        setCurrentDirectories()
-                        setCurrentFiles()
+                        setCurrentDirectories([
+                            "pcs",
+                            "npcs",
+                            "placeables",
+                            "textures",
+                            "terrain",
+                            "types"
+                        ])
+                        setCurrentFiles([
+                            { to: "/home/localstorage/assets/pcs", name: "pcs",mimeType:"folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: "/home/localstorage/assets/npcs", name: "npcs", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: "/home/localstorage/assets/placeables", name: "placeables", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: "/home/localstorage/assets/textures", name: "textures", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: "/home/localstorage/assets/terrain", name: "terrain", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: "/home/localstorage/assets/types", name: "types", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                        ])
                         setShowIndex(2)
                         break;
                     case "/assets/pcs":
-                        setCurrentDirectories()
-                        setCurrentFiles()
+                        setCurrentDirectories(pcsDirectory.directories)
+                        setCurrentFiles(pcsFiles)
                         setShowIndex(2)
                         break;
                     case "/assets/npcs":
-                        setCurrentDirectories()
-                        setCurrentFiles()
+                        setCurrentDirectories(npcsDirectory.directories)
+                        setCurrentFiles(npcsFiles)
                         setShowIndex(2)
                         break;
                     case "/assets/placeables":
-                        setCurrentDirectories()
-                        setCurrentFiles()
+                        setCurrentDirectories(placeablesDirectory.directories)
+                        setCurrentFiles(placeablesFiles)
                         setShowIndex(2)
                         break;
                     case "/assets/textures":
-                        setCurrentDirectories()
-                        setCurrentFiles()
+                        setCurrentDirectories(texturesDirectory.directories)
+                        setCurrentFiles(texturesFiles)
                         setShowIndex(2)
                         break;
                     case "/assets/terrain":
-                        setCurrentDirectories()
-                        setCurrentFiles()
+                        setCurrentDirectories(terrainDirectory.directories)
+                        setCurrentFiles(terrainFiles)
                         setShowIndex(2)
                         break;
                     case "/assets/types":
-                        setCurrentDirectories()
-                        setCurrentFiles()
+                        setCurrentDirectories(typesDirectory.directories)
+                        setCurrentFiles(typesFiles)
                         setShowIndex(2)
                         break;
                     case "/models":
@@ -529,12 +558,13 @@ export const LocalStoragePage = () => {
                 }
                 {showIndex == 0 && configFile.handle != null &&
                     
-                        <FileList className={styles.bubbleButtonLink} longClassName={styles.bubbleButtonLinkScroll}  fileView={{type:"icons",direction:"row", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
-                                { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", hash: "", lastModified: null, size: null, netImage: {opacity:.7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
+                    <FileList className={styles.bubbleButtonLink} longClassName={styles.bubbleButtonLinkScroll}  fileView={{type:"icons",direction:"row", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
+                        { to: "/home/localstorage/assets", name: "assets", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                        { to: "/home/localstorage/images", name: imagesDirectory.name, type: "folder", hash: "", lastModified: null, size: null, netImage: {opacity:.7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" }},
                         { to: "/home/localstorage/models", name: "models", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/media", name: "media", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         { to: "/home/localstorage/cache", name: "cache", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                        ]} />
+                    ]} />
                   
                 }
                 {showIndex == 1 &&

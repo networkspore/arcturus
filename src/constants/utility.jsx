@@ -451,7 +451,7 @@ export const getFileHash = (file) =>{
         const chunkSize = (5 * MB)
         const chunks = Math.ceil(size / chunkSize)
 
-       console.log(chunks)
+       
         
         let i = 0;
         let hash = ""
@@ -475,7 +475,7 @@ export const getFileHash = (file) =>{
             if(i < chunks){
                 getHashRecursive()
             }else{
-                console.log(hash)
+             
                 resolve(hash)
             }
         }
@@ -512,7 +512,7 @@ export async function getFileInfo(entry, dirHandle) {
             
 
             getFileHash(file).then((hash) => {
-                console.log(hash)
+               
                     get(hash + ".arcicon").then((iconInIDB) => {
                         if (iconInIDB == undefined && fileType == "image") {
                             getThumnailFile(file).then((dataUrl) => {
@@ -586,8 +586,6 @@ export async function cacheFile(localDirectoryHandle, fileData, fileID, name) {
     try {
         const fileName = `(${fileID}) ${name}`;
     
-        console.log(localDirectoryHandle)
-
         const cacheHandle = await localDirectoryHandle.getDirectoryHandle("cache", {create:true})
 
         const newHandle = await writeFileData(cacheHandle, fileName, fileData)
