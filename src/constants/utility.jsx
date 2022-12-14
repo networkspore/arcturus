@@ -451,27 +451,31 @@ export const getFileHash = (file) =>{
         const chunkSize = (5 * MB)
         const chunks = Math.ceil(size / chunkSize)
 
-        console.log(file)
+       console.log(chunks)
+        
+        let i = 0;
         let hash = ""
-        let i = 0
 
         async function getHashRecursive(){
             const chunkEnd = (i + 1) * chunkSize
 
             const blob = await file.slice(i * chunkSize, chunkEnd > size ? size : chunkEnd )
-            console.log(blob)
+           
             const arrayBuffer = await blob.arrayBuffer()
-            console.log(arrayBuffer)
+         
             const input = new Uint8Array(arrayBuffer);
 
             const hex = blake2b(hashLength).update(input).digest('hex')
-           console.log(hex)
-            hash.concat(hex + (i + 1) < chunks ? ":" : "")
-            i++
+            const semiColon = (i + 1) < chunks ? ":" : ""
 
+            hash = hash.concat(hex + semiColon)
+            
+            i = i + 1
+            
             if(i < chunks){
                 getHashRecursive()
             }else{
+                console.log(hash)
                 resolve(hash)
             }
         }
@@ -508,7 +512,7 @@ export async function getFileInfo(entry, dirHandle) {
             
 
             getFileHash(file).then((hash) => {
-
+                console.log(hash)
                     get(hash + ".arcicon").then((iconInIDB) => {
                         if (iconInIDB == undefined && fileType == "image") {
                             getThumnailFile(file).then((dataUrl) => {
@@ -518,8 +522,8 @@ export async function getFileInfo(entry, dirHandle) {
                     }).catch((err) => {
                         console.log(err)
                     })
-
-                    resolve({ directory: dirHandle, mimeType: fileType, name: file.name, hash: hash, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry })
+                const fileInfo = { directory: dirHandle, mimeType: fileType, name: file.name, hash: hash, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry }
+                resolve(fileInfo)
             })
             
 

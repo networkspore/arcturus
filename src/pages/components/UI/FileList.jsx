@@ -13,7 +13,7 @@ const FileList = (props = {}, ref) => {
     const onChange = "onChange" in props ? props.onChange : null;
 
     
-    const fileListID = useId()
+    //const fileListID = useId()
   
     const divRef = useRef()
     const navigate = useNavigate()
@@ -69,7 +69,7 @@ const FileList = (props = {}, ref) => {
         });
     }
 
-    const [selectedCrc, setSelectedCrc] = useState(null);
+    const [selectedHash, setSelectedHash] = useState(null);
     const [files, setFiles] = useState([]);
     const [fileView, setFileView] = useState({type:"details",direction:"row", iconSize:{width:100,height:100, scale:1}})
 
@@ -151,7 +151,7 @@ const FileList = (props = {}, ref) => {
                     const iModified = formatedNow(new Date(file.lastModified));
                     
                     const iType = ("type" in file) ? file.type : "";
-                    const iHash = file.hash;
+                    
                     const iTo = "to" in file ? file.to : null
                     const iHandle = file.handle;
                     const iIcon = ("icon" in file) ? file.icon : "/Images/icons/document-outline.svg";
@@ -255,7 +255,7 @@ const FileList = (props = {}, ref) => {
                                         }
                                     </div>
                                     <div style={{ flex: 0.2, color: "#888888", }}>{mimeType}</div>
-                                    <div style={{ flex: 0.2, color: "#888888", }}>{iHash}</div>
+                             
                                     <div style={{ flex: 1, color: "white", }}>{iName}</div>
                                     <div style={{ flex: 0.3, color: "#888888", }}>{iModified}</div>
                                     <div style={{ flex: 0.3, color: "#888888", }}>{iSize}</div>
@@ -287,7 +287,7 @@ const FileList = (props = {}, ref) => {
 
     useEffect(() => {
 
-        const value = selectedCrc;
+        const value = selectedHash;
         if (value == -1 || value == null || value == undefined) {
             setSelectedIndex(-1);
         } else {
@@ -299,25 +299,25 @@ const FileList = (props = {}, ref) => {
                 }
             }
         }
-    }, [selectedCrc,files])
+    }, [selectedHash,files])
 
     useImperativeHandle(
         ref,
         () => ({
             getName: files == null ? "" : selectedIndex == -1 ? "" : files[selectedIndex] === undefined ? "" : files[selectedIndex].name,
-            getCrc: files == null ? -1 : selectedIndex == -1 ? -1 : files[selectedIndex] === undefined ? -1 : files[selectedIndex].hash,
-            setByCrc: (hash) => {
+            getHash: files == null ? -1 : selectedIndex == -1 ? -1 : files[selectedIndex] === undefined ? -1 : files[selectedIndex].hash,
+            setByHash: (hash) => {
 
 
-                setSelectedCrc(hash)
+                setSelectedHash(hash)
             },
             setSelectedIndex: (value) => {
                 if (value == -1 || value == null || value === undefined) {
-                    setSelectedCrc(-1)
+                    setSelectedHash(-1)
                 } else if (value > -1) {
                     if (files != null) {
                         if (files.length > 0) {
-                            setSelectedCrc(files[Number(value)].hash)
+                            setSelectedHash(files[Number(value)].hash)
                         }
                     }
                 }
@@ -399,7 +399,7 @@ const FileList = (props = {}, ref) => {
         
                         <div style={{ flex: 0.1, color: "#777777", }}>&nbsp;</div>
                         <div style={{ flex: 0.2, color: "#777777", }}>Type</div>
-                        <div style={{ flex: 0.2, color: "#777777", }} >CRC </div>
+                    
                     
                         <div style={{ flex: 1, color: "#777777", }}>Name</div>
                         <div style={{ flex: 0.3, color: "#777777", }}>Last Modified</div>

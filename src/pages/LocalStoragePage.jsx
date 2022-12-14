@@ -126,6 +126,41 @@ export const LocalStoragePage = () => {
                        
                         setShowIndex(2)
                         break;
+                    case "/assets":
+                        setCurrentDirectories()
+                        setCurrentFiles()
+                        setShowIndex(2)
+                        break;
+                    case "/assets/pcs":
+                        setCurrentDirectories()
+                        setCurrentFiles()
+                        setShowIndex(2)
+                        break;
+                    case "/assets/npcs":
+                        setCurrentDirectories()
+                        setCurrentFiles()
+                        setShowIndex(2)
+                        break;
+                    case "/assets/placeables":
+                        setCurrentDirectories()
+                        setCurrentFiles()
+                        setShowIndex(2)
+                        break;
+                    case "/assets/textures":
+                        setCurrentDirectories()
+                        setCurrentFiles()
+                        setShowIndex(2)
+                        break;
+                    case "/assets/terrain":
+                        setCurrentDirectories()
+                        setCurrentFiles()
+                        setShowIndex(2)
+                        break;
+                    case "/assets/types":
+                        setCurrentDirectories()
+                        setCurrentFiles()
+                        setShowIndex(2)
+                        break;
                     case "/models":
                         setCurrentDirectories(modelsDirectory.directories)
                         setCurrentFiles(modelsFiles)
@@ -280,6 +315,7 @@ export const LocalStoragePage = () => {
             
             setAssetsDirectory()
             setPcsDirectory()
+            setNpcsDirectory()
             setTexturesDirectory()
             setTerrainDirectory()
             setPlaceablesDirectory()
