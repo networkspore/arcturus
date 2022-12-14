@@ -7,12 +7,14 @@ import { io } from "socket.io-client";
 import { ImageDiv } from "../pages/components/UI/ImageDiv";
 import sha256 from 'crypto-js/sha256';
 import styles from '../pages/css/login.module.css';
+import { getStringHash } from "../constants/utility";
 
 export const SocketHandler = (props = {}) => {
     
     const user = useZust((state) => state.user)
     const socketCmd = useZust((state) => state.socketCmd)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
+    const setContactsCmd = useZust((state) => state.setContactsCmd)
     const loggedIn = useRef({value:false})
 
     const passRef = useRef()
@@ -20,6 +22,7 @@ export const SocketHandler = (props = {}) => {
     const setSocketConnected = useZust((state) => state.setSocketConnected)
     const [showLogin, setShowLogin] = useState(false)
     const setUploadRequest = useZust((state) => state.setUploadRequest)
+
     
     const sock = useRef({value:null})
     const tryCount = useRef({value:0})
@@ -327,18 +330,24 @@ export const SocketHandler = (props = {}) => {
                 }})
                 
             })
+
+            sock.current.value.on("contactsCmd", (cmd)=>{
+                setContactsCmd(cmd)
+            })
         }
     }
 
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
+     
+        const pass = await getStringHash(passRef.current.value);
     
-        const pass = passRef.current.value;
-    
+        console.log(pass)
         if(pass.length > 5 && user.userID > 0){
-            const code = sha256(pass).toString();
-            login(user.userName, code);
+            
+            login(user.userName, pass);
+
         }else{
             window.location.replace("/")
         }
@@ -358,11 +367,12 @@ export const SocketHandler = (props = {}) => {
                      
                     }else{
                        
-                        if (response.error.message != "not implemented"){
-                        alert("Check your password and try again")
-                        setShowLogin(true)
-                    }else{
-                            setShowLogin(false)
+                        if ("success" in response && !response.success){
+                            alert("Check your password and try again")
+                            setShowLogin(true)
+                        }else if("error" in response){
+                            alert(response.error.message)
+                            setShowLogin(true)
                         }
                     }
                    

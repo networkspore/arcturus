@@ -56,6 +56,9 @@ export const SystemMessagesMenu = (props = {}) => {
                 const messageText = message.text
                 const messageNetImage = message.netImage
                 const messageDeleteOn = "deleteOn" in message ? message.deleteOn + "" : ""
+                const cancelable = "cancelable" in message ? message.cancelable : false
+                const callback = "callback" in message ? message.callback : null
+
                 
                 if(messageDeleteOn.length > 0){
                     const index = messageDeleteOn.indexOf(":")
@@ -82,16 +85,27 @@ export const SystemMessagesMenu = (props = {}) => {
 
                 tmpArray.push(
                     <div key={messageID} onClick={(e)=>{
-                        console.log("clicked")
+                        if (callback != null){
+                            callback(messageID)
+                        }
                         removeSystemMessage(messageID)
                         navigate(messageNavigate)
+
                     }}  style={{display:"flex"}} className={styles.result}>
                         <div style={{paddingLeft:"2px", display:"flex", alignItems:"center", justifyContent:"center"}}>
                             <ImageDiv width={20} height={20} netImage={messageNetImage} />
                         </div>
-                        <div style={{color:"white", paddingLeft:"10px"}}>
+                        <div style={{ color: "white", flex: 1, paddingLeft:"10px"}}>
                             {messageText}
                         </div>
+                        {cancelable &&
+                        <div onClick={(e)=>{
+                            e.stopPropagation()
+                            removeSystemMessage(messageID)
+                        }}>
+                            <ImageDiv width={20} height={20} netImage={{image:"Images/icons/close-outline.svg", filter:"invert(100%)"}} />
+                        </div>
+                        }
                     </div>
                 )
             });

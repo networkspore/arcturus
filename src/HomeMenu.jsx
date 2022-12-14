@@ -1,5 +1,5 @@
 import useZust from "./hooks/useZust";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useId } from "react";
 import styles from './pages/css/ContentMenu.module.css';
 import { NavLink, useHref, useLocation, useNavigate } from "react-router-dom";
 
@@ -29,9 +29,8 @@ import { useRef } from "react";
 
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
-import { useId } from "react";
-import { flushSync } from "react-dom";
 import { StorageHandler } from "./handlers/StorageHandler";
+import { ContactsHandler } from "./handlers/ContactsHandler";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -752,6 +751,7 @@ const HomeMenu = () => {
 
                                 <FileHandler />
                                <StorageHandler />
+                                <ContactsHandler />
                             </>
                         }
                

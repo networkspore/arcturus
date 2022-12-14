@@ -18,6 +18,15 @@ export const PeerNetworkMenu = (props ={}) =>{
                     }} 
                     files={
                         [ 
+                            {
+                                to: "/home/peernetwork/library",
+                                name: "Library",
+                                type: "folder",
+                                hash: "",
+                                lastModified: null,
+                                size: null,
+                                netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/library-outline.svg", filter: "invert(100%)" } 
+                            },
                             { 
                                 to: "/home/peernetwork/downloads", 
                                 name: "Downloads", 

@@ -10,8 +10,8 @@ import SelectBox from "../components/UI/SelectBox";
 import styles from "../css/home.module.css"
 import { GatewayRoom } from "./GatewayRoom";
 import { UpdateRealmInformation } from "./UpdateRealmInformation";
-import { flushSync } from 'react-dom';
-import { RealmAssets } from "./RealmAssets";
+
+
 import { ImagePicker } from "../components/UI/ImagePicker";
 import { EditRealmCharacters } from "./EditRealmCharacters";
 
@@ -363,76 +363,7 @@ export const RealmGateway= (props = {}) =>{
                                 Information
                             </div>
                         </div>
-                        <div onClick={(e) => { navigate("/realm/gateway/assets") }} className={styles.result}
-                            style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                            <ImageDiv netImage={{ filter: subDirectory == "/assets" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/albums-outline.svg" }} width={25} height={25} />
-
-                            <div style={{ paddingLeft: "10px", color: subDirectory == "/assets" ? "white" : "" }} >
-                                Assets
-                            </div>
-                        </div>
                         
-                        <div style={{marginLeft:10}} >
-                            
-                            <div onClick={(e) => { navigate("/realm/gateway/assets/pcs") }} className={styles.result} 
-                            style={{ padding:5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/pcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/man-outline.svg" }} width={25} height={25} />
-
-                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/pcs" ? "white" : "" }} >
-                                    Playable Characters
-                                </div>
-                            </div>
-
-                            <div onClick={(e) => { navigate("/realm/gateway/assets/npcs") }} className={styles.result} 
-                            style={{ 
-                                padding:5,
-                                display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/npcs" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/paw-outline.svg" }} width={25} height={25} />
-
-                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/npcs" ? "white" : "" }} >
-                                    Non-Playable Characters 
-                                </div>
-                            </div>
-
-                            <div onClick={(e) => { navigate("/realm/gateway/assets/placeables") }} className={styles.result} style={{
-                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/placeables" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/cube-outline.svg" }} width={25} height={25} />
-
-                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/placeables" ? "white" : "" }} >
-                                    Placeable Models
-                                </div>
-                            </div>
-
-                            <div onClick={(e) => { navigate("/realm/gateway/assets/textures") }} className={styles.result} style={{
-                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/textures" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/images-outline.svg" }} width={25} height={25} />
-
-                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/textures" ? "white" : "" }} >
-                                    Textures
-                                </div>
-                            </div>
-
-                            <div onClick={(e) => { navigate("/realm/gateway/assets/terrain") }} className={styles.result} style={{
-                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
-                            }}>
-                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/terrain" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/earth-outline.svg" }} width={25} height={25} />
-
-                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/terrain" ? "white" : "" }} >
-                                    Terrain
-                                </div>
-                            </div>
-
-                            <div onClick={(e) => { navigate("/realm/gateway/assets/types") }} className={styles.result} style={{
-                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
-                            }}>
-                                <ImageDiv netImage={{ filter: props.currentLocation == "/realm/gateway/assets/types" ? "invert(100%)" : "invert(50%)", backgroundColor: "", image: "/Images/icons/shapes-outline.svg" }} width={25} height={25} />
-
-                                <div style={{ paddingLeft: "10px", color: props.currentLocation == "/realm/gateway/assets/types" ? "white" : "" }} >
-                                    Types
-                                </div>
-                            </div>
-                            
-                        </div>
                     </>}
                     
                 </div>
@@ -448,10 +379,7 @@ export const RealmGateway= (props = {}) =>{
                 showIndex == 0  &&
                 <UpdateRealmInformation  currentRealm={currentRealm}/>
             }
-            {admin && 
-                showIndex == 1 &&
-                <RealmAssets admin={admin} currentRealm={currentRealm} />
-            }
+           
             {admin && showIndex == 10 &&
                 <ImagePicker selectedImage={currentRealm.image} onCancel={()=>{setShowIndex(null)}} onOk={onUpdateRealmImage}/>
             }

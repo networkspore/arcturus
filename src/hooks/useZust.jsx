@@ -10,6 +10,9 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+
+   contactsCmd: {cmd:null, params:null, callback:null},
+   setContactsCmd: (cmd = { cmd: null, params: null, callback: null }) => set({contactsCmd: cmd}),
    uploadRequest: { upload: null, callback:null },
    setUploadRequest: (value) => set({ uploadRequest: value }),
    downloadRequest:{download:null},

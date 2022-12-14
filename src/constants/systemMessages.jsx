@@ -90,9 +90,10 @@ export const errorSelectingImage = {
 }
 
 export const errorRealmCreate = {
-    id:20,
+    id:11,
     text: "Could not create this realm.",
     navigate: null,
     deleteOn: "seconds:3",
     netImage: { image: "/Images/icons/alert.svg", width: 20, height: 20, filter: "invert(100%)" }
 }
+

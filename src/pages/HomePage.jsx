@@ -12,6 +12,7 @@ import { LocalStoragePage } from './LocalStoragePage';
 import { AccountSettingsPage } from './AccountSettingsPage';
 import { PeerNetworkPage } from './PeerNetworkPage';
 import { ImagePicker } from './components/UI/ImagePicker';
+import { LibraryPage } from './LibraryPage';
 
 
 
@@ -96,6 +97,9 @@ export const HomePage = (props ={}) => {
                     break;
                 case "/account":
                     setshowIndex(4)
+                    break;
+                case "/library":
+                    setshowIndex(5)
                     break;
                 default:
                     setshowIndex(0)
@@ -340,6 +344,17 @@ export const HomePage = (props ={}) => {
                            
                     </div>
                     }
+                    <NavLink className={styles.result} to={"/home/library"}>
+                        <div style={{ color: subDirectory == "/library" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+
+                            <div>
+                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/library-outline.svg" width={20} height={20} />
+                            </div>
+                            <div style={{ paddingLeft: "10px" }} >
+                                Library
+                            </div>
+                        </div>
+                    </NavLink>
                     <NavLink className={styles.result}  to={"/home/peernetwork"}>
                         <div  style={{ color: subDirectory == "/peernetwork" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
@@ -371,6 +386,9 @@ export const HomePage = (props ={}) => {
             }
             {showIndex == 4 &&
                 <AccountSettingsPage cancel={() => { setshowIndex(0) }}  />
+            }
+            {showIndex == 5 &&
+                <LibraryPage admin={true} userLibrary={user} cancel={() => { setshowIndex(0) }} />
             }
             {showIndex == 10 &&
                 <ImagePicker selectedImage={user.image} 
