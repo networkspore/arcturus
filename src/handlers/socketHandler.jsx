@@ -68,7 +68,7 @@ export const SocketHandler = (props = {}) => {
     }, [sock.current, user])
 
     const socketConnect = () =>{
-        console.log("connecting")
+       
         sock.current.value = io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
 
         sock.current.value.on("connect", () => {
@@ -76,7 +76,7 @@ export const SocketHandler = (props = {}) => {
         
       
             sock.current.value.emit("login", socketCmd.params, (response) => {
-                console.log(response)
+            
                 if ("success" in response && response.success) {
                    
                     // setSocket(sock.current.value)
@@ -127,12 +127,12 @@ export const SocketHandler = (props = {}) => {
                 if (sock.current.value == null && socketCmd.cmd == "login") {
 
                     sock.current.value = io(socketIOhttp, { auth: { token: socketToken }, transports: ['websocket'] });
-                    console.log(sock.current.value)
+     
                     sock.current.value.on("connect", () => {
-                        console.log("connected")
+            
                         socketCmd.callback({ success: true })
                         sock.current.value.on("disconnect", (res) => {
-                            console.log("disconnected")
+                   
                             switch (res) {
                                 case "io server disconnect":
                                     window.location.replace("/")
@@ -306,6 +306,16 @@ export const SocketHandler = (props = {}) => {
                             socketCmd.callback(response)
                         })
                         break;
+                    case "sendEmailCode":
+                        sock.current.value.emit("sendEmailCode", (response) => {
+                            socketCmd.callback(response)
+                        })
+                        break;
+                    case "updateUserEmail":
+                        sock.current.value.emit("updateUserEmail", socketCmd.params, (response) => {
+                            socketCmd.callback(response)
+                        })
+                        break;
                     default:
                         if (socketCmd.cmd != null && socketCmd.callback != null){
                         
@@ -323,7 +333,7 @@ export const SocketHandler = (props = {}) => {
         if(sock.current.value != null)
         {
             sock.current.value.on("peerFileRequest", (uploadRequest, response) =>{
-                console.log(uploadRequest)
+             
                 setUploadRequest({upload: uploadRequest, callback:(uploadResponse)=>{
                 
                     response(uploadResponse)
@@ -343,7 +353,7 @@ export const SocketHandler = (props = {}) => {
      
         const pass = await getStringHash(passRef.current.value);
     
-        console.log(pass)
+      
         if(pass.length > 5 && user.userID > 0){
             
             login(user.userName, pass);
@@ -352,19 +362,23 @@ export const SocketHandler = (props = {}) => {
             window.location.replace("/")
         }
     }
-
+    const setContacts = useZust((state) => state.setContacts)
+    const setUserFiles = useZust((state) => state.setUserFiles)
 
     function login(name_email = "", pass = "") {
         setShowLogin(false)
             setSocketCmd({
           
                 cmd: "login", params: { nameEmail: name_email, password: pass }, callback: (response) => {
-                    console.log(response)
+             
                     if("success" in response && response.success)
                     {
                         tryCount.current.value = 0;
                         setSocketConnected(true)
-                     
+                        const contacts = response.contacts
+                        const userFiles = response.userFiles
+                        setUserFiles(userFiles)
+                        setContacts(contacts)
                     }else{
                        
                         if ("success" in response && !response.success){

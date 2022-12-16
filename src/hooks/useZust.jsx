@@ -195,8 +195,8 @@ const useZust = create((set) => ({
    placeablesFiles: [],
    setPlaceablesFiles: (value = []) => set({ placeablesFiles: value }),
 
-   userHomeFiles: [],
-   setUserHomeFiles: (value = []) => set({ userHomeFiles: value }),
+   userFiles: [],
+   setUserFiles: (value = []) => set({ userFiles: value }),
 
    realmsFiles: [],
    setRealmsFiles: (value = []) => set({ realmsFiles: value }),

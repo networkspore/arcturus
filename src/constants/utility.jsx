@@ -3,7 +3,7 @@ import  SHA512  from "crypto-js/sha512";
 import MD5 from "crypto-js/md5";
 import WordArray from "crypto-js/lib-typedarrays";
 import blake2b from 'blake2b'
-
+import SparkMD5 from 'spark-md5'
 import { get, set, update } from "idb-keyval";
 
 import { randInt } from "three/src/math/MathUtils";
@@ -445,13 +445,13 @@ export const getFileHash = (file) =>{
     
     return new Promise(resolve => {
 
-        const hashLength = new Uint8Array(64).length
+      
         const size = file.size
         const MB = 1048576
         const chunkSize = (5 * MB)
         const chunks = Math.ceil(size / chunkSize)
-
-       
+        
+        const spark = chunks > 1 ? new SparkMD5.ArrayBuffer() : null
         
         let i = 0;
         let hash = ""
@@ -463,19 +463,27 @@ export const getFileHash = (file) =>{
            
             const arrayBuffer = await blob.arrayBuffer()
          
-            const input = new Uint8Array(arrayBuffer);
+           
+            if (i == 0) {
+                
+                const hashLength = new Uint8Array(64).length
+                const input = new Uint8Array(arrayBuffer);
+                hash = blake2b(hashLength).update(input).digest('hex')
+              
+            } else {
+                spark.append(arrayBuffer)
+            }
 
-            const hex = blake2b(hashLength).update(input).digest('hex')
-            const semiColon = (i + 1) < chunks ? ":" : ""
-
-            hash = hash.concat(hex + semiColon)
-            
             i = i + 1
             
-            if(i < chunks){
+            if (i < chunks){
+                
                 getHashRecursive()
+
             }else{
-             
+                if (chunks > 1) {
+                    hash = hash + "#" + spark.end()
+                }
                 resolve(hash)
             }
         }
@@ -491,42 +499,46 @@ export async function getFileInfo(entry, dirHandle) {
      
         entry.getFile().then((file) => {
             
-            const firstIndex = file.type.indexOf("/")
+            const fileSize = file.size;
+            const MB = 1048576
 
-            const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
-
-            const customTypes = ["arctype",
-            "arcpc",
-            "arcnpc",
-            "arcpl",
-            "arctex",
-            "arcterr"]
-
-            const name = entry.name + "";
-
-            const lastIndex = name.lastIndexOf(".");
-
-            const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
-
-            const fileType = customTypes.includes(ext) ? ext : type
             
+                const firstIndex = file.type.indexOf("/")
 
-            getFileHash(file).then((hash) => {
-               
-                    get(hash + ".arcicon").then((iconInIDB) => {
-                        if (iconInIDB == undefined && fileType == "image") {
-                            getThumnailFile(file).then((dataUrl) => {
-                                set(hash + ".arcicon", dataUrl)
-                            }).catch((err) => console.log(err))
-                        }
-                    }).catch((err) => {
-                        console.log(err)
-                    })
-                const fileInfo = { directory: dirHandle, mimeType: fileType, name: file.name, hash: hash, size: file.size, type: file.type, lastModified: file.lastModified, handle: entry }
-                resolve(fileInfo)
-            })
+                const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
+
+                const customTypes = ["arctype",
+                "arcpc",
+                "arcnpc",
+                "arcpl",
+                "arctex",
+                "arcterr"]
+
+                const name = entry.name + "";
+
+                const lastIndex = name.lastIndexOf(".");
+
+                const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
+
+                const fileType = customTypes.includes(ext) ? ext : type
+                
+
+                getFileHash(file).then((hash) => {
+                
+                        get(hash + ".arcicon").then((iconInIDB) => {
+                            if (iconInIDB == undefined && fileType == "image") {
+                                getThumnailFile(file).then((dataUrl) => {
+                                    set(hash + ".arcicon", dataUrl)
+                                }).catch((err) => console.log(err))
+                            }
+                        }).catch((err) => {
+                            console.log(err)
+                        })
+                    const fileInfo = { directory: dirHandle, mimeType: fileType, name: file.name, hash: hash, size: fileSize, type: file.type, lastModified: file.lastModified, handle: entry }
+                    resolve(fileInfo)
+                })
             
-
+           
             
         })
        

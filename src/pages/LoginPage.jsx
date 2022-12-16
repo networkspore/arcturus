@@ -25,7 +25,7 @@ import { getStringHash } from "../constants/utility";
     const [disable, setDisable] = useState(false)
   
     const setLoginPage = useZust((state) => state.setLoginPage);
-
+    const setUserFiles = useZust((state) => state.setUserFiles)
 
     const setConnected = useZust((state) => state.setConnected)
 
@@ -78,7 +78,7 @@ import { getStringHash } from "../constants/utility";
             setDisable(true);
             setSocketCmd({anonymous:true,
                 cmd: "login", params: { nameEmail: "anonymous" }, callback: (response) => {
-                    console.log(response)
+                  
                 if(!("error" in response)){
                     if(response.success)
                     {
@@ -107,20 +107,20 @@ import { getStringHash } from "../constants/utility";
     {
         if(!disable){
             setDisable(true)
-            console.log("logging IN")
+           
             setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback:(response)=>{
-                console.log("response")
+              
                 setDisable(false)
             if(response.success){
                 const user = response.user
                 const contacts = response.contacts
-             
+                const userFiles = response.userFiles
 
           
-                    setUser(user)
-                    setContacts(contacts)
+                setUser(user)
+                setContacts(contacts)
+                setUserFiles(userFiles)                
              
-
                     setConnected(true)
                 }else{
                     alert("Check your password and try again.")

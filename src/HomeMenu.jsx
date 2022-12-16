@@ -233,7 +233,7 @@ const HomeMenu = () => {
         try {
             const value = await get("localDirectory" + user.userID)
             const verified = await getPermissionAsync(value.handle)
-            console.log(verified)
+           
             if(!verified)
             {
                 console.log("Permission not granted")
@@ -407,43 +407,7 @@ const HomeMenu = () => {
         }
     }
 
-    async function loadUserHome(config, userName) {
-
-        const homeDirHandle = await localDirectory.handle.getDirectoryHandle("home", {create:true})
-        const userHomeHandle = await homeDirHandle.getDirectoryHandle(userName, { create: true })
-       
-        const userConfigHandle = await userHomeHandle.getFileHandle(userName + ".config")
-
-        const userConfig = userConfigHandle == undefined ? await setDefaultUserConfig(userHomeHandle) : await getUserConfig(userConfigHandle)
-        
-
-        if (userHomeFiles.length > 0) {
-            setSocketCmd({
-                cmd: "checkUserFiles", params: { hashs: hashs }, callback: (results) => {
-
-                    if (!("error" in results)) {
-                        if (results.success) {
-                            const passedCrcs = results.passed;
-                            let passedFiles = []
-                            for (let i = 0; i < userHomeFiles.length; i++) {
-                                if (passedCrcs[i]) {
-                                    passedFiles.push(userHomeFiles[i])
-                                }
-                            }
-
-                            setUserHomeFiles(passedFiles)
-                            setUserHomeDirectory({ name: userHomeHandle.name, handle: userHomeHandle, directories: userHome.directories })
-                        }
-                    } else {
-                        console.log(results.error)
-                    }
-                }
-            })
-        } else {
-            setUserHomeDirectory({ name: userHomeHandle.name, handle: userHomeHandle, directories: userHome.directories })
-        }
-
-    }
+   
 
 
 

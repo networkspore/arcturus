@@ -48,7 +48,7 @@ export const PeerNetworkHandler = (props ={}) => {
         
         const index = processingDownload.current.value.findIndex(pDL => pDL.id == id)
         const length = processingDownload.current.value.length;
-        console.log(index)
+      
         if (index != -1) {
 
             const item = processingDownload.current.value[index]
@@ -151,7 +151,7 @@ export const PeerNetworkHandler = (props ={}) => {
         setUserPeerID(id)
         setSocketCmd({
             cmd:"updateUserPeerID", params: {userPeerID:id}, callback: (callback) => {
-            console.log("updatedUserPeerID: " + id)
+         
         }})
     }
 
@@ -160,14 +160,15 @@ export const PeerNetworkHandler = (props ={}) => {
     }
 
     const onPeerClose = () =>{
-        console.log("peer connection closing")
+   
         setPeerConnection(null)
        
         setUserPeerID("")
 
         setSocketCmd({
             cmd: "updateUserPeerID", params: { userPeerID: "" }, callback: (callback) => {
-                console.log("updatedUserPeerID: " + "")
+           
+                
             }
         })
 
@@ -177,7 +178,7 @@ export const PeerNetworkHandler = (props ={}) => {
         setUserPeerID("")
         
         if(configFile.value != null){
-            console.log("disconnect reconnect?")
+          
             peerReconnect()
         }
         
@@ -190,7 +191,7 @@ export const PeerNetworkHandler = (props ={}) => {
                     if (configFile.value.peer2peer){
                         if(!peerConnection.destroyed){
                             if (peerConnection.disconnected) {
-                                console.log("reconnecting...")
+                         
                                 peerConnection.reconnect()
                                 peerReconnect()
                             }
@@ -238,7 +239,7 @@ export const PeerNetworkHandler = (props ={}) => {
         if(peerConnection == null){
             if(userPeerID != "") setUserPeerID("")
         }
-        console.log(peerConnection)
+       
        
     }, [peerConnection])
 
@@ -377,7 +378,7 @@ export const PeerNetworkHandler = (props ={}) => {
         {
             if(userPeerID == "")
             {
-                console.log("Peer not connected")
+              
                 uploadRequest.callback({success:false, downloading:false, id:null})
             }else{
                 onUploadRequest(uploadRequest, userPeerID)
@@ -393,7 +394,7 @@ export const PeerNetworkHandler = (props ={}) => {
         
         const uploadUserID = upload.userID
         
-        console.log(uploadUserID)
+        
 
         const downloadPeerID = upload.peerID
         const request = upload.request
@@ -404,7 +405,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
         if(index == -1)
         {
-            console.log("starting upload")
+            
             worker.generateCode(user.userEmail + request.file.hash).then((id)=>{
 
                 let newUpload = {
@@ -415,7 +416,7 @@ export const PeerNetworkHandler = (props ={}) => {
                     status: "Getting file"
             
                 }
-                console.log(newUpload)
+                
                 processingUpload.current.value.push(newUpload)
                 
                 setPeerUpload(processingUpload.current.value)
@@ -434,13 +435,13 @@ export const PeerNetworkHandler = (props ={}) => {
                         file: request.file,
                         callback: (response) => {
                             if ("success" in response && response.success) {
-                                console.log("found file")
+                                
                               
                                 updatePeerUploadStatus(id, "Waiting")
                                 const file = response.file
                                 uploadFiles.current.value.push(file)
                                
-                                console.log(downloadTicket)
+                                
                                 callback(downloadTicket)
                             }else{
                                
@@ -480,7 +481,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
             const download = dRequest.download
 
-            console.log(peerID)
+            
 
             const index = processingDownload.current.value.findIndex(dl => dl.request.file.hash == download.request.file.hash)
         
@@ -508,7 +509,7 @@ export const PeerNetworkHandler = (props ={}) => {
               
             } else{
                 const download = processingDownload.current.value[index];
-                console.log(download)
+                
                 const id = download.id
 
                 if(download.status == "Waiting")
@@ -534,17 +535,17 @@ export const PeerNetworkHandler = (props ={}) => {
 
         const index = processingUpload.current.value.findIndex(up => up.id == id)
         
-        console.log("connection")
+       
 
         const peerID = dataConnection.peer
 
         if (index == -1 ) {
-            console.log("id not found")
+           
             dataConnection.close()
         } else {
             const upload = processingUpload.current.value[index]
 
-            console.log(upload)
+          
             
             if (upload.peerID == peerID && upload.status == "Getting file")
             {
@@ -557,7 +558,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
 
                 dataConnection.on('data', (data) => {
-                    console.log(data)
+                    
                     if("command" in data && data.command == "requestFile")
                     {
 
@@ -566,7 +567,7 @@ export const PeerNetworkHandler = (props ={}) => {
                         const upIndex = processingUpload.current.value.findIndex(up => up.id == fileRequestID)
 
                         if(upIndex == -1){
-                            console.log("upload not found")
+                           
                             updatePeerUploadStatus(fileRequestID, "Error")
                             dataConnection.close()
                             
@@ -621,14 +622,14 @@ export const PeerNetworkHandler = (props ={}) => {
     }
 
     function startDownload(download){
-        console.log("starting Download")
+       
   
         const request = download.request;
         const fileID = download.request.file.fileID
         const peerID = userPeerID
         const downloadID = download.id
         const index = processingDownload.current.value.findIndex(pDL => pDL.id == downloadID)
-        console.log(processingDownload)
+      
         if(peerID != "" && index != -1){
             setSocketCmd({
                 cmd: "getFilePeers", params: { fileID: fileID }, callback: (foundPeers) => {
@@ -636,12 +637,12 @@ export const PeerNetworkHandler = (props ={}) => {
                     if ("success" in foundPeers && foundPeers.success) {
                         const peers = foundPeers.peers
                         let i = 0;
-                        console.log("Found peers")
+                 
                         const tryPeers = () => {
                             const peer = peers[i]
                             const contactID = peer.userID
                             const userFileID = peer.userFileID
-                            console.log(download)
+                        
 
                             setSocketCmd({
                                 cmd: "peerFileRequest", params: { request: request, contactID: contactID, userFileID: userFileID, userPeerID: peerID }, callback: (peerResponse) => {
@@ -667,7 +668,7 @@ export const PeerNetworkHandler = (props ={}) => {
                                         try {
                                             const requestFile = () => {
                                                
-                                                console.log("requesting file")
+                                             
 
                                                 updatePeerDownloadStatus(downloadID, "Downloading")
 
@@ -680,7 +681,7 @@ export const PeerNetworkHandler = (props ={}) => {
                                             if(!dataConnection.open){
                                                 dataConnection.on('open', requestFile)
                                                 dataConnection.on('data', (data)=>{
-                                                    console.log("receiving data")
+                                                   
                                                  
                                                     if("command" in data && data.command == "sendFile"){
                                                         receiveFile(dataConnection, data)
@@ -725,14 +726,14 @@ export const PeerNetworkHandler = (props ={}) => {
                         if (peers.length > 0 && userPeerID != "") {
                             tryPeers()
                         }else{
-                            console.log("Peers not responding")
+                        
                             updatePeerDownloadStatus(downloadID, "Waiting")
                             
                         }
 
 
                     }else{
-                        console.log("No peers found")
+                       
                         removeDownload(downloadID)
                        
                     }
@@ -753,12 +754,12 @@ export const PeerNetworkHandler = (props ={}) => {
             const fileID = file.fileID
 
             const index = processingDownload.current.value.findIndex(pDl => pDl.request.file.hash == fileHash)
-            console.log(index)
-            console.log(processingDownload.current.value)
+         
+
             if(index != -1)
             {
                 const download = processingDownload.current.value[index]
-                console.log(download)
+  
                 
                 const fileData = file.data
                 worker.getChunkHash(fileData).then((hash) => {

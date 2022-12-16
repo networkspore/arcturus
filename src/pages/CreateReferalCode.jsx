@@ -6,6 +6,7 @@ import useZust from "../hooks/useZust";
 import { ImageDiv } from "./components/UI/ImageDiv";
 
 import styles from './css/home.module.css'
+import { generateCode } from "../constants/utility";
 
 
 export const CreateReferalCode = (props = {}) => {
@@ -87,11 +88,11 @@ export const CreateReferalCode = (props = {}) => {
         props.back()
     }
 
-    function onGenerateClick(e){
+    async function onGenerateClick(e){
        
        
-        const code = MD5(formatedNow())
-        codeRef.current.value = code;
+
+        codeRef.current.value = (await generateCode(user.userEmail)).slice(0,30);
     }
 
     function formatedNow(now = new Date(), small = false) {
@@ -162,27 +163,14 @@ export const CreateReferalCode = (props = {}) => {
             <div style={{ paddingLeft: "15px", display: "flex", height: "430px" }}>
 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 200, padding: "10px" }}>
-                    <div style={{}} >
-                        <ImageDiv netImage={{
-                            image: "Images/icons/person.svg",
-                            width: 130,
-                            height: 130,
-                            filter: "invert(100%)"
-                        }} />
-                    </div>
-                    <div style={{ width: 200, backgroundImage: "linear-gradient(to right, #00030400, #77777777, #00030400)" }}>
-                        <div style={{
+                    
+                    <ImageDiv width={150} height={150} about={"Account"} netImage={{
+                        scale: 1,
+                        image: "/Images/icons/document-lock-outline.svg",
 
-                            textAlign: "center",
-                            fontFamily: "WebRockwell",
-                            fontSize: "15px",
-                            fontWeight: "bolder",
-                            color: "#cdd4da",
-                            textShadow: "2px 2px 2px #101314",
-
-                        }} >{user.userName}</div>
-
-                    </div>
+                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                        filter: "invert(100%)"
+                    }} />
 
                     <div style={{ paddingTop: 3, height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
 

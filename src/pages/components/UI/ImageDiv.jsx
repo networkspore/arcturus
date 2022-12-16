@@ -60,7 +60,7 @@ export const ImageDiv = (props = {}) => {
 
     const onUpdate = (response) => {
 
-        console.log(response)
+   
         if("success" in response){
 
             if (response.success){
@@ -111,7 +111,7 @@ export const ImageDiv = (props = {}) => {
                         //  const request = pDl.request;
 
 
-                        console.log(waiting.current.value)
+                      
 
                         waiting.current.value = null
                         const request = {

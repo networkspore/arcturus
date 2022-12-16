@@ -7,6 +7,7 @@ import useZust from "../hooks/useZust";
 
 import styles from './css/home.module.css';
 import sha256 from "crypto-js/sha256";
+import { getStringHash } from "../constants/utility";
 
 
 
@@ -100,22 +101,23 @@ export const RecoverPasswordPage = (props = {}) => {
             {
                 if (emailCode != "" )
                 {
-                    var shapass = sha256(pass).toString();
-                    setSocketCmd({
-                        anonymous: true,
-                        cmd: "updateUserPassword", params: { email: email, code: emailCode, password: shapass }, callback: (callback) => {
+                    getStringHash(pass).then((hash) =>{
+                        setSocketCmd({
+                            anonymous: true,
+                            cmd: "updateUserPassword", params: { email: email, code: emailCode, password: hash }, callback: (callback) => {
 
-                        if(callback.success)
-                        {
-                            
-                            alert("Your password has been updated.")
-                            window.location.replace("/")
-                        }else{
-                            alert("The information you have provided does not match our records.")
-                            setAttempts(prev => prev++)
-                        }
-                    }})
+                            if(callback.success)
+                            {
+                                
+                                alert("Your password has been updated.")
+                                window.location.replace("/")
+                            }else{
+                                alert("The information you have provided does not match our records.")
+                                setAttempts(prev => prev++)
+                            }
+                        }})
 
+                    })
                 }else{
                     alert("Recovery code required.")
                 }

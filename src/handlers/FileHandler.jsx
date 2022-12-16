@@ -67,7 +67,7 @@ export const FileHandler = ( props = {}) =>{
         if (fileRequest != null && fileRequest.length > 0 ){
            
                 fileRequest.forEach((request, i) => {
-                    console.log(request)
+                    
                     if (request.file != null && request.file.hash != null && request.file.hash != "" && request.file.mimeType != null) {
 
                         if( addProcessing(request)){

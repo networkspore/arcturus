@@ -855,7 +855,47 @@
 	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
 	filter: drop-shadow(0px 0px 3px #ffffff30);
 }
+.bubbleIcon {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-decoration: none;
+	transition: background 0.3s;
+	box-shadow: 0 0 10px #ffffff25, 0 0 20px #ffffff25, inset 0 0 30px #77777715;
 
+	overflow: hidden;
+}
+
+.bubbleIcon:hover {
+	color: white;
+	opacity: 1;
+	background: #ffffff05;
+	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
+}
+.activeBubbleIcon {
+	cursor: pointer;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	text-decoration: none;
+	color: #666666;
+	transition: background 0.3s;
+	box-shadow: 0 0 10px #ffffff15, 0 0 20px #ffffff15, inset 0 0 30px #77777715;
+	overflow: hidden;
+}
+
+.activeBubbleIcon:hover {
+	color: white;
+	opacity: 1;
+	background: #ffffff05;
+	box-shadow: 0 0 10px #ffffff40, 0 0 20px #ffffff40, inset 0 0 30px #77777710;
+	filter: drop-shadow(0px 0px 3px #ffffff30);
+}
 .bubbleButtonLink {
 	cursor: pointer;
 	position: relative;

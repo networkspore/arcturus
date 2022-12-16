@@ -1,17 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import useZust from '../hooks/useZust';
 import styles from './css/home.module.css';
-
-import { set, del } from 'idb-keyval';
-import produce from 'immer';
+import SelectBox from './components/UI/SelectBox';
 import {  useLocation, useNavigate, NavLink} from 'react-router-dom';
 
-
+import FileList from './components/UI/FileList';
 import { ImageDiv } from './components/UI/ImageDiv';
-import { getFileInfo } from '../constants/utility';
-import { PeerNetworkMenu } from './PeerNetworkMenu';
-import { PeerDownloadPage } from './PeerDownloadPage';
-import { PeerUploadPage } from './PeerUploadPage';
+import { LibraryPage } from './LibraryPage';
+import { PeerStatusPage } from './components/PeerStatusPage';
 
 
 export const PeerNetworkPage = () => {
@@ -35,7 +31,16 @@ export const PeerNetworkPage = () => {
 
     const [showIndex, setShowIndex] = useState(); 
 
+    const [currentSearchOption, setCurrentSearchOption] = useState(null)
+    const [change, setChange] = useState("")
 
+    
+    const searchInputRef = useRef()
+    const searchOptionRef = useRef()
+    
+    const [searchOptions, setSearchOptions] = useState([])
+
+    const [currentPeer, setCurrentPeer] = useState({userID:null, userName:"null"})
 
     function refreshOnClick(e) {
 
@@ -44,8 +49,31 @@ export const PeerNetworkPage = () => {
 
     const [subDirectory, setSubDirectory] = useState("")
     
+    const handleChange = (e) => {
+        setChange(e)
+    }
+    const searchOptionChanged = (index) => {
+        setCurrentSearchOption(index)
+    }
 
     useEffect(()=>{
+
+        if(location.state != null && "currentPeer" in location.state){
+            const statePeer = location.state.currentPeer
+            const cPeer = {
+                userID: statePeer.userID,
+                userName: statePeer.userName
+                
+            }
+            setCurrentPeer(cPeer)
+        }else{
+            const cPeer = {
+                userID: user.userID,
+                userName: user.userName
+
+            }
+            setCurrentPeer(cPeer)
+        }
 
         const config = configFile.value;
 
@@ -53,19 +81,22 @@ export const PeerNetworkPage = () => {
         const directory = "/home/peernetwork";
 
         const thirdSlash = currentLocation.indexOf("/",directory.length)
+        const fourthSlash = currentLocation.indexOf("/", thirdSlash + 1)
 
-        const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash) : "";
+        const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash, fourthSlash == -1 ? currentLocation.length : fourthSlash) : "";
         setSubDirectory(l)
+        
 
         switch(l){
             case "/settings":
                 setShowIndex(1)
                 break;
-            case "/downloads":
+            case "/status":
                 setShowIndex(3)
                 break;
-            case "/uploads":
-                setShowIndex(4)
+          
+            case "/library":
+                setShowIndex(5)
                 break;
             default:
                 if(config != null){
@@ -124,7 +155,7 @@ export const PeerNetworkPage = () => {
                         backgroundImage: "linear-gradient(#131514, #000304EE )",
 
                 }}>
-                    Peer Network
+                    <div>Peer Network</div>
                 </div>
                 <div style={{ 
                     display: "flex", 
@@ -148,12 +179,13 @@ export const PeerNetworkPage = () => {
 
                     </div>
                    
-                    
+                   
                     <div onClick={(e)=>{
-                        onReload()
-                    }} about={"Reconnect"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
+                        
+                        navigate(location.pathname == "/home/peernetwork/status" ? "/home/peernetwork" : "/home/peernetwork/status")
+                    }} about={location.pathname == "/home/peernetwork/status" ? "Back" :"Status"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
                      
-                        <img src='/Images/icons/refresh-outline.svg' width={25} height={25} style={{ filter: peerConnection == null ? "Invert(25%)" : "Invert(100%"}} />
+                        <img src={location.pathname == "/home/peernetwork/status" ? "/Images/icons/arrow-back-outline.svg" :'/Images/icons/pulse-outline.svg'} width={25} height={25} style={{ filter: "Invert(100%"}} />
                      
                     </div>
 
@@ -187,11 +219,7 @@ export const PeerNetworkPage = () => {
                                     filter: peerConnection == null ? "Invert(25%)" : "invert(100%)"
                                 }} />
                             </div>
-                            {configFile.value != null && configFile.value.peer2peer &&
-                                <div style={{ color:  "#cdd4da",}}>
-                                    webRTC://
-                                </div>
-                            }
+                            
                             <div style={{flex:1}}>
                                 <div style={{
                                     paddingTop:"2px",
@@ -205,19 +233,48 @@ export const PeerNetworkPage = () => {
                                     fontFamily: "Webrockwell", 
                                     fontSize: "14px",        
                                 }}>
-                                    {peerConnection == null ? configFile.value == null ? "Initialize local storage..." : configFile.value.peer2peer ?  "Reconnect..." : "Peer Network disabled" : "peernetwork"}{subDirectory}
+                                   {currentPeer.userName}://{peerConnection == null ? configFile.value == null ? "Initialize local storage..." : configFile.value.peer2peer ? "Reconnect..." : "Peer Network disabled" : location.pathname.slice(6, location.pathname.length)}
                                 </div>
                                 
                             </div>
-                        </div>
-                        <div style={{width:30}}>
-                   
                             
-                        
+
+                            
                         </div>
+                        <div style={{ width: 20 }}></div>
+                        <div style={{
+                            height: 30,
+
+                            display: "flex", justifyContent: "right", borderRadius: "30px",
+                        }}>
+                            <div style={{ margin: 3, backgroundColor: "#33333320", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <input ref={searchInputRef} name={"imageSearch"} onChange={handleChange} style={{
+                                    color: "white",
+                                    backgroundColor: "#33333300",
+                                    fontFamily: "webpapyrus",
+                                    fontSize: 12,
+                                    width: 200,
+                                    outline: 0,
+                                    border: 0
+                                }} type={"text"} />
+                            </div>
+                            <div style={{ width: 100, margin: 3 }}>
+                                <SelectBox ref={searchOptionRef} onChange={searchOptionChanged} textStyle={{ fontSize: 14, backgroundColor: "#33333320", border: 0, outline: 0, color: "white" }} placeholder={"All"} options={searchOptions} />
+                            </div>
+                            <div  onClick={(e) => { searchInputRef.current.focus() }} style={{
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                cursor: "pointer", paddingRight:10, paddingLeft:10
+                            }}>
+                                <ImageDiv width={20} height={20} netImage={{ backgroundColor: "", filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
+                            </div>
+                        </div>
+                       
+                        
                     </div>
                   
                 </div>
+
+                
             <div style={{  display: "flex", flex:1, height:(pageSize.height-100), margin:"30px" }}>
 
              
@@ -241,18 +298,55 @@ export const PeerNetworkPage = () => {
                 }
                
                     {showIndex == 2 && 
-                        <PeerNetworkMenu />
+                        <FileList className={styles.bubble__item}
+                            fileView={{
+                                type: "icons",
+                                direction: "row",
+                                iconSize: { width: 100, height: 100, scale: .5 }
+                            }}
+                            tableStyle={{
+                                maxHeight: pageSize.height - 400
+                            }}
+                            files={
+                                [
+                                    {
+                                        to: "/home/peernetwork/library",
+                                        name: "Library",
+                                        type: "folder",
+                                        hash: "",
+                                        lastModified: null,
+                                        size: null,
+                                        netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/library-outline.svg", filter: "invert(100%)" }
+                                    },
+                                ]}
+                        />
                     }
                     {showIndex == 1 &&
                         <div style={{ flex: 1, display: "block", color: "white" }}>
                             config
                         </div>
                     }
+                  
                     {showIndex == 3 &&
-                        <PeerDownloadPage />
+                       <PeerStatusPage location={location}/>
                     }
-                    {showIndex == 4 &&
-                        <PeerUploadPage />
+                   
+                    {showIndex == 5 &&
+                        <LibraryPage 
+
+                            setSearchOptions={(options) =>{
+                                setSearchOptions(options)
+                            }}
+                            setSearchValue={(value)=>{
+                                searchOptionRef.current.setValue(value)
+                            }} 
+                            setSearchText={(text)=>{
+                                searchInputRef.current.value = text
+                            }}
+                            optionChanged={currentSearchOption}
+                            onChange={change}
+
+                            admin={user.userID == currentPeer.userID} currentPeer={currentPeer} />
                     }
             </div>
         </div>

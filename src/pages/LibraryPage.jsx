@@ -13,202 +13,267 @@ export const LibraryPage = (props ={}) =>{
     const pageSize = useZust((state) => state.pageSize)
     const localDirectory = useZust((state) => state.localDirectory)
 
-    const searchInputRef = useRef()
+    const imagesDirectory = useZust((state) => state.imagesDirectory)
+    const mediaDirectory = useZust((state) => state.mediaDirectory)
+    const modelsDirectory = useZust((state) => state.modelsDirectory)
+
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
+
+    const userFiles = useZust((state) => state.userFiles)
+
+ 
     
    
     const [directoryOptions, setDirectoryOptions] = useState([])
 
+    const [currentDirectories, setCurrentDirectories] = useState([])
+    const [currentFiles, setCurrentFiles] = useState([])
+    const [allFiles, setAllFiles] = useState([]) 
  
     const [subDirectory, setSubDirectory] = useState("")
 
-    const [showIndex, setShowIndex] = useState(null)
+   // const [showIndex, setShowIndex] = useState(null)
 
-  
+    const [searchText, setSearchText] = useState("")
+    const [currentMimeType, setCurrentMimeType] = useState("")
+    const [currentType, setCurrentType] = useState("")
+    
+    const typeOptions = [
+        {value:"/all", label:"All"},
+        {
+            value: "/images", label: "Images"
+        },
+        {
+            value: "/media", label: "Media"
+        },
+        {
+            value: "/media/video", label: "Video"
+        },
+        {
+            value: "/media/audio", label: "Audio"
+        },
+        {
+            value: "/models", label: "Models"
+        },
+        {
+            value: "/assets", label: "Assets"
+        },
+        {
+            value: "/assets/pcs", label: "PCs"
+        },
+        {
+            value: "/assets/npcs", label: "NPCs"
+        },
+        {
+            value: "/assets/placeables", label: "Placeables"
+        },
+        {
+            value: "/assets/textures", label:"Textures"},
+        {
+            value: "/assets/terrain", label: "Terrain"
+        },
+        {
+            value: "/assets/types", label: "Types"
+        },
+       
+    ]
+    
+    const directory = "/home/peernetwork/library"
 
     useEffect(()=>{
-       
-    }, [])
+        props.setSearchOptions(typeOptions)
+        return () =>{
+            props.setSearchOptions([])
+        }
+    },[])
+
+    useEffect(()=>{
+        if(props.admin)
+        {
+            setAllFiles(userFiles)
+        }
+        
+    }, [props.admin, props.currentPeer])
 
     useEffect(() => {
+
+        props.setSearchText("")
+
         const currentLocation = location.pathname
+  
      
-        const directory = props.admin ? "/home/library" : "/home/peernetwork/library";
 
       
         const thirdSlash = currentLocation.indexOf("/", directory.length)
 
-        const fourthSlash = currentLocation.indexOf("/", directory.length + 2)
+      //  const fourthSlash = currentLocation.indexOf("/", directory.length + 2)
 
-        const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash, fourthSlash == -1 ? undefined : fourthSlash) : "";
-        // setSubDirectory(l)
-        //  console.log(subDirectory)
+        const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash, currentLocation.length) : "";
+        
+        setSubDirectory(l)
+        
+        
 
         switch (l) {
-            case "":
-                
+            case "/all":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentMimeType("")
+                setCurrentType("")
+            break;
+            case "/images":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentMimeType("image")
+                setCurrentType("")
                 break;
-            
+            case "/assets":
+                
+                setCurrentFiles([
+                    { to: directory + "/assets/pcs", name: "pcs", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/assets/npcs", name: "npcs", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/assets/placeables", name: "placeables", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/assets/textures", name: "textures", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/assets/terrain", name: "terrain", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/assets/types", name: "types", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                ])
+                props.setSearchValue(null)
+                setCurrentMimeType("")
+                setCurrentType("")
+                break;
+            case "/assets/pcs":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("")
+                setCurrentMimeType("arcpc")
+                break;
+            case "/assets/npcs":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("")
+                setCurrentMimeType("arcnpc")
+                break;
+            case "/assets/placeables":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("")
+                setCurrentMimeType("arcpl")
+                break;
+            case "/assets/textures":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("")
+                setCurrentMimeType("arctext")
+                break;
+            case "/assets/terrain":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("")
+                setCurrentMimeType("arcterr")
+                break; 
+            case "/assets/types":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("")
+                setCurrentMimeType("arctype")
+                break;
+            case "/models":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("")
+                setCurrentMimeType("model")
+                break;
+            case "/media":
+
+                setCurrentFiles([
+                    { to: directory + "/media/audio-video", name: "audio-video", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/media/audio", name: "audio", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/media/video", name: "video", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                ])
+                props.setSearchValue(null)
+                setCurrentType("")
+                setCurrentMimeType("")
+                break;
+            case "/media/audio-video":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentMimeType("media")
+                setCurrentType("")
+                break;
+            case "/media/audio":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("audio")
+                setCurrentMimeType("media")
+                break;
+            case "/media/video":
+                setCurrentFiles(allFiles)
+                props.setSearchValue(l)
+                setCurrentType("video")
+                setCurrentMimeType("media")
+                break;
+            default:
+             
+                setCurrentFiles([
+                    { to: directory + "/all", name: "All", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/assets", name: "Assets", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/images", name: "Images", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/models", name: "Models", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                    { to: directory + "/media", name: "Media", mimeType: "folder", type: "folder", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                ])
+                setCurrentMimeType("")
+                props.setSearchValue(null)
+                setCurrentType("")
+                break;
+
         }
            
 
-    }, [location, props.admin, props.userLibrary])
+    }, [location, allFiles])
 
-    const directoryChanged = (changed) =>{
+    useEffect(()=>{
+        if(props.optionChanged != undefined)
+        {
+            const index = props.optionChanged
 
-    }
+            if (index != null && typeOptions.length > 0) {
+                const value = typeOptions[index].value
+                const to = directory + value
 
-    const handleChange = (e) =>{
+                if (location.pathname != to) navigate(to)
+            } 
+        }
+    },[props.optionChanged])
+   
+    useEffect(()=>{
+        if(props.onChange != undefined)
+        {
+            const { name, value } = props.onChange;
+
+            if (name == "searchText") {
+                setSearchText(value)
+            }
+        }
+    },[props.onChange])
+    
+
+
+
+    const fileSelected = (file) =>{
 
     }
 
     return ( 
        
        
-        <div style={{
-            position: "fixed",
-            backgroundColor: "rgba(0,3,4,.9)",
-            width: pageSize.width - 410,
-            height: pageSize.height,
-            left: 410,
-            top: 0,
-            display: "flex",
-            flexDirection: "column",
+            <div style={{ marginTop:15, display: "flex", flex: 1, height: (pageSize.height - 100), minWidth: "600", overflowX: "scroll", padding: "15px" }}>
 
-        }}>
-            <div style={{
-                paddingBottom: "10px",
-                textAlign: "center",
-                width: "100%",
-                paddingTop: "18px",
-                fontFamily: "WebRockwell",
-                fontSize: "18px",
-                fontWeight: "bolder",
-                color: "#cdd4da",
-                textShadow: "2px 2px 2px #101314",
-                backgroundImage: "linear-gradient(#131514, #000304EE )",
-
-            }}>
-                Home Library
+                <FileList fileView={{ type: "icons", direction: "row", iconSize: { width: 100, height: 100 } }}
+                    onChange={fileSelected}
+                    filter={{ name: searchText, mimeType: currentMimeType, type: currentType }}
+                    files={currentFiles}
+                />
             </div>
-            <div style={{
-                display: "flex",
-                height: "50px",
-                backgroundColor: "#66666650",
 
-                alignItems: "center",
-                marginLeft: "10px",
-                marginRight: "10px",
-                paddingLeft: "10px"
-            }}>
-
-
-
-                <div style={{
-                    display: "flex",
-                    flex: 1,
-                    cursor: "pointer",
-                    fontFamily: "Webrockwell",
-                    fontSize: "14px",
-                }}>
-                    <div onClick={(e) => {
-
-                       // pickAssetDirectory()
-
-                    }} style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: "30px",
-                        backgroundImage: "linear-gradient(to right, #00000050,#11111150,#00000050)",
-                        marginLeft: "10px",
-
-                        height:30
-                    }}>
-                        <div style={{
-                            paddingLeft: "15px",
-                         
-                            paddingRight: "5px"
-                        }}>
-                            <div style={{cursor:"pointer"}} onClick={(e) => {
-
-                            }}>
-                            <ImageDiv width={20} height={20}  netImage={{
-                                scale: 1,
-                                filter: "invert(100%)",
-                                image: "/Images/icons/library-outline.svg",
-                              //  backgroundColor: "#44444450",
-                              //  backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-
-                            }} /></div>
-                        </div>
-                     
-                        
-                    
-                        <div style={{ flex: 1 }}>
-                            <div style={{
-
-                                paddingLeft: "2px",
-                                width: "100%",
-                                height: "18px",
-                                textAlign: "left",
-                                border: "0px",
-                                color: localDirectory.name == "" ? "#777777" : "#cdd4da",
-                                backgroundColor: "#00000000",
-
-
-                            }}>
-                                {props.userLibrary.userName}{":/"}{location.pathname}
-                            </div>
-
-                        </div>
-                        <div style={{ width: 20 }}>&nbsp;</div>
-
-                    </div>
-                </div>
-              
-                <div style={{ width: 20 }}></div>
-                <div style={{
-                    height: 30,
-
-                    display: "flex", justifyContent: "right", borderRadius: "30px",
-                }}>
-                    <div style={{ margin: 3, backgroundColor: "#33333320", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <input ref={searchInputRef} name={"imageSearch"} onChange={handleChange} style={{
-                            color: "white",
-                            backgroundColor: "#33333300",
-                            fontFamily: "webpapyrus",
-                            fontSize: 12,
-                            width: 200,
-                            outline: 0,
-                            border: 0
-                        }} type={"text"} />
-                    </div>
-                    <div style={{ width: 100, margin: 3 }}>
-                        <SelectBox onChange={directoryChanged} textStyle={{ fontSize: 14, backgroundColor: "#33333320", border: 0, outline: 0, color: "white" }} placeholder={"All"} options={directoryOptions} />
-                    </div>
-                    <div onClick={(e) => { searchInputRef.current.focus() }} style={{
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer"
-                    }}>
-                        <ImageDiv width={20} height={20} netImage={{ backgroundColor: "", filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
-                    </div>
-                </div>
-
-
-
-                <div style={{ width: 20 }}>
-
-                    {showIndex == 1 &&
-                      <></>
-                    }
-
-
-                </div>
-
-            </div>
-        
-        </div>
-       
     )
 }

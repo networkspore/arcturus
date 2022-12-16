@@ -22,7 +22,13 @@ const FileList = (props = {}, ref) => {
 
     const longClassName = ("longClassName" in props) ? props.longClassName : styles.bubbleScroll__item
     const activeLongClassName = ("activeLongClassName" in props) ? props.activeLongClassName : styles.activeBubbleScroll__item
+    
+    const iconClassName = ("iconClassName" in props) ? props.iconClassName : styles.bubbleIcon;
+    const activeIconClassName = ("activeIconClassName" in props) ? props.activeIconClassName : styles.activeBubbleIcon;
+
     const className = ("className" in props) ? props.className : styles.bubble__item;
+
+
     const activeClassName = ("activeClassName" in props) ? props.activeClassName : styles.bubbleActive__item;
     
     const filesStyle = { zIndex: "9999", textAlign: "left", color: "#cdd4da", position: "absolute", cursor: "pointer", backgroundColor: "rgba(20,23,24,.7)",  };
@@ -100,7 +106,7 @@ const FileList = (props = {}, ref) => {
     useEffect(() => {
 
         var array = [];
-        const filter = props.filter != undefined ? props.filter : {name:"", directory:""}
+        const filter = props.filter != undefined ? props.filter : {name:"", directory:"", type:""}
         let rows = null 
     
         if (files != null && divRef.current) {
@@ -126,16 +132,38 @@ const FileList = (props = {}, ref) => {
             files.forEach((file, i) => {
                 const iName = file.name + "";
                 const iDirectoryName = ("directory" in file) ? file.directory.name : null;
-                
-                let filterName = (filter.name != "" && filter.name != null);
-                let filterDirectory = (filter.directory != "" && filter.directory != null)
-              
+                const mimeType = ("mimeType" in file) ? file.mimeType : "";
+                const iType = ("type") in file ? file.type : "";
+                const filterName = (filter.name != "" && filter.name != null);
+                const filterDirectory = (filter.directory != undefined && filter.directory != "" && filter.directory != null)
+                const filterMimeType = (filter.mimeType != undefined && filter.mimeType != "" && filter.mimeType != null)
+                const filterType = (filter.type != undefined && filter.type != "" && filter.type != null)
+
                 let show = false;
+
                 if(filterDirectory){
                     show = iDirectoryName == filter.directory
 
                 }
                 show = filterDirectory == show;
+
+                if (show && filterMimeType)
+                {
+                    show = mimeType == filter.mimeType
+                }
+                if (show && filterType) {
+                    const ftLen = filter.type.length
+                    const iLen = iType.length
+
+                    if(iLen > ftLen)
+                    {
+                        show = iType.slice(0, ftLen) == filter.type
+                    }else{
+                        show = iType == filter.type
+                    }
+                     
+                }
+
                 if(show && filterName)
                 {
                     const lowerName = iName.toLowerCase();
@@ -143,6 +171,8 @@ const FileList = (props = {}, ref) => {
                     show = lowerName.includes(lowerFilterName)
    
                 }
+
+
             
 
                 if( show)
@@ -155,7 +185,7 @@ const FileList = (props = {}, ref) => {
                     const iTo = "to" in file ? file.to : null
                     const iHandle = file.handle;
                     const iIcon = ("icon" in file) ? file.icon : "/Images/icons/document-outline.svg";
-                    const mimeType = ("mimeType" in file) ? file.mimeType : "";
+                    
                     
                     const update = iTo == null ? {
                         command: "getIcon",
@@ -189,9 +219,9 @@ const FileList = (props = {}, ref) => {
                                         
                                         if (!isNaN(rowIndex) && !isNaN(columnIndex))
                                         {
-                                        rows[rowIndex][columnIndex] = <ImageDiv key={i}
+                                        rows[rowIndex][columnIndex] = <div key={i} style={{display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}><ImageDiv key={i}
                                             style={{ margin: 10, overflow: "hidden" }}
-                                            about={iName}
+                                            
                                             onClick={(e) => {
                                                 if (iTo == null) {
                                                     setSelectedIndex(i)
@@ -199,12 +229,15 @@ const FileList = (props = {}, ref) => {
                                                     navigate(iTo)
                                                 }
                                             }}
-                                            className={i == selectedIndex ? iName.length > 15 ? activeLongClassName : activeClassName : iName.length > 15 ? longClassName : className}
+                                            className={i == selectedIndex ? activeIconClassName  : iconClassName}
                                             height={fileView.iconSize.width}
                                             width={fileView.iconSize.height}
                                             netImage={iImage}
                                             
-                                        />}
+                                        /><div style={{fontFamily:"webrockwell", fontSize:"12", whitSpace: "nowrap", padding: 10, background: "rgba(0, 0, 0, 0.8)", color:"white"  }}>
+                                                {i == selectedIndex ? iName : iName.length > 13 ? iName.slice(0,11) + "..." : iName}
+                                            </div>
+                                        </div>}
                                     }
                                 break;
                                 case "list":

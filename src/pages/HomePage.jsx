@@ -39,6 +39,8 @@ export const HomePage = (props ={}) => {
 
     const [subDirectory, setSubDirectory] = useState("")
     const [subSubDirectory, setSubSubDirectory] = useState("")
+    const [subSubSubDirectory, setSubSubSubDirectory] = useState("")
+
     const location = useLocation();
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
@@ -80,13 +82,16 @@ export const HomePage = (props ={}) => {
             const thirdSlash = subLocation.indexOf("/", 1)
             const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
             const fourthSlash = subLocation.indexOf("/", thirdSlash == -1 ? subLocation.length : thirdSlash + 1)
-            const ssD = subLocation.slice(thirdSlash, fourthSlash == -1 ? subLocation.length : fourthSlash)
+            
+            const ssD = thirdSlash != -1 ? subLocation.slice(thirdSlash, fourthSlash == -1 ? subLocation.length : fourthSlash) : ""
          
+            const fifthSlash = subLocation.indexOf("/", fourthSlash == -1 ? subLocation.length : fourthSlash + 1)
+        const sssD = fourthSlash != -1 ? subLocation.slice(fourthSlash, fifthSlash == -1 ? subLocation.length : fifthSlash) : ""
 
             setSubDirectory(sD)
             setSubSubDirectory(ssD)
-          
-            
+            setSubSubSubDirectory(sssD)
+      
             switch(sD)
             {
                 case "/localstorage":
@@ -98,9 +103,7 @@ export const HomePage = (props ={}) => {
                 case "/account":
                     setshowIndex(4)
                     break;
-                case "/library":
-                    setshowIndex(5)
-                    break;
+              
                 default:
                     setshowIndex(0)
             }
@@ -192,7 +195,7 @@ export const HomePage = (props ={}) => {
                                 <img style={{ filter: "invert(100%)" }} src="/Images/icons/id-card-outline.svg" width={20} height={20} />
                             </div>
                             <div style={{ paddingLeft: "10px" }} >
-                                Account Settings
+                                Account
                             </div>
                         </div>
                         </NavLink>
@@ -344,17 +347,8 @@ export const HomePage = (props ={}) => {
                            
                     </div>
                     }
-                    <NavLink className={styles.result} to={"/home/library"}>
-                        <div style={{ color: subDirectory == "/library" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-
-                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/library-outline.svg" width={20} height={20} />
-                            </div>
-                            <div style={{ paddingLeft: "10px" }} >
-                                Library
-                            </div>
-                        </div>
-                    </NavLink>
+                    
+                    
                     <NavLink className={styles.result}  to={"/home/peernetwork"}>
                         <div  style={{ color: subDirectory == "/peernetwork" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
@@ -366,7 +360,179 @@ export const HomePage = (props ={}) => {
                             </div>
                         </div>
                     </NavLink>
-                   
+                    {subDirectory == "/peernetwork" && localDirectory.handle != null &&
+                    <div style={{marginLeft: 20}}>
+                            <NavLink className={styles.result} to={"/home/peernetwork/library"}>
+                                <div style={{ color: subSubDirectory == "/library" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+
+                                    <div>
+                                        <img style={{ filter: "invert(100%)" }} src="/Images/icons/library-outline.svg" width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px" }} >
+                                       Library
+                                    </div>
+                                </div>
+                            </NavLink>
+          
+                            {subSubDirectory == "/library" &&
+                        <div style={{ marginLeft: 30 }}>
+                            {assetsDirectory.handle != null &&
+                                <>
+
+                                        <div onClick={(e) => { navigate("/home/peernetwork/library/all") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                            <div >
+                                                <img style={{ filter: subSubSubDirectory == "/all" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/all" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                            </div>
+                                            <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/all" ? "white" : "" }} >
+                                                All
+                                            </div>
+                                        </div>
+                                    <div onClick={(e) => { navigate("/home/peernetwork/library/assets") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                        <div >
+                                                <img style={{ filter: subSubSubDirectory == "/assets" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/assets" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                        </div>
+                                            <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/assets" ? "white" : "" }} >
+                                            Assets
+                                        </div>
+                                    </div>
+                                    {subSubSubDirectory == "/assets" &&
+                                        <div style={{ marginLeft: 20 }} >
+
+                                            <div onClick={(e) => { navigate("/home/peernetwork/library/assets/pcs") }} className={styles.result}
+                                                style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/pcs" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/pcs" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+
+                                                <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/pcs" ? "white" : "" }} >
+                                                    PCs
+                                                </div>
+                                            </div>
+
+                                            <div onClick={(e) => { navigate("/home/peernetwork/library/assets/npcs") }} className={styles.result}
+                                                style={{
+                                                    padding: 5,
+                                                    display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                                }}>
+                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/npcs" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/npcs" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+
+                                                <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/npcs" ? "white" : "" }} >
+                                                    NPCs
+                                                </div>
+                                            </div>
+
+                                            <div onClick={(e) => { navigate("/home/peernetwork/library/assets/placeables") }} className={styles.result} style={{
+                                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                            }}>
+                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/placeables" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/placeables" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+
+                                                <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/placeables" ? "white" : "" }} >
+                                                    Placeable Models
+                                                </div>
+                                            </div>
+
+                                            <div onClick={(e) => { navigate("/home/peernetwork/library/assets/textures") }} className={styles.result} style={{
+                                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                            }}>
+                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/textures" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/textures" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+
+                                                <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/textures" ? "white" : "" }} >
+                                                    Textures
+                                                </div>
+                                            </div>
+
+                                            <div onClick={(e) => { navigate("/home/peernetwork/library/assets/terrain") }} className={styles.result} style={{
+                                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                            }}>
+                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/terrain" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/terrain" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+
+                                                <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/terrain" ? "white" : "" }} >
+                                                    Terrain
+                                                </div>
+                                            </div>
+
+                                            <div onClick={(e) => { navigate("/home/peernetwork/library/assets/types") }} className={styles.result} style={{
+                                                padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
+                                            }}>
+                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/types" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/types" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+
+                                                <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/types" ? "white" : "" }} >
+                                                    Types
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+                                       
+                                    </>
+                                    
+                            }
+                                
+
+                            {imagesDirectory.handle != null &&
+
+                                <div onClick={(e) => { navigate("/home/peernetwork/library/images") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                    <div>
+                                        <img style={{ filter: subSubSubDirectory == "/images" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/images" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/images" ? "white" : "" }} >
+                                        Images
+                                    </div>
+                                </div>
+
+                            }
+                            {modelsDirectory.handle != null &&
+
+                                <div onClick={(e) => { navigate("/home/peernetwork/library/models") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                    <div>
+                                        <img style={{ filter: subSubSubDirectory == "/models" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/models" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/models" ? "white" : "" }} >
+                                        Models
+                                    </div>
+                                </div>
+
+                            }
+
+
+                            {mediaDirectory.handle != null &&
+                                <>
+                                <div onClick={(e) => { navigate("/home/peernetwork/library/media") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                    <div>
+                                        <img style={{ filter: subSubSubDirectory == "/media" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/media" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/media" ? "white" : "" }} >
+                                        Media
+                                    </div>
+                                </div>
+                                {subSubSubDirectory == "/media" &&
+                                        <div style={{ marginLeft: 20 }} >
+                                                <div onClick={(e) => { navigate("/home/peernetwork/library/media/audio") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                                    <div>
+                                                        <img style={{ filter: location.pathname == "/home/peernetwork/library/media/audio"? "invert(100%)" : "invert(80%)", }} src={location.pathname == "/home/peernetwork/library/media/audio"? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                                    </div>
+                                                    <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/media/audio"? "white" : "" }} >
+                                                        Audio
+                                                    </div>
+                                                </div>
+                                                <div onClick={(e) => { navigate("/home/peernetwork/library/media/video") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                                    <div>
+                                                        <img style={{ filter: location.pathname == "/home/peernetwork/library/media/video"? "invert(100%)" : "invert(80%)", }} src={location.pathname == "/home/peernetwork/library/media/video"? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                                    </div>
+                                                    <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/media/video"? "white" : "" }} >
+                                                        Video
+                                                    </div>
+                                                </div>
+                                        </div>
+                                        
+                                }
+                                </>
+                            }
+
+                                    
+                        </div>
+                        }
+                           
+                        </div>
+                    }
                 </div>
                 <div onClick={(e) => { window.location.replace("/") }} style={{ height: "100%", width: 290, display: "flex", flexDirection: "column", justifyContent: "end", alignItems: "center", marginBottom: 50, marginTop: 50, }}>
                     <div style={{ width: 100, height: 30, borderRadius: 10 }} className={styles.bubbleButton}>Log Out</div>
@@ -387,9 +553,7 @@ export const HomePage = (props ={}) => {
             {showIndex == 4 &&
                 <AccountSettingsPage cancel={() => { setshowIndex(0) }}  />
             }
-            {showIndex == 5 &&
-                <LibraryPage admin={true} userLibrary={user} cancel={() => { setshowIndex(0) }} />
-            }
+            
             {showIndex == 10 &&
                 <ImagePicker selectedImage={user.image} 
                     onCancel ={()=>{
@@ -403,7 +567,45 @@ export const HomePage = (props ={}) => {
     )
 }
 
-/* <div  style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
+/* 
+ <NavLink className={styles.result} to={"/home/peernetwork/status"}>
+                                <div style={{ color: subSubDirectory == "/status" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+
+                                    <div>
+                                        <img style={{ filter: "invert(100%)" }} src="/Images/icons/pulse-outline.svg" width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px" }} >
+                                        Status
+                                    </div>
+                                </div>
+                            </NavLink>
+                            {subSubDirectory == "/status" &&
+                            <div style={{paddingLeft:20}}>
+                            <NavLink className={styles.result} to={"/home/peernetwork/status/downloads"}>
+                                <div style={{ color: subSubDirectory == "/downloads" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+
+                                    <div>
+                                        <img style={{ filter: "invert(100%)" }} src="/Images/icons/cloud-download-outline.svg" width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px" }} >
+                                        Downloads
+                                    </div>
+                                </div>
+                            </NavLink>
+                            <NavLink className={styles.result} to={"/home/peernetwork/status/uploads"}>
+                                <div style={{ color: subSubDirectory == "/uploads" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+
+                                    <div>
+                                        <img style={{ filter: "invert(100%)" }} src="/Images/icons/cloud-upload-outline.svg" width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px" }} >
+                                        Uploads
+                                    </div>
+                                </div>
+                            </NavLink>
+                            </div>}
+
+<div  style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
                         onClick={(e) => {
                             setshowIndex(1)
                         }}

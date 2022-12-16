@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import useZust from "../hooks/useZust";
+import { ChangePasswordPage } from "./ChangePasswordPage";
+import { ChangeEmailPage } from "./ChangeEmailPage";
+import { ImageDiv } from "./components/UI/ImageDiv";
 
 import { CreateReferalCode } from "./CreateReferalCode";
 import styles from './css/home.module.css'
@@ -10,8 +13,7 @@ import styles from './css/home.module.css'
 export const AccountSettingsPage = (props = {}) => {
 
     const pageSize = useZust((state) => state.pageSize)
-    const user = useZust((state) => state.user)
-    const socket = useZust((state) => state.socket)
+
 
     const [profileInfo, setProfileInfo] = useState(null);
     const nav = useNavigate();
@@ -60,12 +62,18 @@ export const AccountSettingsPage = (props = {}) => {
 
 
                     }}>
-                        Account Settings
+                        Account
                     </div>
                     <div style={{ paddingLeft: "15px", display: "flex", height: "430px", }}>
 
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 200, padding: "10px" }}>
-                           
+                            <ImageDiv width={150} height={150} about={"Account"}  netImage={{
+                                scale: 1,
+                                image: "/Images/icons/id-card-outline.svg",
+                               
+                                backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
+                                filter:"invert(100%)"
+                            }} />
                         
                         </div>
                         <div style={{ width: 2, height: "100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
@@ -76,49 +84,68 @@ export const AccountSettingsPage = (props = {}) => {
                                     fontFamily: "Webrockwell",
                                     color: "#cdd4da",
                                     fontSize: "18px",
+                                    paddingBottom:80,
+                                    paddingTop:60
                                 }}>
                                     
                                     <div style={{ height: "20px" }}></div>
                                     <div style={{ display: "flex", paddingTop: "20px" }} >
-                                        <div> <input readOnly value={'Click to change...'} type={"text"} style={{ cursor: "pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
-                                        <div style={{ paddingLeft: "20px" }} > Password </div>
+                                        <div onClick={(e)=>{setShowIndex(2)}} style={{
+                                            display:"flex",
+                                            alignItems:"center",
+                                            justifyContent:"center",
+                                            fontSize:14, cursor: "pointer", width: 200, height: "25px",  border: "0px", color: "#777171", backgroundColor: "black" }} > 
+                                            Click to change...
+                                        </div>
+                                        <div style={{ paddingLeft: "20px" }} onDoubleClick={(e)=>{
+                                                setShowIndex(1)
+                                            }} 
+                                        > Password </div>
                                     </div>
                                     <div style={{ height: "20px" }}></div>
                                     <div style={{ display: "flex", paddingTop: "20px" }} >
-                                        <div> <input readOnly type={"text"} value={"Click to verify..."} style={{ cursor: "pointer", width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
+                                        <div onClick={(e)=>{
+                                            setShowIndex(3)
+                                        }} style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: 14, cursor: "pointer", width: 200, height: "25px", border: "0px", color: "#777171", backgroundColor: "black"
+                                        }} >
+                                            Click to change...
+                                        </div> 
                                         <div style={{ paddingLeft: "20px" }} > Email</div>
                                     </div>
-                                    <div style={{ height: "20px" }}></div>
+                                    <div style={{ height: "40px" }}></div>
 
-                                    <div style={{ display: "flex", paddingTop: "20px" }} >
-                                        <div> <input readOnly type={"text"} style={{ width: 200, height: "20px", textAlign: "center", border: "0px", color: "#777171", backgroundColor: "black" }} /> </div>
-                                        <div style={{ paddingLeft: "20px", color: " #777777" }} > Modified </div>
-                                    </div>
+                                    
                                     <div style={{ height: "20px" }}></div>
                                 </div>
-                            </div>
-                            <div style={{
-                                justifyContent: "center",
-
-                                paddingTop: "10px",
-                                display: "flex",
-                                alignItems: "center",
-                                width: "100%"
-                            }}>
-                                <div className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
-
                                 <div style={{
+                                    justifyContent: "center",
 
-                                    marginLeft: "20px", marginRight: "20px",
-                                    height: "50px",
-                                    width: "1px",
-                                    backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                                }}></div>
-                                <div className={styles.OKButton} onClick={onOKclick} >OK</div>
+                                    paddingTop: "10px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    width: "100%"
+                                }}>
+                                    <div style={{height:40, width: 90}} className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
+
+                                    <div style={{
+
+                                        marginLeft: "20px", marginRight: "20px",
+                                        height: "50px",
+                                        width: "1px",
+                                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                                    }}></div>
+                                    <div style={{height:40, width:80}} className={styles.OKButton} onClick={onOKclick} >OK</div>
+                                </div>
                             </div>
+                            
                         </div>
-
+                        
                     </div>
+                    
                 </div>
             }
             {showIndex == 1 &&
@@ -127,7 +154,14 @@ export const AccountSettingsPage = (props = {}) => {
                     setShowIndex(0)
                 }} />
             }
-
+            {
+                showIndex == 2 &&
+                <ChangePasswordPage back={()=>{setShowIndex(0)}} />
+            }
+            {
+                showIndex == 3 &&
+                <ChangeEmailPage back={() => { setShowIndex(0) }} />
+            }
         </>
     )
 }

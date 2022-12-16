@@ -511,7 +511,7 @@ export const LocalStoragePage = () => {
                             display: "flex", alignItems: "center", justifyContent: "center",
                             cursor: "pointer"
                         }}>
-                            <ImageDiv width={30} height={30} netImage={{ backgroundColor: "", filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
+                            <ImageDiv width={20} height={20} netImage={{ backgroundColor: "", filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
                         </div>
                     </div>
                         
