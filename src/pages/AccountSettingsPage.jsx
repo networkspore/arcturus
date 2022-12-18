@@ -9,21 +9,35 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 
 import { CreateReferalCode } from "./CreateReferalCode";
 import styles from './css/home.module.css'
+import { access } from "../constants/constants";
+import { ChangeAccessPage } from "./ChangeAccessPage";
 
 export const AccountSettingsPage = (props = {}) => {
 
     const pageSize = useZust((state) => state.pageSize)
 
-
-    const [profileInfo, setProfileInfo] = useState(null);
-    const nav = useNavigate();
+    const user = useZust((state) => state.user)
 
     const [showIndex, setShowIndex] = useState(0);
+    const [userAccess, setUserAccess] = useState("")
 
     useEffect(() => {
-      
+       if(user!=null && user.userID != null){
+            switch(user.accessID)
+            {
+                case access.private:
+                    setUserAccess("Private")
+                    break;
+                case access.contacts:
+                    setUserAccess("Contacts")
+                    break;
+                case access.public:
+                    setUserAccess("Public")
+                    break;
 
-    }, [])
+            }
+        }
+    }, [user])
 
 
     function onCancelClick(e) {
@@ -110,13 +124,35 @@ export const AccountSettingsPage = (props = {}) => {
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "center",
-                                            fontSize: 14, cursor: "pointer", width: 200, height: "25px", border: "0px", color: "#777171", backgroundColor: "black"
+                                            fontSize: 14, cursor: "pointer", width: 200, height: "25px", border: "0px", color: "#777171", backgroundColor: "black",
+                                            flexDirection:"column",
+                                            whiteSpace:"nowrap"
                                         }} >
-                                            Click to change...
+                                            <div>{user.userEmail.length < 23 ? user.userEmail : user.userEmail.slice(0,21) + "..."}</div>
+                                       
                                         </div> 
                                         <div style={{ paddingLeft: "20px" }} > Email</div>
                                     </div>
-                                    <div style={{ height: "40px" }}></div>
+                                    <div style={{ height: "20px" }}></div>
+                                    <div style={{ display: "flex", paddingTop: "20px" }} >
+                                        <div onClick={(e) => {
+                                            setShowIndex(4)
+                                        }} style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: 14, cursor: "pointer", width: 200, height: "25px", border: "0px", color: "#777171", backgroundColor: "black",
+                                            flexDirection: "column",
+                                                whiteSpace: "nowrap"
+                                            }} >
+                                            <div>{userAccess}</div>
+                                           
+                                        </div> 
+                                        
+                                       <div style={{ paddingLeft: "20px", whiteSpace:"nowrap" }} > Access </div>
+                                        </div>
+                                       
+                                    </div>
 
                                     
                                     <div style={{ height: "20px" }}></div>
@@ -146,7 +182,7 @@ export const AccountSettingsPage = (props = {}) => {
                         
                     </div>
                     
-                </div>
+                
             }
             {showIndex == 1 &&
                 <CreateReferalCode back={() => {
@@ -161,6 +197,10 @@ export const AccountSettingsPage = (props = {}) => {
             {
                 showIndex == 3 &&
                 <ChangeEmailPage back={() => { setShowIndex(0) }} />
+            }
+            {
+                showIndex == 4 &&
+                <ChangeAccessPage back={() => { setShowIndex(0)}} />
             }
         </>
     )

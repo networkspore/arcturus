@@ -316,7 +316,7 @@ export const RealmsPage = () =>{
                     alignItems: "center",
                     width: "100%"
                 }}>
-                    <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={(e)=>{navigate("/network")}}>No</div>
+                    <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={(e)=>{navigate("/contacts")}}>No</div>
 
                     <div style={{
 

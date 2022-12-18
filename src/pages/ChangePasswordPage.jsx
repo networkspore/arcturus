@@ -151,7 +151,7 @@ export const ChangePasswordPage = (props = {}) =>{
                             <div> <input
                                 ref={pass2Ref}
                                 placeholder="Re-enter password"
-                                autoFocus
+                                
                                 type={"password"}
                                 style={{
                                     width: 270,

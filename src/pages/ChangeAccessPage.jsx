@@ -1,33 +1,30 @@
+import { useEffect } from "react"
 import { useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import useZust from "../hooks/useZust"
 import { ImageDiv } from "./components/UI/ImageDiv"
 import styles from './css/home.module.css'
+import SelectBox from "./components/UI/SelectBox"
 
-export const ChangeEmailPage = (props = {}) =>{
+export const ChangeAccessPage = (props = {}) =>{
     const pageSize = useZust((state) => state.pageSize)
      
-    const passRef = useRef()
-    const pass2Ref = useRef()
-    const codeRef = useRef()
-    const navigate = useNavigate()
+    const accessRef = useRef()
+
     const setSocketCmd = useZust((state) => state.setSocketCmd)
-    const [emailSent, setEmailSent] = useState(false)
     const user = useZust((state) => state.user)
     const setUser = useZust((state) => state.setUser)
 
+    useEffect(()=>{
+        accessRef.current.setValue(user.accessID)
+    },[user])
+
     const onOKclick = (e) =>{
-        const email = passRef.current.value;
-        const email2 = pass2Ref.current.value;
-        if (/.+@.+\.[A-Za-z]+$/.test(email))
-        {
-            if(email != email2)
-            {
-                alert("Your email addresses do not match.")
-            }else{
-               console.log("changing email")
-                setSocketCmd({ cmd: "updateUserEmail", params: { email:email}, callback:(result)=>{
-                    console.log(result)
+        const accessID = accessRef.current.getValue
+    
+        if(accessID != user.accessID){
+                setSocketCmd({ cmd: "updateUserAccess", params: { accessID:accessID}, callback:(result)=>{
+                    
                     if("success" in result && result.success)
                     {
                         const names = Object.getOwnPropertyNames(user)
@@ -35,26 +32,26 @@ export const ChangeEmailPage = (props = {}) =>{
                         let newUser = {}
 
                         names.forEach(name => {
-                            if(name == "userEmail")
+                            if(name == "accessID")
                             {
-                                newUser.userEmail = email
+                                newUser.accessID = accessID
                             }else{
                                 newUser[name] = user[name]
                             }  
                         });
 
                         setUser(newUser)
-                        alert("Email changed")
+                        alert("Access changed")
                         props.back()
                     }else{
-                        alert("Unable to change email.")
+                        alert("Unable to change access.")
                     }
                 }})
                
             
-            }
+            
         }else{
-            alert("Your email address is not valid.")
+            alert("Access has not changed.")
         }
     }
 
@@ -86,7 +83,7 @@ export const ChangeEmailPage = (props = {}) =>{
 
 
             }}>
-                Change Email
+                Change Access
             </div>
             <div style={{ paddingLeft: "15px", display: "flex", height: "430px" }}>
 
@@ -94,13 +91,13 @@ export const ChangeEmailPage = (props = {}) =>{
 
                     <ImageDiv width={150} height={150} about={"Account"} netImage={{
                         scale: 1,
-                        image: "/Images/icons/mail-outline.svg",
+                        image: "/Images/icons/hand-right-outline.svg",
 
                         backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
                         filter: "invert(100%)"
                     }} />
-
-                    <div style={{ paddingTop: 3, height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
+        
+                    <div style={{ marginTop:10, paddingTop: 3, height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", }}>&nbsp;</div>
 
 
                 </div>
@@ -113,7 +110,7 @@ export const ChangeEmailPage = (props = {}) =>{
                     width: "500px",
                     backgroundColor: "#33333322"
                 }}
-                >
+                >   
                
                     <div style={{
                      
@@ -124,64 +121,51 @@ export const ChangeEmailPage = (props = {}) =>{
                     }}>
                         <div style={{ display: "flex", paddingTop: "50px", marginLeft: "10px" }} >
                            
-                            <div> <input
-                                ref={passRef}
-                                placeholder="Enter email"
-                                autoFocus
-                                type={"text"}
-                                style={{
-                                    width: 270,
-                                    height: "38px",
-                                    textAlign: "center",
-                                    border: "0px",
-                                    color: "white",
-                                    backgroundColor: "black",
+                            <div>  <SelectBox
+                                ref={accessRef}
+                                textStyle={{
+                                    textAlign:"center",
+                                    padding: 4,
+                                    backgroundColor: "#00000060",
+                                    width: 200,
+                                    color: "#ffffff",
+                                    fontFamily: "Webrockwell",
+                                    border: 0,
+                                    fontSize: 14,
+                                }}
+                                optionsStyle={{
 
-                                }} /> </div>
-                          
+                                    backgroundColor: "#333333C0",
+                                    paddingTop: 5,
+                                    fontSize: 14,
+                                    fontFamily: "webrockwell"
+                                }}
+
+                                placeholder="access" options={[
+                                    { value: 0, label: "Private" },
+                                    { value: 1, label: "Contacts" },
+                                    { value: 2, label: "Public" }
+                                ]} /> </div>
+                         
                         </div>
 
                     </div>
-                    <div style={{
-                  
-                        fontFamily: "Webrockwell",
-                        color: "#cdd4da",
-                        fontSize: "18px",
-                        paddingBottom: 20
-                    }}>
-                        <div style={{ display: "flex", paddingTop: "50px", marginLeft: "10px" }} >
-
-                            <div> <input
-                                ref={pass2Ref}
-                                placeholder="Re-enter email"
-                            
-                                type={"text"}
-                                style={{
-                                    width: 270,
-                                    height: "38px",
-                                    textAlign: "center",
-                                    border: "0px",
-                                    color: "white",
-                                    backgroundColor: "black",
-
-                                }} /> </div>
-
-                        </div>
-
-                    </div>
+                   
                   
                     <div style={{
-                        paddingTop: 40,
+                        paddingTop: 130,
                         fontFamily: "Webrockwell",
                         color: "#777777",
                         fontSize: "12px",
-                        paddingBottom:40,
+                        paddingBottom:60,
                         display:"flex",
                         alignItems:"center",
                         justifyContent:"center",
                         flexDirection:"column"
                     }}>
-                        <div style={{fontSize:14, paddingBottom:10}}> Notice:</div><div>Your password may not be changed for 24hrs after changing your email.</div>
+                        <div style={{fontSize:14, paddingBottom:10}}> Notice:</div>
+                        <div>Access controls who is able to access your profile information.</div>
+                        
                     </div>
                   
                     <div style={{

@@ -78,7 +78,7 @@ export const LibraryPage = (props ={}) =>{
        
     ]
     
-    const directory = "/home/peernetwork/library"
+    const [directory, setDirectory] = useState("/home/peernetwork/library")
 
     useEffect(()=>{
         props.setSearchOptions(typeOptions)
@@ -91,7 +91,10 @@ export const LibraryPage = (props ={}) =>{
         if(props.admin)
         {
             setAllFiles(userFiles)
+        }else{
+            setAllFiles([])
         }
+        
         
     }, [props.admin, props.currentPeer])
 
@@ -101,10 +104,11 @@ export const LibraryPage = (props ={}) =>{
 
         const currentLocation = location.pathname
   
+        const d = props.directory + "/library"
      
-
+        setDirectory(d)
       
-        const thirdSlash = currentLocation.indexOf("/", directory.length)
+        const thirdSlash = currentLocation.indexOf("/", d.length)
 
       //  const fourthSlash = currentLocation.indexOf("/", directory.length + 2)
 
@@ -229,7 +233,7 @@ export const LibraryPage = (props ={}) =>{
         }
            
 
-    }, [location, allFiles])
+    }, [location, allFiles, props.directory])
 
     useEffect(()=>{
         if(props.optionChanged != undefined)

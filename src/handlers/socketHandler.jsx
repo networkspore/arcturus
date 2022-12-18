@@ -316,6 +316,11 @@ export const SocketHandler = (props = {}) => {
                             socketCmd.callback(response)
                         })
                         break;
+                    case "updateUserAccess":
+                        sock.current.value.emit("updateUserAccess", socketCmd.params, (response) => {
+                            socketCmd.callback(response)
+                        })
+                        break;
                     default:
                         if (socketCmd.cmd != null && socketCmd.callback != null){
                         

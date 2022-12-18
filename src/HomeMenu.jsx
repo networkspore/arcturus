@@ -6,7 +6,7 @@ import { NavLink, useHref, useLocation, useNavigate } from "react-router-dom";
 import produce from "immer";
 import LoginPage from "./pages/LoginPage"
 import WelcomePage from "./pages/WelcomePage";
-import { NetworkPage } from "./pages/NetworkPage";
+import { ContactsPage } from "./pages/ContactsPage";
 import { HomePage } from "./pages/HomePage";
 import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
 import { RealmsPage } from "./pages/RealmsPage";
@@ -31,6 +31,7 @@ import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
 import { StorageHandler } from "./handlers/StorageHandler";
 import { ContactsHandler } from "./handlers/ContactsHandler";
+
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -116,7 +117,7 @@ const HomeMenu = () => {
     const setQuickBar = useZust((state) => state.setQuickBar)
     const quickBar = useZust((state) => state.quickBar)
 
-    const [onComplete, setOnComplete] = useState("/network")
+    const [onComplete, setOnComplete] = useState("/contacts")
     const [loadState, setLoadState] = useState(null)
     const [realmQuickBarItems, setRealmQuickBarItems] = useState(null)
 
@@ -145,7 +146,7 @@ const HomeMenu = () => {
                     case "/login":
 
                         break;
-                    case "/network":
+                    case "/contacts":
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(3)
 
@@ -180,7 +181,7 @@ const HomeMenu = () => {
 
                     default:
 
-                        navigate('/network')
+                        navigate('/contacts')
 
                 }
 
@@ -624,7 +625,7 @@ const HomeMenu = () => {
                 <WelcomePage />
             }
             {showIndex == 3 &&
-                <NetworkPage />
+                <ContactsPage />
             }
             {showIndex == 4 &&
                 <HomePage />
@@ -650,10 +651,10 @@ const HomeMenu = () => {
 
                             <div onClick={(e) => {
 
-                                navigate("/network")
+                                navigate("/contacts")
 
 
-                            }} style={{ outline: 0 }} className={directory == "/network" ? styles.menuActive : styles.menu__item} about="Arcturus Network" >
+                            }} style={{ outline: 0 }} className={directory == "/contacts" ? styles.menuActive : styles.menu__item} about="Arcturus Network" >
                                 <img src="/Images/logo.png" width={50} height={50} />
                             </div>
 

@@ -13,10 +13,14 @@ import SelectBox from './components/UI/SelectBox';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { getFileInfo, getPermission, getPermissionAsync, readFileJson } from '../constants/utility';
 import { initStorage } from '../constants/systemMessages';
+import { PeerDownloadPage } from './PeerDownloadPage';
+import { PeerUploadPage } from './PeerUploadPage';
 
 export const LocalStoragePage = () => {
 
     const searchInputRef = useRef()
+
+    const directory = "/home/localstorage"
    
     const [directoryOptions, setDirectoryOptions] = useState([])
 
@@ -133,6 +137,11 @@ export const LocalStoragePage = () => {
                     case "/init":
                         setCurrentFiles([])
                         setShowIndex(1)
+                        break;
+                    case "/status":
+                        setCurrentDirectories([])
+
+                        setShowIndex(3)
                         break;
                     case "/images":
                         setCurrentDirectories(imagesDirectory.directories)
@@ -425,8 +434,23 @@ export const LocalStoragePage = () => {
                         <img src='/Images/icons/reload-outline.svg' width={25} height={25} style={{ filter: localDirectory.name == "" ? "Invert(25%)" : "Invert(100%"}} />
                      
                     </div>
+                    <div onClick={(e) => {
+                        navigate(-1)
 
-                    
+                    }} about={"Back"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
+
+                        <img src={"/Images/icons/arrow-back-outline.svg"} width={25} height={25} style={{ filter: "Invert(100%" }} />
+
+                    </div>
+                    <div onClick={(e) => {
+
+                        navigate( directory + "/status")
+                    }} about={"Status"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
+
+                        <img src={'/Images/icons/file-tray-stacked-outline.svg'} width={25} height={25} style={{ filter: location.pathname == "/home/localstorage/status" ?"invert(100%)" : "Invert(70%)" }} />
+
+                    </div>
+
                     <div  style={{ 
                         display: "flex", 
                         flex:1,
@@ -525,7 +549,7 @@ export const LocalStoragePage = () => {
                     </div>
                   
                 </div>
-            <div style={{ margin:30, display: "flex", flex:1, height:(pageSize.height-100), minWidth:"600", overflowX:"scroll", padding:"15px" }}>
+            <div style={{  display: "flex", flex:1, height:(pageSize.height-100), minWidth:"600", overflowX:"scroll", padding:"15px" }}>
 
              
                
@@ -546,16 +570,7 @@ export const LocalStoragePage = () => {
                             
                     </div>         
                 }
-                {configFile.handle != null && showIndex == 2 &&
-                    <div style={{
-                        overflowX:"hidden",
-                        overflowY:"scroll",
-                        maxHeight:"95%",
-                        width:"100%"
-                    }}>
-                        <FileList directories={currentDirectories}  files={currentFiles}/>
-                    </div>
-                }
+                
                 {showIndex == 0 && configFile.handle != null &&
                     
                     <FileList className={styles.bubbleButtonLink} longClassName={styles.bubbleButtonLinkScroll}  fileView={{type:"icons",direction:"row", iconSize:{width:100,height:100}}} tableStyle={{ maxHeight: pageSize.height - 400 }} files={[
@@ -575,6 +590,36 @@ export const LocalStoragePage = () => {
                             turnOffLocalStorage()
                         }}
                     />
+                    }
+                {configFile.handle != null && showIndex == 2 &&
+                    <div style={{
+                        overflowX: "hidden",
+                        overflowY: "scroll",
+                        maxHeight: "95%",
+                        width: "100%"
+                    }}>
+                        <FileList directories={currentDirectories} files={currentFiles} />
+                    </div>
+                }
+                    {showIndex == 3 &&
+                        <div style={{
+                            overflowX: "hidden",
+                            overflowY: "scroll",
+                            maxHeight: "100%",
+                            width: "100%"
+                        }}>
+                            <PeerDownloadPage />
+                        </div>
+                    }
+                    {showIndex == 3 &&
+                        <div style={{
+                            overflowX: "hidden",
+                            overflowY: "scroll",
+                            maxHeight: "100%",
+                            width: "100%"
+                        }}>
+                            <PeerUploadPage />
+                        </div>
                     }
             </div>
         </div>

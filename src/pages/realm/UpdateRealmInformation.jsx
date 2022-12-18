@@ -226,9 +226,9 @@ export const UpdateRealmInformation = (props = {}) =>{
                             }}
 
                             placeholder="availability" options={[
-                                { value: "0", label: "Closed" },
-                                { value: "1", label: "Contacts Only" },
-                                { value: "2", label: "Public" }
+                                { value: 0, label: "Closed" },
+                                { value: 1, label: "Contacts Only" },
+                                { value: 2, label: "Public" }
                             ]} />
                     </div>
                 </div>

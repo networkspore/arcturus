@@ -813,16 +813,16 @@ export const PeerNetworkHandler = (props ={}) => {
             {peerUpload.length > 0 &&
                 <div style={{ height: 30, display: "flex", alignItems: "start", justifyContent: "start" }}>
                     <ImageDiv onClick={(e) => {
-                        navigate("/home/peernetwork/uploads")
-                    }} width={20} height={30} netImage={{ image: "/Images/icons/cloud-upload-outline.svg", scale: .7, filter: "invert(100%)" }} />
+                            navigate("/home/localstorage/status/uploads")
+                    }} width={20} height={30} netImage={{ image: "/Images/icons/file-tray-outline.svg", scale: .7, filter: "invert(100%)" }} />
                 </div>
             }
             {
                 peerDownload.length > 0 &&
                 <div style={{height:30, display:"flex", alignItems:"end", justifyContent:"end" }}>
                     <ImageDiv onClick={(e) => {
-                        navigate("/home/peernetwork/downloads")
-                    }} width={20} height={20} netImage={{ image: "/Images/icons/cloud-download-outline.svg", scale: .7, filter: "invert(100%)" }} />
+                        navigate("/home/localstorage/status/downloads")
+                    }} width={20} height={20} netImage={{ image: "/Images/icons/file-tray-full-outline.svg", scale: .7, filter: "invert(100%)" }} />
                 </div>
             }
           

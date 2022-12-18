@@ -11,7 +11,7 @@ import { PeerStatusPage } from './components/PeerStatusPage';
 
 
 export const PeerNetworkPage = () => {
-
+    
     const location = useLocation();
 
     const navigate = useNavigate();
@@ -40,8 +40,9 @@ export const PeerNetworkPage = () => {
     
     const [searchOptions, setSearchOptions] = useState([])
 
+    const currentContact = useZust((state) => state.currentContact)
     const [currentPeer, setCurrentPeer] = useState({userID:null, userName:"null"})
-
+    const [directory, setDirectory] = useState("/home/peernetwork")
     function refreshOnClick(e) {
 
     }
@@ -58,11 +59,11 @@ export const PeerNetworkPage = () => {
 
     useEffect(()=>{
 
-        if(location.state != null && "currentPeer" in location.state){
-            const statePeer = location.state.currentPeer
+        if(currentContact != null){
+
             const cPeer = {
-                userID: statePeer.userID,
-                userName: statePeer.userName
+                userID: currentContact.userID,
+                userName: currentContact.userName
                 
             }
             setCurrentPeer(cPeer)
@@ -78,9 +79,11 @@ export const PeerNetworkPage = () => {
         const config = configFile.value;
 
         const currentLocation = location.pathname;
-        const directory = "/home/peernetwork";
+        const d = currentContact == null ? "/home/peernetwork" : "/contacts/" + currentContact.userName + "/peernetwork";
 
-        const thirdSlash = currentLocation.indexOf("/",directory.length)
+        setDirectory(d)
+
+        const thirdSlash = currentLocation.indexOf("/",d.length)
         const fourthSlash = currentLocation.indexOf("/", thirdSlash + 1)
 
         const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash, fourthSlash == -1 ? currentLocation.length : fourthSlash) : "";
@@ -91,9 +94,7 @@ export const PeerNetworkPage = () => {
             case "/settings":
                 setShowIndex(1)
                 break;
-            case "/status":
-                setShowIndex(3)
-                break;
+       
           
             case "/library":
                 setShowIndex(5)
@@ -113,9 +114,9 @@ export const PeerNetworkPage = () => {
           
 
 
-    },[location])
+    }, [location, currentContact])
 
-    const disable = useRef({value:false})
+  //  const disable = useRef({value:false})
 
 
     const turnOffPeerNetwork = () => {
@@ -178,17 +179,17 @@ export const PeerNetworkPage = () => {
                         }} />
 
                     </div>
-                   
-                   
-                    <div onClick={(e)=>{
-                        
-                        navigate(location.pathname == "/home/peernetwork/status" ? "/home/peernetwork" : "/home/peernetwork/status")
-                    }} about={location.pathname == "/home/peernetwork/status" ? "Back" :"Status"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
-                     
-                        <img src={location.pathname == "/home/peernetwork/status" ? "/Images/icons/arrow-back-outline.svg" :'/Images/icons/pulse-outline.svg'} width={25} height={25} style={{ filter: "Invert(100%"}} />
-                     
-                    </div>
 
+                    <div onClick={(e) => {
+                       navigate(-1) 
+                       
+                    }} about={"Back"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
+
+                        <img src={"/Images/icons/arrow-back-outline.svg"} width={25} height={25} style={{ filter: "Invert(100%" }} />
+
+                    </div>
+                   
+                  
                     
                     <div  style={{ 
                         display: "flex", 
@@ -233,7 +234,7 @@ export const PeerNetworkPage = () => {
                                     fontFamily: "Webrockwell", 
                                     fontSize: "14px",        
                                 }}>
-                                   {currentPeer.userName}://{peerConnection == null ? configFile.value == null ? "Initialize local storage..." : configFile.value.peer2peer ? "Reconnect..." : "Peer Network disabled" : location.pathname.slice(6, location.pathname.length)}
+                                   {currentPeer.userName}://{peerConnection == null ? configFile.value == null ? "Initialize local storage..." : configFile.value.peer2peer ? "Reconnect..." : "Peer Network disabled" : location.pathname.slice(directory.length +1, location.pathname.length)}
                                 </div>
                                 
                             </div>
@@ -310,7 +311,7 @@ export const PeerNetworkPage = () => {
                             files={
                                 [
                                     {
-                                        to: "/home/peernetwork/library",
+                                        to: directory + "/library",
                                         name: "Library",
                                         type: "folder",
                                         hash: "",
@@ -327,9 +328,7 @@ export const PeerNetworkPage = () => {
                         </div>
                     }
                   
-                    {showIndex == 3 &&
-                       <PeerStatusPage location={location}/>
-                    }
+                   
                    
                     {showIndex == 5 &&
                         <LibraryPage 
@@ -346,7 +345,9 @@ export const PeerNetworkPage = () => {
                             optionChanged={currentSearchOption}
                             onChange={change}
 
-                            admin={user.userID == currentPeer.userID} currentPeer={currentPeer} />
+                            admin={user.userID == currentPeer.userID} currentPeer={currentPeer} 
+                            directory={directory}
+                            />
                     }
             </div>
         </div>

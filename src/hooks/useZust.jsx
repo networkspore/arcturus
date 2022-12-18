@@ -10,7 +10,8 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
-
+   currentContact: null,
+   setCurrentContact: (value) => set({currentContact:value}),
    contactsCmd: {cmd:null, params:null, callback:null},
    setContactsCmd: (cmd = { cmd: null, params: null, callback: null }) => set({contactsCmd: cmd}),
    uploadRequest: { upload: null, callback:null },
@@ -342,8 +343,8 @@ const useZust = create((set) => ({
    setUserEmail: (userEmail = '') => set(produce(state => { state.user.userEmail = userEmail })),
    setUserSuper: (userSuper = 0) => set(produce(state => { state.user.userSuper = userSuper })),
 
-   loading: { loadPage: "/network", finished:false, msg:"" },
-   setLoading: (value = { loadPage: "/network", finished: false, msg: "" }) => set({loading:value}),
+   loading: { loadPage: "/", finished:false, msg:"" },
+   setLoading: (value = { loadPage: "/", finished: false, msg: "" }) => set({loading:value}),
    setLoaded: ( value = true) => set(produce(state => {state.loading.finished = value})),
    setMsg: (msg = "") => set(produce(state => { state.loading.msg = msg })),
 

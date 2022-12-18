@@ -5,14 +5,12 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import styles from './css/home.module.css';
 import produce from 'immer';
 
-import { ContactsPage } from './ContactsPage';
-import { ProfilePage } from './ProfilePage';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { LocalStoragePage } from './LocalStoragePage';
 import { AccountSettingsPage } from './AccountSettingsPage';
 import { PeerNetworkPage } from './PeerNetworkPage';
 import { ImagePicker } from './components/UI/ImagePicker';
-import { LibraryPage } from './LibraryPage';
+
 
 
 

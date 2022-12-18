@@ -41,10 +41,8 @@ export const PeerUploadPage = (props = {}) =>{
                 const status = uploadItem.status
                 upList.push(
                       <div key={iHash} style={{ display:"flex", alignItems:"center", justifyContent:"start", paddingTop:20 }}>
-                        <div style={{ flex: .05, display: "flex", justifyContent: "center", }}>
-                                <ImageDiv style={{ borderRadius: 5, overflow: "hidden" }} width={20} height={20} netImage={{ image: iIcon, filter:"invert(100%)" }} />
-                            </div>
-                            <div style={{ flex: .39, color: "white", display:"flex", justifyContent:"center", }}>{iName}</div>
+                   
+                            <div style={{marginLeft:10, flex: .39, color: "white", display:"flex", justifyContent:"start", }}>{iName}</div>
                             
                             <div style={{
                                 display:"flex",
@@ -60,7 +58,7 @@ export const PeerUploadPage = (props = {}) =>{
                             
                         <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{mimeType}</div>
                         <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{iSize}</div>
-                        <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{iHash}</div>
+                       
                             
                            
                             
@@ -77,13 +75,12 @@ export const PeerUploadPage = (props = {}) =>{
         <div style={{display:"flex", width:"100%", flex:1, flexDirection:"column",}}>
             <div style={{ display: "flex", }}>
 
-                <div style={{ flex: 0.05, color: "#777777", }}>&nbsp;</div>
-                <div style={{ flex: .37, color: "white", display: "flex", justifyContent: "center", }}>Name</div>
-                <div style={{ flex: .37, color: "white", display:"flex", justifyContent:"center" }}>Status</div>
-                <div style={{ flex: 0.09, color: "#777777", display: "flex", justifyContent: "center", }}>Type</div>
-                <div style={{ flex: 0.1, color: "#777777", display: "flex", justifyContent: "center", }}>Size</div>
-                <div style={{ flex: 0.1, color: "#777777", display: "flex", justifyContent: "center", }} >CRC </div>
 
+                <div style={{ marginLeft: 10, flex: .37, color: "white", display: "flex", justifyContent: "start", }}>Name</div>
+                <div style={{ flex: .37, color: "white", display:"flex", justifyContent:"start" }}>Status</div>
+                <div style={{ flex: 0.09, color: "#777777", display: "flex", justifyContent: "start", }}>Type</div>
+                <div style={{ flex: 0.1, color: "#777777", display: "flex", justifyContent: "start", }}>Size</div>
+            
                 
                 
               
