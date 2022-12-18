@@ -57,7 +57,7 @@ export const PeerStatusPage = (props = {}) =>{
                 [
 
                     {
-                        to: "/home/peernetwork/status/downloads",
+                        to: "/home/peernetwork/status",
                         name: "Downloads",
                         type: "folder",
                         hash: "",
@@ -66,7 +66,7 @@ export const PeerStatusPage = (props = {}) =>{
                         netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/cloud-download-outline.svg", filter: "invert(100%)" }
                     },
                     {
-                        to: "/home/peernetwork/status/uploads",
+                        to: "/home/peernetwork/status",
                         name: "Uploads",
                         type: "folder",
                         hash: "",

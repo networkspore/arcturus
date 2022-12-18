@@ -22,7 +22,7 @@ export const LibraryPage = (props ={}) =>{
     const userFiles = useZust((state) => state.userFiles)
 
  
-    
+    const currentContact = useZust((state) => state.currentContact)
    
     const [directoryOptions, setDirectoryOptions] = useState([])
 
@@ -92,11 +92,22 @@ export const LibraryPage = (props ={}) =>{
         {
             setAllFiles(userFiles)
         }else{
-            setAllFiles([])
+            const contactID = currentContact.userID
+            setSocketCmd({ cmd: "getPeerLibrary", params: { contactID: contactID }, callback: (result)=> { 
+               
+                if("success" in result && result.success)
+                {
+                   
+                    setAllFiles(result.files)
+                }else{
+                    setAllFiles([])
+                }
+            } })
+            
         }
         
         
-    }, [props.admin, props.currentPeer])
+    }, [props.admin, currentContact])
 
     useEffect(() => {
 

@@ -408,7 +408,7 @@ export const LocalStoragePage = () => {
                     display: "flex", 
                     height:"50px",
                     backgroundColor:"#66666650",
-                    
+                    minWidth:800,
                      alignItems: "center",
                     marginLeft:"10px",
                     marginRight:"10px",

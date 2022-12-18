@@ -440,7 +440,53 @@ export const getStringHash = (string) =>{
        resolve(hex)
     })
 }
+export const getDataHash = (data) => {
+    return new Promise(resolve => {
 
+
+        const size = data.length
+        const MB = 1048576
+        const chunkSize = (5 * MB)
+        const chunks = Math.ceil(size / chunkSize)
+
+        const spark = chunks > 1 ? new SparkMD5.ArrayBuffer() : null
+
+        let i = 0;
+        let hash = ""
+
+        async function getHashRecursive() {
+            const chunkEnd = (i + 1) * chunkSize
+
+            const arrayBuffer = data.slice(i * chunkSize, chunkEnd > size ? size : chunkEnd)
+
+
+            if (i == 0) {
+
+                const hashLength = new Uint8Array(64).length
+                const input = new Uint8Array(arrayBuffer);
+                hash = blake2b(hashLength).update(input).digest('hex')
+
+            } else {
+                spark.append(arrayBuffer)
+            }
+
+            i = i + 1
+
+            if (i < chunks) {
+
+                getHashRecursive()
+
+            } else {
+                if (chunks > 1) {
+                    hash = hash + "#" + spark.end()
+                }
+                resolve(hash)
+            }
+        }
+
+        getHashRecursive()
+    })
+}
 export const getFileHash = (file) =>{
     
     return new Promise(resolve => {

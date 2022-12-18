@@ -42,11 +42,11 @@ export const PeerDownloadPage = (props = {}) =>{
                 dlList.push(
                       <div key={iHash} style={{ display:"flex", alignItems:"center", justifyContent:"start", paddingTop:20 }}>
                    
-                        <div style={{ marginLeft: 10, flex: .39, color: "white", display:"flex", justifyContent:"start", }}>{iName}</div>
+                        <div style={{ marginLeft: 10, flex: .3, color: "white", display:"flex", justifyContent:"start", }}>{iName}</div>
                             
                             <div style={{
                                 display:"flex",
-                                flex: .4,
+                                flex: .3,
                                 alignItems:"center",
                                 justifyContent:"center",
                                 color: "#888888",
@@ -56,8 +56,8 @@ export const PeerDownloadPage = (props = {}) =>{
                             {status == "Downloading" ? completePercent : <div style={{fontFamily:"webpapyrus", fontSize:12, paddingTop:3, paddingBottom:3}}> {status}</div>}
                             </div>
                             
-                        <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{mimeType}</div>
-                        <div style={{ flex: 0.1, color: "#888888", display: "flex", justifyContent: "center", }}>{iSize}</div>
+                        <div style={{ flex: 0.15, color: "#888888", display: "flex", justifyContent: "center", }}>{mimeType}</div>
+                        <div style={{ flex: 0.2, color: "#888888", display: "flex", justifyContent: "center", }}>{iSize}</div>
                        
                             
                            
@@ -76,10 +76,10 @@ export const PeerDownloadPage = (props = {}) =>{
             <div style={{ display: "flex", }}>
 
              
-                <div style={{ marginLeft: 10, flex: .37, color: "white", display: "flex", justifyContent: "start", }}>Name</div>
-                <div style={{ flex: .37, color: "white", display:"flex", justifyContent:"start" }}>Status</div>
-                <div style={{ flex: 0.09, color: "#777777", display: "flex", justifyContent: "start", }}>Type</div>
-                <div style={{ flex: 0.1, color: "#777777", display: "flex", justifyContent: "start", }}>Size</div>
+                <div style={{ marginLeft: 10, flex: .3, color: "white", display: "flex", justifyContent: "start", }}>Name</div>
+                <div style={{ flex: .3, color: "white", display:"flex", justifyContent:"start" }}>Status</div>
+                <div style={{ flex: 0.15, color: "#777777", display: "flex", justifyContent: "start", }}>Type</div>
+                <div style={{ flex: 0.2, color: "#777777", display: "flex", justifyContent: "start", }}>Size</div>
             
 
                 

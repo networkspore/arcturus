@@ -321,6 +321,11 @@ export const SocketHandler = (props = {}) => {
                             socketCmd.callback(response)
                         })
                         break;
+                    case "getPeerLibrary":
+                        sock.current.value.emit("getPeerLibrary", socketCmd.params, (response) => {
+                            socketCmd.callback(response)
+                        })
+                        break;
                     default:
                         if (socketCmd.cmd != null && socketCmd.callback != null){
                         

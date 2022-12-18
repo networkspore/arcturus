@@ -64,6 +64,7 @@ export const FileHandler = ( props = {}) =>{
     const removeFileRequest = useZust((state)=> state.removeFileRequest)
 
     useEffect(()=>{
+        
         if (fileRequest != null && fileRequest.length > 0 ){
            
                 fileRequest.forEach((request, i) => {
@@ -172,8 +173,9 @@ export const FileHandler = ( props = {}) =>{
                         }
                     break;
                 case "getImage":
+                   
                     if(request.file.mimeType == "image") {
-
+                       
                         checkLocalImages(request).then((localResult) => {
                             
                             if (localResult != null) {
@@ -188,15 +190,17 @@ export const FileHandler = ( props = {}) =>{
                                 })
                                 }
                                 
-                            } else if (request != null){
+                            } else {
+
                                 if (request.p2p) {
-                               
-                                    makeDownloadRequest(request).then((peersResult) => {
                                   
+                                    makeDownloadRequest(request).then((peersResult) => {
+                                        console.log(peersResult)
                                         resolve(peersResult)
                                     })
                                 }else{
-                                    resolve({ error: "not connected" })
+                                    console.log("no p2p")
+                                    resolve({ error: new Error("No p2p") })
                                 }
                             }
                         })
@@ -222,19 +226,28 @@ export const FileHandler = ( props = {}) =>{
             const hash = request.file.hash
             if (fileID != undefined && fileID != null && fileID > -1 && hash != null) {
                 
-                
+            
 
                 const newDownload = {
                     hash: hash, request: request, complete: 0, status: ""
                 }
-            
+                
                 setDownloadRequest({download:newDownload, callback:(downloadID) => {
                     
-                    resolve({success:false, downloading:downloadID != null, id: downloadID})
+                    console.log(newDownload)
+                    console.log(downloadID)
+                    if(downloadID == undefined || downloadID == null)
+                    {
+                        resolve({error: new Error("No peers found")})
+                    }else{
+                        resolve({success:false, downloading:downloadID != null, id: downloadID})
+                    }
+                    
                     
                 }})
               
             } else {
+               
                 resolve({ error: new Error("fileID not valid") })
             }
         })

@@ -30,20 +30,7 @@ const useZust = create((set) => ({
       }
    })),
 
-   removePeerUpload: (id) => set(produce((state) => {
-      const index = state.peerUpload.findIndex(pU => pU.id == id)
-      const length = state.peerUpload.length
-      if (index > -1)
-      {
-         if (length == 1) {
-            state.peerUpload.pop()
-         }else{
-            state.peerUpload.splice(index, 1)
-         }
-         
-      }
-
-   })),
+  
    peerDownload:new Array(),
    setPeerDownload: (value) => set(produce((state)=>{
       if(Array.isArray(value))
@@ -56,20 +43,7 @@ const useZust = create((set) => ({
          state.peerDownload = tmp
       }
    })),
-   removePeerDownload: (id) => set(produce((state) => {
-      const index = state.peerDownload.findIndex(pU => pU.id == id)
-      const length = state.peerDownload.length
 
-      if (index > -1) {
-         if (length == 1) {
-            state.peerDownload = []
-         } else {
-            state.peerDownload.splice(index, 1)
-         }
-      }
-
-
-   })),
 
    /*peerCmd: { request: null, peers: [], callback: null },
    setPeerCmd: (value = { request: null, peers: [], callback: null }) => set(produce((state) => {

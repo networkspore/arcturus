@@ -96,6 +96,7 @@ export const ImageDiv = (props = {}) => {
 
     useEffect(()=>{
         const waitingID = waiting.current.value
+    
         if (waitingID != null) {
 
 
@@ -125,6 +126,11 @@ export const ImageDiv = (props = {}) => {
 
                         addFileRequest(request)
 
+                    }else{
+                       if(peerDownload[index].status == "Not found"){
+                         
+                           setUpdated({ error: new Error("Not found") })
+                       }
                     }
                 } else {
 

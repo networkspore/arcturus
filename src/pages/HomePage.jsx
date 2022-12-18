@@ -146,13 +146,14 @@ export const HomePage = (props ={}) => {
 
 
                     <ImageDiv width={150} height={150} onClick={(e) => {
-                        setshowIndex(10)
+                        if(imagesDirectory.handle != null){
+                        setshowIndex(10)}
                     }}  about={"Select Image"}  className={className} netImage={{
                         scale:1,
                         update: {
                             command: "getImage",
                             file: user.image,
-                            waiting: { url: "/Images/spinning.gif" },
+                            waiting: { url: "/Images/spinning.gif", style: { filter: "invert(0%)" }},
                             error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
 
                         },

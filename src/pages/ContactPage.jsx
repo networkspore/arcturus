@@ -122,11 +122,7 @@ export const ContactPage = () => {
 
             </div>
             <div style={{ height: 10 }}>&nbsp;</div>
-            {!currentContact.isContact &&
-                <div onClick={requestContact} style={{ width: 290, display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 30, marginTop:10  }}>
-                    <div style={{ width: 100, height: 30, borderRadius: 10, whiteSpace: "nowrap" }} className={styles.bubbleButton}>Request Contact</div>
-                </div>
-            }
+           
             {(currentContact.accessID == access.public ||( currentContact.accessID == access.contacts && currentContact.isContact)) &&
             <div style={{ width: 260, paddingLeft: "15px", display: "flex", flexDirection: "column", }}>
 
@@ -147,6 +143,11 @@ export const ContactPage = () => {
                 
             </div>
             }
+                {!currentContact.isContact &&
+                    <div onClick={requestContact} style={{paddingBottom:50, width: 290, height:"100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent:"end", marginBottom: 30, marginTop: 10 }}>
+                        <div style={{ width: 100, height: 30, borderRadius: 10, whiteSpace: "nowrap" }} className={styles.bubbleButton}>Request Contact</div>
+                    </div>
+                }
         </div>
 
         {showIndex == 1 &&
