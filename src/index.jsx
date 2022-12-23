@@ -44,9 +44,26 @@ import { SocketHandler } from './handlers/socketHandler';
 const Loader = (<>  <div className={loadingStyles.loading}  >
     <div >
         <div className={loadingStyles.logo}></div>
-        <div className={loadingStyles.loadingText}>
-            Loading
+        <div style={{
+            position: "fixed",
+            bottom: "140px",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            flex: 1,
 
+        }}>
+            <div style={{
+                fontFamily: "Webpapyrus",
+                fontSize: "30px",
+                fontWeight: "bolder",
+                color: "#cdd4da",
+                textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffffc0",
+            }}>Loading... </div>
+     
         </div>
 
     </div>

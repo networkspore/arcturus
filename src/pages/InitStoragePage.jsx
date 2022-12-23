@@ -98,11 +98,8 @@ export const InitStoragePage = (props = {}) => {
                     setEngineKey(config.engineKey)
                     P2PRef.current.setValue(config.peer2peer)
                     ergoRef.current.setValue(config.ergo)
-                    const def = (!(configFile.value.folders.images.default) || !(configFile.value.folders.models.default) || !(configFile.value.folders.media.default));
+                   
 
-                    setDefaultFolders(def)
-
-                    setCustomFolders(configFile.value.folders)
 
                 }catch(err){
                     localDirectory.handle.removeEntry(user.userName+".storage.config").then((deleted)=>
@@ -189,25 +186,7 @@ export const InitStoragePage = (props = {}) => {
                             engineKey: engineKey,
                             peer2peer: P2PRef.current.getValue,
                             ergo: ergoRef.current.getValue,
-                            folders: {
-                                images: {
-                                    name: !imagesDefault ? customFolders.images : imagesDirectory.name,
-                                    default: imagesDefault,
-                                    fileTypes: ["webp", "apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
-                                },
-                                models: {
-                                    name: !modelsDefault ? customFolders.models : modelsDirectory.name,
-                                    default: modelsDefault,
-                                    fileTypes: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"]
-                                },
-                               
-                                media: {
-                                    name: !mediaDefault ? customFolders.media : mediaDirectory.name,
-                                    default: mediaDefault,
-                                    fileTypes: ["pcm", "mp3", "ogg", "webm", "aac", "wav", "3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", ".oga",]
-                                },
-
-                            }
+               
                         }
                         let userConfig = {}
                         userConfig[user.userName] = config;
@@ -226,16 +205,6 @@ export const InitStoragePage = (props = {}) => {
 
                                         const engineKey = config.engineKey;
 
-                                        if (!imagesDefault) {
-                                            set("images" + engineKey, customFolders.images)
-                                        }
-                                        if (!modelsDefault) {
-                                            set("models" + engineKey, customFolders.models)
-                                        }
-                                      
-                                        if (!mediaDefault) {
-                                            set("media" + engineKey, customFolders.media)
-                                        }
                                         const newFile = {
                                             mimeType: "config",
                                             name: fileInfo.name,
@@ -329,9 +298,9 @@ export const InitStoragePage = (props = {}) => {
                             removeSystemMessage(0)
                             removeSystemMessage(1)
                             removeSystemMessage(2)
-                            setConfigFile()
-                          
-                            navigate("/loading", { state: { configFile: newConfig, navigate: "/home/localstorage" } })
+                            setConfigFile(newConfig)
+                            navigate("/home/localstorage")
+                           // navigate("/loading", { state: { configFile: newConfig, navigate: "/home/localstorage" } })
                         }
                     }else{
                         console.log(result.error)
@@ -394,8 +363,9 @@ export const InitStoragePage = (props = {}) => {
                     const storageID = callback.storageID;
                     const config = stateConfig;
                     config.value.storageID = storageID;
-
-                    navigate("/loading", {state:{configFile:config}, navigate:"/home/localstorage"})
+                    setConfigFile(config)
+                  
+                  //  navigate("/loading", {state:{configFile:config}, navigate:"/home/localstorage"})
                 }else{
                     console.log(callback.error)
                     alert("This config file could not be loaded.")
@@ -603,189 +573,7 @@ export const InitStoragePage = (props = {}) => {
                                      
                                     </div>
 
-                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            Custom Folders:
-                                        </div>
-                                        <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos} onClick={(e) => { setDefaultFolders(prev => !prev) }} >
-                                            <div className={!defaultFolders ? styles.check : styles.checked} />
-                                        </div>
-                                    </div>
-
-
-
-
-
-
-
-
-
-                                    {defaultFolders &&
-                                        <>
-
-
-                                            <div style={{ display: "flex", paddingTop: 10, width: "100%"  }} >
-                                                <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    Images Folder:
-                                                </div>
-                                                <div style={{ flex: 1 }}>
-                                                    <div onClick={async function (e) {
-                                                        try {
-                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-
-                                                            const name = await dirHandle.name;
-
-
-                                                            setCustomFolders(
-                                                                produce((state) => {
-                                                                    state.images = { name: name, handle: dirHandle };
-                                                                })
-                                                            )
-
-                                                            setImagesDefault(false)
-                                                        } catch (error) {
-                                                            if (error == DOMException.ABORT_ERR) {
-
-                                                            }
-                                                            setImagesDefault(true)
-                                                        }
-                                                    }}
-
-                                                        style={{
-                                                            cursor: "pointer",
-                                                            width: 250,
-                                                            fontSize: 14,
-                                                            marginTop: 5,
-                                                            textAlign: "left",
-                                                            border: "0px",
-                                                            outline: 0,
-                                                            color: imagesDefault ? "#ffffff80" : "white",
-                                                            fontFamily: "webrockwell"
-                                                        }} >
-                                                        {imagesDirectory.name}
-                                                    </div>
-                                                </div>
-                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setImagesDefault(prev => !prev) }} >
-                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                        default:
-                                                    </div>
-                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                        <div className={imagesDefault ? styles.checked : styles.check} />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                                <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    Models Folder:
-                                                </div>
-                                                <div style={{ flex: 1 }}>
-
-                                                    <div onClick={async function (e) {
-                                                        try {
-                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-
-                                                            const name = await dirHandle.name;
-
-                                                            setCustomFolders(
-                                                                produce((state) => {
-                                                                    state.models = { name: name, handle: dirHandle };
-                                                                })
-                                                            )
-
-                                                            setModelsDefault(false)
-                                                        } catch (error) {
-                                                            if (error == DOMException.ABORT_ERR) {
-
-                                                            }
-                                                            setModelsDefault(true)
-                                                        }
-                                                    }}
-
-                                                        style={{
-                                                            cursor: "pointer",
-                                                            width: 250,
-                                                            fontSize: 14,
-                                                            marginTop: 5,
-                                                            textAlign: "left",
-                                                            border: "0px",
-                                                            outline: 0,
-                                                            color: modelsDefault ? "#ffffff80" : "white",
-                                                            fontFamily: "webrockwell"
-                                                        }} >
-                                                        {modelsDirectory.name}
-                                                    </div>
-
-                                                </div>
-
-                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setModelsDefault(prev => !prev) }} >
-                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                        default:
-                                                    </div>
-                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                        <div className={modelsDefault ? styles.checked : styles.check} />
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                            
-
-                                            
-                                            <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                                 <div style={{ marginRight: 10, alignItems: "flex-end", width: 150, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                    Media Folder:
-                                                </div>
-                                                <div style={{ flex: 1 }}>
-
-                                                    <div onClick={async function (e) {
-                                                        try {
-                                                            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-
-                                                            const name = await dirHandle.name;
-                                                            setCustomFolders(
-                                                                produce((state) => {
-                                                                    state.media = { name: name, handle: dirHandle };
-                                                                })
-                                                            )
-
-                                                            setMediaDefault(false)
-                                                        } catch (error) {
-                                                            if (error == DOMException.ABORT_ERR) {
-
-                                                            }
-                                                            setMediaDefault(true)
-                                                        }
-                                                    }}
-
-                                                        style={{
-                                                            cursor: "pointer",
-                                                            width: 250,
-                                                            fontSize: 14,
-                                                            marginTop: 5,
-                                                            textAlign: "left",
-                                                            border: "0px",
-                                                            outline: 0,
-                                                            color: mediaDefault ? "#ffffff80" : "white",
-                                                            fontFamily: "webrockwell"
-                                                        }} >
-                                                        {mediaDirectory.name}
-                                                    </div>
-
-                                                </div>
-                                                <div style={{ display: "flex", marginTop: 5, cursor: "pointer" }} onClick={(e) => { setMediaDefault(prev => !prev) }} >
-                                                    <div style={{ marginRight: 10, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                                        default:
-                                                    </div>
-                                                    <div style={{ cursor: "pointer", paddingLeft: 0, }} className={styles.checkPos}  >
-                                                        <div className={mediaDefault ? styles.checked : styles.check} />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-
-
-
-                                        </>
-                                    }
+                           
                                     <div style={{ height: 15 }}></div>
                                 </div>
                         <div style={{

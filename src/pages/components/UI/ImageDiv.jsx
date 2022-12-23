@@ -87,6 +87,19 @@ export const ImageDiv = (props = {}) => {
                     setUpdated({error: new Error("No peer network")})
                 }
 
+            }else if("loading" in response){
+                switch (response.request.command) {
+                    case "getIcon":
+                    case "getImage":
+                        const promise = response.loading
+                        console.log(promise)
+                        promise.then((result) => {
+                        
+                            setUpdated({ success: true, url: result.dataUrl, hash: result.hash })
+                        })
+                    
+                    break;
+                }
             }
         }else{
           //  waiting.current.value = null;

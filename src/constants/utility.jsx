@@ -7,6 +7,7 @@ import SparkMD5 from 'spark-md5'
 import { get, set, update } from "idb-keyval";
 
 import { randInt } from "three/src/math/MathUtils";
+import {  fileTypes, MB, tableChunkSize } from "./constants";
 
 function xmur3(str){
     for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {
@@ -329,9 +330,22 @@ export async function getFirstDirectoryAllFiles(dirHandle) {
 
 }
 
-const allFileTypes = ["webp", "apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur",
-"json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml",
-"pcm", "mp3", "ogg", "webm", "aac", "wav", "3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", ".oga",]
+
+export function asyncFind(array, findFunction) {
+    return new Promise(resolve => {
+        let i = 0;
+        array.forEach(async (item, index) => {
+            if (await findFunction(await item)) {
+                resolve(index);
+                return;
+            }
+            i++;
+            if (array.length == i) {
+                resolve(undefined);
+            }
+        });
+    });
+}
 
 export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
 
@@ -347,12 +361,12 @@ export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
 
             const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
 
-            const typeIndex = allFileTypes.findIndex(fileTypes => fileTypes == ext)
+            const validFileType = fileTypes.all.includes(ext)
 
-            const newFile = typeIndex != -1 ? await getFileInfo(entry, dirHandle) : null
+            //const newFile = validFileType ? await getFileInfo(entry, dirHandle) : null
 
-            if (newFile != null) {
-                push(newFile)
+            if (validFileType) {
+                push({ handle: entry, directory: dirHandle })
             }
 
 
@@ -370,52 +384,78 @@ export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
 
 
 
-
-export async function getFirstDirectoryFiles(dirHandle, type, fileTypes = {}) {
+/*
+export async function getFirstDirectoryFiles(dirHandle,  onStatus) {
+    
     let files = []
     let directories = []
 
+    
+    await getDirectoryFiles(
+        dirHandle,  
+        (file) => {
+            onStatus(file.name)
+            files.push(file)
+        },  
+        (d) => {
+            onStatus(d.name)
+            directories.push(d)
+        }
+    )
 
-    await getDirectoryFiles(dirHandle, type, fileTypes, (file) => {
-        files.push(file)
-    }, (d) => {
-        directories.push(d)
-    })
+    return { files: files, directories: directories, cache: cache }
 
-    return { files: files, directories: directories }
+}*/
+export async function getDirectoryFiles(dirHandle, onStatus) {
+    
+    const statusConst = onStatus
 
-}
-export async function getDirectoryFiles(dirHandle, type, fileTypes = [], pushFile, pushDirectory) {
+    const tmpCache = await get("arc.cacheFile")
 
-    const push = pushFile;
-    const pushDir = pushDirectory; 
+    let cache = []
 
+    tmpCache.forEach(element => {
+        cache.push(element)
+    });
+    console.log(cache)
     for await (const entry of dirHandle.values()) {
 
         if (entry.kind === "file") {
-
-            const name = entry.name + "";
+          
+            const name = await entry.name;
+            
+            statusConst(name)
 
             const lastIndex = name.lastIndexOf(".");
 
             const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
 
-
-            let newFile = fileTypes.includes(ext) ? await getFileInfo(entry, dirHandle, type) : null
-            
-            if(newFile != null){
-                push(newFile)
+        
+            if(ext != null && ext != "" && fileTypes.all.includes(ext)) 
+            {
+                
+                       
+                const index = cache.findIndex(file => file.handle.isSameEntry(entry))
+                console.log(index)
+                const newFileInfo = index == -1 ? null : await getFileInfo(entry)
+                console.log(newFileInfo)
+                if(newFileInfo != null) cache.push(newFileInfo)
+               
             }
+          
 
             
         } else if (entry.kind == 'directory') {
-            pushDir(entry)
-            await getDirectoryFiles(entry, type, fileTypes, push, pushDir).then((result) => {
-
-            })
+         
+            await getDirectoryFiles(entry, statusConst)
         }
 
     }
+    update("arc.cacheFile", currentArray =>{
+        cache.forEach(element => {
+            currentArray
+        });
+    })
     return true;
 
 }
@@ -429,9 +469,9 @@ export const getChunkHash = (data) =>{
     })
 }
 
-export const getStringHash = (string) =>{
+export const getStringHash = (string, size = 64) =>{
     return new Promise(resolve => {
-       const hashLength = new Uint8Array(64).length
+       const hashLength = new Uint8Array(size).length
       
        const input = Uint8Array.from(Array.from(string).map(letter => letter.charCodeAt(0))); 
    
@@ -445,7 +485,7 @@ export const getDataHash = (data) => {
 
 
         const size = data.length
-        const MB = 1048576
+        
         const chunkSize = (5 * MB)
         const chunks = Math.ceil(size / chunkSize)
 
@@ -512,7 +552,7 @@ export const getFileHash = (file) =>{
            
             if (i == 0) {
                 
-                const hashLength = new Uint8Array(64).length
+                const hashLength = new Uint8Array(32).length
                 const input = new Uint8Array(arrayBuffer);
                 hash = blake2b(hashLength).update(input).digest('hex')
               
@@ -528,13 +568,51 @@ export const getFileHash = (file) =>{
 
             }else{
                 if (chunks > 1) {
-                    hash = hash + "#" + spark.end()
+                    hash = hash + spark.end()
                 }
                 resolve(hash)
             }
         }
 
         getHashRecursive()
+    })
+}
+
+export async function getFileCRCTable(file){
+
+
+    return new Promise(resolve => {
+
+        const chunkSize = tableChunkSize
+        const size = file.size
+        const chunks = Math.ceil(size / chunkSize)
+   
+        let i = 0;
+        let crcTable = ""
+
+        async function getCRCRecursive() {
+            const chunkEnd = (i + 1) * chunkSize
+
+            const blob = await file.slice(i * chunkSize, chunkEnd > size ? size : chunkEnd)
+
+            const arrayBuffer = await blob.arrayBuffer()
+
+            const crc = await crc32FromArrayBufferAsync(arrayBuffer)
+
+            crcTable = i = 0 ? crc : crcTable.concat(":" + crc)
+            i = i + 1
+
+            if (i < chunks) {
+
+                getCRCRecursive()
+
+            } else {
+                
+                resolve(crcTable)
+            }
+        }
+
+        getCRCRecursive()
     })
 }
 
@@ -546,43 +624,39 @@ export async function getFileInfo(entry, dirHandle) {
         entry.getFile().then((file) => {
             
             const fileSize = file.size;
-            const MB = 1048576
+            
+            const firstIndex = file.type.indexOf("/")
+
+            const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
 
             
-                const firstIndex = file.type.indexOf("/")
 
-                const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
+            const name = entry.name + "";
 
-                const customTypes = ["arctype",
-                "arcpc",
-                "arcnpc",
-                "arcpl",
-                "arctex",
-                "arcterr"]
+            const lastIndex = name.lastIndexOf(".");
 
-                const name = entry.name + "";
+            const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
 
-                const lastIndex = name.lastIndexOf(".");
+            const isCustomType = type == "" ? fileTypes.asset.includes(ext) : false
 
-                const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
+            const isMediaType = isCustomType ? false : fileTypes.media.includes(ext)
 
-                const fileType = customTypes.includes(ext) ? ext : type
-                
+            const fileMimeType = isCustomType ? "asset" : isMediaType ? "media" : type
+            
+            const fileType = isCustomType ? ext : file.type
 
-                getFileHash(file).then((hash) => {
-                
-                        get(hash + ".arcicon").then((iconInIDB) => {
-                            if (iconInIDB == undefined && fileType == "image") {
-                                getThumnailFile(file).then((dataUrl) => {
-                                    set(hash + ".arcicon", dataUrl)
-                                }).catch((err) => console.log(err))
-                            }
-                        }).catch((err) => {
-                            console.log(err)
-                        })
-                    const fileInfo = { directory: dirHandle, mimeType: fileType, name: file.name, hash: hash, size: fileSize, type: file.type, lastModified: file.lastModified, handle: entry }
-                    resolve(fileInfo)
+            getFileHash(file).then((fileHash) => {
+                getFileCRCTable(file).then((crcTable)=>{
+                    getStringHash(crcTable, 32).then((strHash) => {
+
+                        const hash = fileHash + strHash
+
+                        const fileInfo = {loaded:true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
+                        
+                        resolve(fileInfo)
+                    })
                 })
+            })
             
            
             
@@ -640,17 +714,49 @@ export async function getJsonFile(fileHandle){
 
 }
 
-export async function cacheFile(localDirectoryHandle, fileData, fileID, name) {
+export async function moveCacheFile(locations, fileInfo, directoryName = "unsorted") {
     try {
-        const fileName = `(${fileID}) ${name}`;
+       
+        const fileType = fileInfo.type
     
-        const cacheHandle = await localDirectoryHandle.getDirectoryHandle("cache", {create:true})
+        const fileName = fileInfo.name
 
-        const newHandle = await writeFileData(cacheHandle, fileName, fileData)
 
-        const fileinfo = await getFileInfo(newHandle, cacheHandle)
+        const firstIndex = fileType.indexOf("/")
 
-        return fileinfo
+        const type = firstIndex == -1 ? fileType : fileType.slice(0, firstIndex)
+
+
+        const index = locations.findIndex(loc => loc.type == type) 
+
+        const directoryHandle = locations[index].directory.handle
+
+        const directory = await directoryHandle.getDirectoryHandle(directoryName, { create: true }) 
+
+        const newFileHandle = await directory.getFileHandle(fileName, { create: true })
+
+        const fileStream = await newFileHandle.createWritable()
+
+        const file = await fileInfo.handle.getFile()
+
+        if( await moveFileStream(file, fileStream))
+        {
+            await fileStream.close()
+            const movedHandle = await directory.getFileHandle(fileName)
+            await fileInfo.directory.removeEntry(fileInfo.name)
+            const moveFile = await movedHandle.getFile()
+            const movedFileInfo = { directory: directory, mimeType: fileInfo.mimeType, name: fileInfo.name, hash: fileInfo.hash, size: moveFile.size, type: fileInfo.type, lastModified: moveFile.lastModified, handle: movedHandle }
+            
+            return movedFileInfo
+        }else{
+            await fileStream.close()
+            await directory.removeEntry(fileName)
+
+            return undefined
+        }
+
+        
+
 
     } catch (err) {
         console.log(err)
@@ -658,33 +764,88 @@ export async function cacheFile(localDirectoryHandle, fileData, fileID, name) {
     }
 }
 
-export async function writeFileData(dirHandle, name, data){
-    try{
-        const fileHandle = await dirHandle.getFileHandle(name, { create: true })
+const moveFileStream = (file, fileStream) =>{
+    return new Promise(resolve => {
+        try{
+            
+            const size = file.size
+            const chunkSize = MB * 5
+            const chunks = Math.ceil(size / chunkSize)
+            let i = 0;
+            
+            async function writeRecursive()
+            {
+                const chunkStart = i * chunkSize
+                const chunkEnd = (i + 1) * chunkSize
 
-        const fileStream = await fileHandle.createWritable()
+                const blob = await file.slice(chunkStart, chunkEnd > size ? size : chunkEnd)
 
-        await fileStream.write(data)
+                const arrayBuffer = await blob.arrayBuffer()
 
-        await fileStream.close()
+                await writeFileStreamPart(fileStream, arrayBuffer, chunkStart)
+            
+                i = i + 1;
 
-        const newFileHandle = await dirHandle.getFileHandle(name)
+                if (i < chunks)
+                {
+                    writeRecursive()
+                }else{
+                
+                    resolve(true)
+                }
 
-        return newFileHandle
+                
+            }
 
-    }catch(err){
-        console.log(err)
+            writeRecursive()
+        
 
-        return undefined
-    }
+        }catch(err){
+            console.log(err)
+
+            resolve(false)
+        }
+    })
 }
 
-export async function getFileData(localFile){
-    const file = await localFile.handle.getFile()
+
+export async function getNewFileStream(dirHandle, fileName, size){
+    const fileHandle = await dirHandle.getFileHandle(fileName, { create: true })
+
+    const fileStream = await fileHandle.createWritable()
+    
+    await fileStream.truncate(size)
+
+    return fileStream
+}
+
+export async function writeFileStreamPart(fileStream, data, seek){
+
+    await fileStream.ready
+
+    await fileStream.write({ type: "write", seek, data })
+
+    return true
+}
+
+export async function getHandleData(handle){
+    const file = await handle.getFile()
 
     const data = await file.arrayBuffer()
 
     return data;
+}
+
+export async function getChunkData(file, chunkNumber, chunkSize){
+
+    const chunkEnd = chunkNumber * chunkSize + chunkSize
+    const size = file.size;
+
+    const blob = await file.slice(chunkNumber * chunkSize, chunkEnd > size ? size : chunkEnd)
+
+    const arrayBuffer = await blob.arrayBuffer()
+
+    return {data: arrayBuffer}
 }
 
 export async function getImageHandleDataURL(localFile){
@@ -711,42 +872,36 @@ export async function getImageHandleDataURL(localFile){
 }
 
 
-export async function getThumnailFile(file, size = { width: 100, height: 100 }) {
+export async function getThumnailFile(localFile, size = { width: 100, height: 100 }) {
 
-    return new Promise(resolve => {
+    const file = await localFile.handle.getFile()
 
-        createImageBitmap(file).then((image) => {
-            var canvas = document.createElement('canvas'),
-                ctx = canvas.getContext("2d");
+    const image = await createImageBitmap(file)
+    var canvas = document.createElement('canvas'),
+        ctx = canvas.getContext("2d");
 
-            canvas.width = image.width;
-            canvas.height = image.height;
-            ctx.drawImage(image, 0, 0);
+    canvas.width = image.width;
+    canvas.height = image.height;
+    ctx.drawImage(image, 0, 0);
 
-            let scale = 1;
+    let scale = 1;
 
 
-            if (image.width > image.height) {
-                scale = size.width / image.width;
-            } else {
-                scale = size.height / image.height;
-            }
+    if (image.width > image.height) {
+        scale = size.width / image.width;
+    } else {
+        scale = size.height / image.height;
+    }
 
-            const resampledCanvas = resample(canvas, scale);
-            const dataUrl = resampledCanvas.toDataURL();
+    const resampledCanvas = resample(canvas, scale);
+    const dataUrl = resampledCanvas.toDataURL();
 
-       
-            
-
-            resolve(dataUrl)
+    return dataUrl
             // resolve(resampledCanvas)*/
 
-        }).catch((err) => {
-            console.log(err)
-            resolve(null)
-        })
+      
 
-    })
+ 
 
 }
 

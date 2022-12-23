@@ -8,6 +8,8 @@ import FileList from './components/UI/FileList';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { LibraryPage } from './LibraryPage';
 import { PeerStatusPage } from './components/PeerStatusPage';
+import { PeerDownloadPage } from './PeerDownloadPage';
+import { PeerUploadPage } from './PeerUploadPage';
 
 
 export const PeerNetworkPage = () => {
@@ -30,7 +32,7 @@ export const PeerNetworkPage = () => {
 
 
     const [showIndex, setShowIndex] = useState(); 
-
+    const [currentFiles, setCurrentFiles] = useState([])
     const [currentSearchOption, setCurrentSearchOption] = useState(null)
     const [change, setChange] = useState("")
 
@@ -92,16 +94,41 @@ export const PeerNetworkPage = () => {
 
         switch(l){
             case "/settings":
-                setShowIndex(1)
+                setCurrentFiles(
+                    [
+                        {
+                            to:"/home/peernetwork/status",
+                            name: "Status",
+                            type: "folder",
+                            hash: "",
+                            lastModified: null,
+                            size: null,
+                            netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/pulse-outline.svg", filter: "invert(100%)" }
+                        },
+                    ])
+                setShowIndex(2)
                 break;
-       
-          
+            case "/status":
+                setShowIndex(6)
+                break;
             case "/library":
                 setShowIndex(5)
                 break;
             default:
                 if(config != null){
                     if(config.peer2peer){
+                        setCurrentFiles(
+                            [
+                                {
+                                    to: d + "/library",
+                                    name: "Library",
+                                    type: "folder",
+                                    hash: "",
+                                    lastModified: null,
+                                    size: null,
+                                    netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/library-outline.svg", filter: "invert(100%)" }
+                                },
+                            ])
                         setShowIndex(2);
                     }else{
                         setShowIndex(0)
@@ -144,19 +171,37 @@ export const PeerNetworkPage = () => {
              
             }}>
                 <div style={{
-                    paddingBottom: "10px",
-                    textAlign: "center",
+
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     width: "100%",
-                    paddingTop: "18px",
+
                     fontFamily: "WebRockwell",
                     fontSize: "18px",
                     fontWeight: "bolder",
                     color: "#cdd4da",
                     textShadow: "2px 2px 2px #101314",
-                        backgroundImage: "linear-gradient(#131514, #000304EE )",
+                    backgroundImage: "linear-gradient(#131514, #000304EE )",
 
                 }}>
-                    <div>Peer Network</div>
+                  
+                    
+                    <div onClick={(e) => {
+                        if (configFile.value != null && configFile.value.peer2peer) {
+                            turnOffLocalStorage()
+                        }else{
+                            navigate("/home/localstorage/init")
+                        }
+                    }} about={configFile.value != null && configFile.value.peer2peer ? "Turn off" : "Start"} className={styles.glow} style={{ cursor: "pointer", paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
+                        <ImageDiv width={15} height={15} netImage={{
+                            image: '/Images/icons/power-outline.svg',
+                            filter: configFile.value != null && configFile.value.peer2peer ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(30%) drop-shadow(0px 0px 3px #faa014)"
+                        }} />
+
+                    </div>
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", paddingTop: 15, paddingBottom: 10 }}> Peer Network </div>
+                    <div style={{ width: 45 }}>&nbsp;</div>
                 </div>
                 <div style={{ 
                     display: "flex", 
@@ -170,15 +215,7 @@ export const PeerNetworkPage = () => {
                     }}>
                     
                   
-                    <div onClick={(e)=>{
-                        turnOffPeerNetwork()
-                    }} about={peerConnection == null ? "Start" : "Turn off"} className={styles.tooltip__item} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
-
-                        <img src='/Images/icons/power-outline.svg' width={25} height={25} style={{ 
-                            filter: peerConnection == null ? "Invert(25%)" : userPeerID != "" ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(60%) drop-shadow(0px 0px 3px #faa014)"
-                        }} />
-
-                    </div>
+                  
 
                     <div onClick={(e) => {
                        navigate(-1) 
@@ -249,7 +286,7 @@ export const PeerNetworkPage = () => {
                             display: "flex", justifyContent: "right", borderRadius: "30px",
                         }}>
                             <div style={{ margin: 3, backgroundColor: "#33333320", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <input ref={searchInputRef} name={"imageSearch"} onChange={handleChange} style={{
+                                <input ref={searchInputRef} name={"searchText"} onChange={handleChange} style={{
                                     color: "white",
                                     backgroundColor: "#33333300",
                                     fontFamily: "webpapyrus",
@@ -268,6 +305,14 @@ export const PeerNetworkPage = () => {
                             }}>
                                 <ImageDiv width={20} height={20} netImage={{ backgroundColor: "", filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
                             </div>
+                            <div onClick={(e) => {
+                                navigate("/home/peernetwork/settings")
+
+                            }} about={"Settings"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltipLeft__item} >
+
+                                <img src={"/Images/icons/menu-outline.svg"} width={20} height={20} style={{ filter: "Invert(100%" }} />
+
+                            </div>
                         </div>
                        
                         
@@ -281,7 +326,7 @@ export const PeerNetworkPage = () => {
              
                
                 {showIndex == 0 &&
-                        <div onClick={(e) => { navigate("home/localstorage/init") }}
+                        <div onClick={(e) => { navigate("/home/localstorage/init") }}
                              style={{display:"flex",width:"100%", height:"100%", flexDirection:"column", alignItems:"center",justifyContent:"center", color:"white",
                         }}>
                             <ImageDiv 
@@ -308,23 +353,12 @@ export const PeerNetworkPage = () => {
                             tableStyle={{
                                 maxHeight: pageSize.height - 400
                             }}
-                            files={
-                                [
-                                    {
-                                        to: directory + "/library",
-                                        name: "Library",
-                                        type: "folder",
-                                        hash: "",
-                                        lastModified: null,
-                                        size: null,
-                                        netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/library-outline.svg", filter: "invert(100%)" }
-                                    },
-                                ]}
+                            files={currentFiles}
                         />
                     }
                     {showIndex == 1 &&
                         <div style={{ flex: 1, display: "block", color: "white" }}>
-                            config
+                           
                         </div>
                     }
                   
@@ -348,6 +382,12 @@ export const PeerNetworkPage = () => {
                             admin={user.userID == currentPeer.userID} currentPeer={currentPeer} 
                             directory={directory}
                             />
+                    }
+                    {showIndex == 6 &&
+                        <>
+                        <PeerDownloadPage />
+                        <PeerUploadPage />
+                        </>
                     }
             </div>
         </div>

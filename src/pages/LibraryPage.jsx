@@ -178,7 +178,7 @@ export const LibraryPage = (props ={}) =>{
                 setCurrentFiles(allFiles)
                 props.setSearchValue(l)
                 setCurrentType("")
-                setCurrentMimeType("arctext")
+                setCurrentMimeType("arctex")
                 break;
             case "/assets/terrain":
                 setCurrentFiles(allFiles)

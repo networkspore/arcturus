@@ -31,6 +31,7 @@ import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
 import { StorageHandler } from "./handlers/StorageHandler";
 import { ContactsHandler } from "./handlers/ContactsHandler";
+import { fileTypes } from "./constants/constants";
 
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
@@ -42,20 +43,18 @@ const HomeMenu = () => {
 
     const location = useLocation()
 
+    const userLoaded = useRef({value:false})
 
-    const setCachesDirectory = useZust((state) => state.setCachesDirectory)
+
+    const setCacheDirectory = useZust((state) => state.setCacheDirectory)
     const setRealmsDirectory = useZust((state) => state.setRealmsDirectory);
 
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
-
-    const setCacheFiles = useZust((state) => state.setCacheFiles)
-    const setImagesFiles = useZust((state) => state.setImagesFiles)
-    const setModelsFiles = useZust((state) => state.setModelsFiles)
-
-    const setMediaFiles = useZust((state) => state.setMediaFiles)
-
+    const setAudioDirectory = useZust((state) => state.setAudioDirectory);
+    const setVideoDirectory = useZust((state) => state.setVideoDirectory);
+    
     const setAssetsDirectory = useZust((state) => state.setAssetsDirectory)
     const setPcsDirectory = useZust((state) => state.setPcsDirectory)
     const setNpcsDirectory = useZust((state) => state.setNpcsDirectory)
@@ -64,12 +63,6 @@ const HomeMenu = () => {
     const setPlaceablesDirectory = useZust((state) => state.setPlaceablesDirectory)
     const setTypesDirectory = useZust((state) => state.setTypesDirectory)
 
-    const setTypesFiles = useZust((state) => state.setTypesFiles)
-    const setPlaceablesFiles = useZust((state) => state.setPlaceablesFiles)
-    const setPcsFiles = useZust((state) => state.setPcsFiles)
-    const setNpcsFiles = useZust((state) => state.setNpcsFiles)
-    const setTexturesFiles = useZust((state) => state.setTexturesFiles)
-    const setTerrainFiles = useZust((state) => state.setTerrainFiles)
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
@@ -104,9 +97,6 @@ const HomeMenu = () => {
 
 
     const setLocalDirectory = useZust((state) => state.setLocalDirectory)
-    const setFiles = (value) => useZust.setState(produce((state) => {
-        state.files = value;
-    }))
 
     const [directory, setDirectory] = useState("")
 
@@ -134,7 +124,7 @@ const HomeMenu = () => {
         if (user.userID > 0) {
 
             if (currentLocation == '/') {
-
+                if (location.state != undefined && location.state.loadUser != undefined) loadUser(location.state.loadUser)
                 if (!showMenu) setShowMenu(true);
                 setShowIndex(0)
                 setPage(1)
@@ -217,17 +207,55 @@ const HomeMenu = () => {
 
     useEffect(() => {
 
-        if (user.userID > 0) {
+        if (user.userID > 0 && !userLoaded.current.value) {
+            userLoaded.current.value = true
+            setIdbArray().then(((value)=>{
+                navigate("/", {state:{loadUser:user}})
+            }))
 
-            loadUser(user).then((returned)=>{
 
-                if(!returned) navigate("/")
-            })
-       
+            
+            //.then((returned)=>{
+
+               // if(!returned) navigate("/")
+           // })
+          
         
 
         }
     }, [user])
+
+    async function setIdbArray(){
+
+        let idbCacheArray = await get("arc.cacheFile").catch((err) => {
+          
+        })
+        let loadedCache = []
+        if (Array.isArray(idbCacheArray)){
+            idbCacheArray.forEach(item => {
+                const names = Object.getOwnPropertyNames(item)
+
+                let newItem = {}
+                names.forEach(name => {
+                    if(name == "loaded"){
+                        newItem.loaded = false
+                    }else{
+                        newItem[name] = item[name]
+                    }
+                });
+
+                loadedCache.push(newItem)
+            });
+            await set("arc.cacheFile", loadedCache)
+        }else{
+            await set("arc.cacheFile", [])
+        }
+        
+        
+        
+        
+        return true
+    }
 
     async function loadUser(user){
 
@@ -245,6 +273,10 @@ const HomeMenu = () => {
 
             const homeHandle = await value.handle.getDirectoryHandle("home", { create: true })
             const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true }) 
+            const cacheDirectory = await userHomeHandle.getDirectoryHandle("cache", {create:true})
+
+            setCacheDirectory({name:"cache", handle:cacheDirectory})
+
             const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.config")
 
             const fileInfo = await getFileInfo(handle, userHomeHandle)
@@ -261,8 +293,8 @@ const HomeMenu = () => {
                                 fileInfo.value = json[user.userName];
                                 fileInfo.fileID = hashResult.fileID;
                                 fileInfo.storageID = hashResult.storageID;
-
-                                navigate("/loading", { state: { configFile: fileInfo, navigate: "/" } })
+                                setConfigFile(fileInfo)
+                               // navigate("/loading", { state: { configFile: fileInfo, navigate: "/" } })
                                 return true
                             } else {
                                 console.log("Permission not granted")
@@ -293,7 +325,7 @@ const HomeMenu = () => {
        
         if (user.userID > 0 && configFile.value != null) {
             const config = configFile.value;
-        
+            console.log("settingDefaults")
             setFolderDefaults(config).then((promise) => {
 
                 if (promise == true) {
@@ -309,7 +341,7 @@ const HomeMenu = () => {
                     })
 
 
-                    navigate(onComplete)
+                //    navigate(onComplete)
                 } else {
                     addSystemMessage(initStorage)
                     navigate("/home/localstorage/")
@@ -411,100 +443,221 @@ const HomeMenu = () => {
    
 
 
-
+    //const addFiles = useZust((state) => state.addFiles)
+    const setLoadingStatus = useZust((state) => state.setLoadingStatus)
+    async function onStatus(text){
+        setLoadingStatus(text)
+        return true;
+    }
 
     async function setFolderDefaults(config) {
-        const engineKey = config.engineKey;
+        
+            try {
+                
+             
 
-        try {
-            const cacheHandle =  await localDirectory.handle.getDirectoryHandle("cache", { create: true });
+                const realmsHandle = await localDirectory.handle.getDirectoryHandle("realms", { create: true });
 
-            const caches = await worker.getFirstDirectoryAllFiles(cacheHandle)
+                const imageHandle =  await localDirectory.handle.getDirectoryHandle("images", { create: true }) 
+                const modelsHandle = await localDirectory.handle.getDirectoryHandle("models", { create: true }) 
+                const mediaHandle = await localDirectory.handle.getDirectoryHandle("media", { create: true }) 
+                const audioHandle = await mediaHandle.getDirectoryHandle("audio", {create:true})   
+                const videoHandle = await mediaHandle.getDirectoryHandle("video", { create: true })
+                const assetsHandle = await localDirectory.handle.getDirectoryHandle("assets", {create: true})
+                const typesHandle = await assetsHandle.getDirectoryHandle("types", { create: true })
+                const pcsHandle = await assetsHandle.getDirectoryHandle("pcs", { create: true })
+                const npcsHandle = await assetsHandle.getDirectoryHandle("npcs", { create: true })
+                const placeablesHandle = await assetsHandle.getDirectoryHandle("placeables", { create: true })
+                const texturesHandle = await assetsHandle.getDirectoryHandle("textures", { create: true })
+                const terrainHandle = await assetsHandle.getDirectoryHandle("terrain", { create: true })
 
 
-            const imageHandle = config.folders.images.default ? await localDirectory.handle.getDirectoryHandle("images", { create: true }) : await get("images" + engineKey);
-            const images = await worker.getFirstDirectoryFiles(imageHandle, "image", config.folders.images.fileTypes);
+                
+                const images = await worker.getFirstDirectoryAllFiles(imageHandle);
+           
+                const models = await worker.getFirstDirectoryAllFiles(modelsHandle);
+              
+                const audio = await worker.getFirstDirectoryAllFiles(audioHandle);
+          
+                const video = await worker.getFirstDirectoryAllFiles(videoHandle);
+                console.log(video)
+               
+                const types = await worker.getFirstDirectoryAllFiles(typesHandle)
+              
+                const pcs = await worker.getFirstDirectoryAllFiles(pcsHandle)
+           
+                const npcs = await worker.getFirstDirectoryAllFiles(npcsHandle)
+             
+                const placeables = await worker.getFirstDirectoryAllFiles(placeablesHandle)
+           
+                const textures = await worker.getFirstDirectoryAllFiles(texturesHandle)
+                
+                const terrain = await worker.getFirstDirectoryAllFiles(terrainHandle)
+           
+                let allFiles = []
 
+                images.files.forEach(entry => {
+                   allFiles.push(entry)
+                });
 
+                models.files.forEach(entry => {
+                    allFiles.push(entry)
+                });
+                audio.files.forEach(entry => {
+                    allFiles.push(entry)
+                });
+                video.files.forEach(entry => {
+                
+                    allFiles.push(entry)
+                });
+                pcs.files.forEach(entry => {
+                    allFiles.push(entry)
+                });
+                placeables.files.forEach(entry => {
+                    allFiles.push(entry)
+                });
+                textures.files.forEach(entry => {
+                    allFiles.push(entry)
+                });
+                terrain.files.forEach(entry => {
+                    allFiles.push(entry)
+                });
+              
+                setAssetsDirectory({ name: "assets", handle: assetsHandle })
 
-            const modelsHandle = config.folders.models.default ? await localDirectory.handle.getDirectoryHandle("models", { create: true }) : await get("models" + engineKey);
+                setTypesDirectory({ name: "types", handle: typesHandle, directories: types.directories })
+              
 
-            const models =  await worker.getFirstDirectoryFiles(modelsHandle, "model", config.folders.models.fileTypes) ;
+                setPcsDirectory({ name: "pcs", handle: pcsHandle, directories: pcs.directories })
+               
+                setNpcsDirectory({ name: "npcs", handle: npcsHandle, directories: npcs.directories })
+              
 
+                setTexturesDirectory({ name: "textures", handle: texturesHandle, directories: textures.directories })
+               
 
-            const realmsHandle =  await localDirectory.handle.getDirectoryHandle("realms", { create: true });
+                setPlaceablesDirectory({ name: "placeables", handle: placeablesHandle, directories: placeables.directories })
+              
 
-            const mediaHandle = config.folders.media.default ? await localDirectory.handle.getDirectoryHandle("media", { create: true }) : await get("media" + engineKey);
-
-            const media = await worker.getFirstDirectoryFiles(mediaHandle, "media", config.folders.media.fileTypes);
+                setTerrainDirectory({ name: "terrain", handle: terrainHandle, directories: terrain.directories })
+        
             
-            const assetsHandle = await localDirectory.handle.getDirectoryHandle("assets", {create: true})
-           
+                setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
+              
 
-            const typesHandle = await assetsHandle.getDirectoryHandle("types", { create: true })
-            const types = await worker.getFirstDirectoryFiles(typesHandle, "arctype", ["arctype"])
-
-            const pcsHandle = await assetsHandle.getDirectoryHandle("pcs", { create: true })
-            const pcs = await worker.getFirstDirectoryFiles(pcsHandle, "arcpc", ["arcpc"])
-
-            const npcsHandle = await assetsHandle.getDirectoryHandle("npcs", { create: true })
-            const npcs = await worker.getFirstDirectoryFiles(npcsHandle, "arcnpc", ["arcnpc"])
-
-            const placeablesHandle = await assetsHandle.getDirectoryHandle("placeables", { create: true })
-            const placeables = await worker.getFirstDirectoryFiles(placeablesHandle, "arcpl", ["arcpl"])
-
-            const texturesHandle = await assetsHandle.getDirectoryHandle("textures", { create: true })
-            const textures = await worker.getFirstDirectoryFiles(texturesHandle, "arctex", ["arctex"])
-
-            const terrainHandle = await assetsHandle.getDirectoryHandle("terrain", { create: true })
-            const terrain = await worker.getFirstDirectoryFiles(terrainHandle, "arcterr", ["arcterr"])
-
-           
-            setAssetsDirectory({ name: "assets", handle: assetsHandle })
-
-            setTypesDirectory({ name: "types", handle: typesHandle, directories: types.directories })
-            setTypesFiles(types.files)
-
-            setPcsDirectory({ name: "pcs", handle: pcsHandle, directories: pcs.directories })
-            setPcsFiles(pcs.files)
-
-            setNpcsDirectory({ name: "npcs", handle: npcsHandle, directories: npcs.directories })
-            setNpcsFiles(npcs.files)
-
-            setTexturesDirectory({ name: "textures", handle:texturesHandle, directories: textures.directories })
-            setTexturesFiles(textures.files)
-
-            setPlaceablesDirectory({ name: "placeables", handle: placeablesHandle, directories: placeables.directories })
-            setPlaceablesFiles(placeables.files)
+                setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
+             
         
+                setRealmsDirectory({ name: realmsHandle.name, handle: realmsHandle, directories: realms.directories })
+            
+                setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle})
 
-            setTerrainDirectory({ name: "terrain", handle: terrainHandle, directories: terrain.directories })
-            setTerrainFiles(terrain.files)
-          
-            setCachesDirectory({name: "cache", handle: cacheHandle, directories: caches.directories})
-            setCacheFiles(caches.files)
-           
-          
-            setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
-            setImagesFiles(images.files)
+                setAudioDirectory({ name: audioHandle.name, handle: audioHandle, directories:audio.directories })
+            
 
+                setVideoDirectory({ name: videoHandle.name, handle: videoHandle, directories: video.directories })
+            
         
+              
 
-            setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
-            setModelsFiles(models.files)
-    
-            setRealmsDirectory({ name: realmsHandle.name, handle: realmsHandle })
+               if(allFiles.length > 0) {
+                    await checkAllFiles(allFiles)
+                    console.log("checked all files")
+                    return true
+                }else{
+                    return false
+                }
+
+            } catch (err) {
+                console.log(err)
+                return false
+            } 
         
-            setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories })
-            setMediaFiles(media.files)
-         
+       
+    }
 
+   
+    const checkAllFiles = (allFiles = []) =>{
+        return new Promise(resolve => {
+            let i = 0;
+            get("arc.cacheFile").then((idbCacheArray)=>{
+                
+                const isArray = Array.isArray(idbCacheArray)
+                const noCache = (isArray && idbCacheArray.length == 0) || !isArray
+                let newCache = []
 
-        } catch (err) {
-            console.log(err)
-            return false
-        }
-        return true;
+                async function checkFilesRecursive(){
+                    const entry = allFiles[i].handle
+                    const directory = allFiles[i].directory
+                    
+                    const name = await entry.name
+                    setLoadingStatus(name)
+        
+                    if(noCache)
+                    {
+             
+                        const newFileInfo = await worker.getFileInfo(entry, directory)
+
+                        const contains =  (newCache.findIndex(c => c.hash == newFileInfo.hash) != -1)
+
+                        if(!contains) newCache.push(newFileInfo)
+
+                        i = i + 1
+                        set("arc.cacheFile", newCache)
+
+                        if (i < allFiles.length) {
+                           
+                            checkFilesRecursive()
+                        } else {
+                            
+                            resolve(true)
+                        }
+                    }else{
+                        const index = await worker.asyncFind(idbCacheArray, async item => {
+                            return await entry.isSameEntry(item.handle);
+                        })
+                    
+                        if (index != undefined) {
+                            const item = idbCacheArray[index]
+                            const names = Object.getOwnPropertyNames(item)
+
+                            let newItem = {}
+                            names.forEach(name => {
+                                if (name == "loaded") {
+                                    newItem.loaded = true
+                                } else {
+                                    newItem[name] = item[name]
+                                }
+                            });
+                            idbCacheArray[index] = newItem
+                        }else{
+                            const newFileInfo = await worker.getFileInfo(entry, directory)
+                            idbCacheArray.push(newFileInfo)
+                        }
+
+                        set("arc.cacheFile", idbCacheArray)
+                        
+                        i = i + 1
+
+                        if (i < allFiles.length) {
+                            checkFilesRecursive()
+                        } else {
+                        // await set("arc.cacheFile", idbCacheArray)
+                            resolve(true)
+                        }
+                    }
+
+                    
+                }
+                if(allFiles.length > 0){
+                    checkFilesRecursive()
+                
+
+                }else{
+                    resolve(true)
+                }
+            })
+        })
     }
 
 

@@ -5,7 +5,7 @@ import { ImageDiv } from "./ImageDiv";
 import styles from "../../css/home.module.css"
 import FileList from "./FileList";
 import SelectBox from "./SelectBox";
-import produce from "immer";
+import { ImageViewer } from "./ImageViewer";
 
 import { errorSelectingImage, initDirectory, initStorage } from "../../../constants/systemMessages";
 import { access } from "../../../constants/constants";
@@ -14,16 +14,20 @@ import { access } from "../../../constants/constants";
 export const ImagePicker = (props ={}) =>{
     const searchInputRef = useRef()
     const accessRef = useRef()
-    const pickerID = useId()
+    const textRef = useRef()
+    const titleRef = useRef()
+    //const pickerID = useId()
 
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
-    const imagesFiles = useZust((state) => state.imagesFiles)
+    const allFiles = useZust((state) => state.allFiles)
+    const userFiles = useZust((state) => state.userFiles)
+
     const localDirectory = useZust((state) => state.localDirectory)
     const imagesDirectory = useZust((state) => state.imagesDirectory)
-    const addFileRequest = useZust((state) => state.addFileRequest)
-    const addSystemMessage = useZust((state) => state.addSystemMessage)
 
+    const addSystemMessage = useZust((state) => state.addSystemMessage)
+    const [viewImage, setViewImage] = useState(null)
     const [imageSelected, setImageSelected] = useState(null);
     const [imageSearch, setImageSearch] = useState("")
     const [directoryOptions, setDirectoryOptions] = useState([])
@@ -66,13 +70,18 @@ export const ImagePicker = (props ={}) =>{
     }, [configFile, localDirectory])
 
     useEffect(()=>{
-        props.selectedImage
+     
         if( props.selectedImage != undefined && props.selectedImage.hash != null)
         {
            
-            const userImage = props.selectedImage
+            const hash = props.selectedImage.hash
 
-            console.log(userImage)
+            const index = userFiles.findIndex(file => file.hash == hash)
+
+
+            const userImage = index == -1 ? props.selectedImage : userFiles[index]
+           
+            
             if("accessID" in userImage)
             {
                 console.log(userImage.accessID)
@@ -80,6 +89,16 @@ export const ImagePicker = (props ={}) =>{
             } else if (accessRef.current != undefined) {
                 console.log("setting public")
                 accessRef.current.setValue(access.public)
+            }
+            if("title" in userImage){
+                titleRef.current.value = userImage.title
+            }else{
+                titleRef.current.value = ""
+            }
+            if("text" in userImage){
+                textRef.current.value = userImage.text
+            }else{
+                textRef.current.value = ""
             }
             setImageSelected(props.selectedImage)
         }else if(accessRef.current != undefined){
@@ -119,21 +138,40 @@ export const ImagePicker = (props ={}) =>{
 
    
 
-    const onImageSelected = (e) => {
-        const img = imagesFiles[e];
+    const onHashSelected = (hash) => {
+        
+      
 
-        if (img != undefined) {
-            if ("hash" in img) {
-              
-                setImageSelected(img)
+        const userFileindex = userFiles.findIndex(file => file.hash == hash)
 
-            } else {
-                setImageSelected(null)
-                addSystemMessage(errorSelectingImage)
-            }
-        } else {
-            addSystemMessage(errorSelectingImage)
+
+       
+
+        const index = userFileindex == -1 ? allFiles.findIndex(files => files.hash == hash) : null
+
+        console.log(userFileindex + " " + index)
+
+        const userImage = userFileindex != -1 ? userFiles[userFileindex] : index != -1 ? allFiles[index] : null
+        if ("accessID" in userImage) {
+         
+            accessRef.current.setValue(userImage.accessID)
+        } else if (accessRef.current != undefined) {
+     
+            accessRef.current.setValue(access.public)
         }
+        if ("title" in userImage) {
+            titleRef.current.value = userImage.title
+        } else {
+            titleRef.current.value = ""
+        }
+        if ("text" in userImage) {
+            textRef.current.value = userImage.text
+        } else {
+            textRef.current.value = ""
+        }
+   
+        setImageSelected(userImage)
+
     }
 
     const onCancelClick = (e) =>{
@@ -142,7 +180,9 @@ export const ImagePicker = (props ={}) =>{
 
     const onOkClick = (e) =>{
         const accessID = accessRef.current.getValue
-        props.onOk({file:imageSelected, accessID:accessID, userAccess:""})
+        const title = titleRef.current.value
+        const text = textRef.current.value
+        props.onOk({file:imageSelected, accessID:accessID, title:title, text:text, userAccess: ""})
     }
 
     return (
@@ -163,7 +203,38 @@ export const ImagePicker = (props ={}) =>{
                 
             }}>
                 <div style={{display:"flex", width:"100%"}}>
-                    <div style={{ marginLeft: 12,marginTop:6,width:80 }}>  <ImageDiv width={20} height={25} netImage={{ opacity: .8, image: "/Images/icons/image-outline.svg", filter: "invert(100%)" }} /></div>
+                    <div style={{ transform: "translate(10px,10px)", marginTop:15,  marginLeft: 10, height: 25, display: "flex", alignItems: "center", }}>
+                        <SelectBox
+                            className={styles.bubbleButton}
+                            about={"Access Control"}
+                            ref={accessRef}
+                            style={{ width: 80 }}
+                            textStyle={{
+                                textAlign: "center",
+                                padding: 4,
+
+                                width: "100%",
+                                color: "#ffffff",
+                                fontFamily: "Webpapyrus",
+                                border: 0,
+                                fontSize: 14,
+                            }}
+                            optionsStyle={{
+                                width: "100%",
+                                marginLeft: 10,
+
+                                paddingTop: 5,
+                                fontSize: 14,
+                                fontFamily: "webrockwell"
+                            }}
+                            placeholder="access"
+                            options={[
+                                { label: "Private", value: access.private },
+                                { label: "Contacts", value: access.contacts },
+                                { label: "Public", value: access.public }
+                            ]} />
+
+                    </div>
                 <div style={{
                     display:"flex",
                     alignItems: "center",
@@ -193,11 +264,15 @@ export const ImagePicker = (props ={}) =>{
                         <div style={{width:80}}>
                         <SelectBox onChange={directoryChanged} textStyle={{ backgroundColor: "#33333340", border: 0, outline: 0, color: "white" }} placeholder={"All"} options={directoryOptions} />
                             </div>
+                      
                     </div>
                     <div onClick={(e) => { searchInputRef.current.focus() }} style={{
-                        cursor: "pointer"
+                        cursor: "pointer",
+                        marginTop:5,
+                        marginRight:10,
+                        marginLeft:10
                     }}>
-                        <ImageDiv width={30} height={30} netImage={{ filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
+                        <ImageDiv width={20} height={30} netImage={{ filter: "invert(100%)", image: "/Images/icons/search.svg" }} />
                     </div>
                 </div>
                 </div>
@@ -213,47 +288,36 @@ export const ImagePicker = (props ={}) =>{
                 }}>
                     <div style={{ display: "flex" }}>
 
-                        <div style={{ width: 90 }}>&nbsp;</div>
+                        <div style={{ width:50 }}>&nbsp;</div>
 
                         <div >
 
-                            <div style={{}}>
-                             
-                                <div style={{ width: "100%", height: 30, paddingTop: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                    <SelectBox
-                                        className={styles.bubbleButton}
-                                        about={"Access Control"}
-                                        ref={accessRef}
-                                        style={{ width: 150 }}
-                                        textStyle={{
-                                            textAlign: "center",
-                                            padding: 4,
+                            <div style={{paddingTop:10, display: "flex", flexDirection: "column", alignItems: "center",  paddingBottom:20,   borderRadius:20 }}>
+                              
+                                <div style={{paddingTop:5, paddingBottom:5, flex: 1, width: 480, color:"white", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                                    
+                                    <input ref={titleRef}  
 
-                                            width: "100%",
-                                            color: "#ffffff",
-                                            fontFamily: "Webpapyrus",
-                                            border: 0,
-                                            fontSize: 14,
-                                        }}
-                                        optionsStyle={{
-                                            widtH: "100%",
-                                            backgroundColor: "#333333C0",
-                                            paddingTop: 5,
-                                            fontSize: 14,
-                                            fontFamily: "webrockwell"
-                                        }}
-                                        placeholder="access"
-                                        options={[
-                                            { label: "Private", value: access.private },
-                                            { label: "Contacts", value: access.contacts },
-                                            { label: "Public", value: access.public }
-                                        ]} />
+                                    className={styles.bubble}
+                                        placeholder={"Title"}
+                                    style={{
+                                        cursor:"text",
+                                        padding:10,
+                                        textAlign:"center",
+                                        color: "white",
+                                        backgroundColor: "#33333300",
+                                        fontFamily: "webpapyrus",
+                                        fontSize: 14,
+                                        width: 160,
+                                        outline: 0,
+                                        border: 0
+                                    }} type={"text"} />
                                 </div>
-                           
+                              
    {imageSelected &&
 
-                            
-                            
+                                <>
+                          
                                     <div style={{
                                         filter: "drop-shadow(0 0 5px #ffffff30) drop-shadow(0 0 10px #ffffff40)",
                                         display: "flex",
@@ -261,19 +325,19 @@ export const ImagePicker = (props ={}) =>{
                                         paddingBottom: 10,
                                         justifyContent: "center",
                                         alignItems: "center",
-                                      
+                                     
                                     }}>
                                      
                                        
                                  
-                                        <div style={{ cursor: "pointer" }}>
-                                            <div style={{height:50, }}>&nbsp;</div>
+                                        <div onClick={(e)=>{setViewImage(imageSelected)}} style={{ cursor: "pointer" }}>
+                                            <div style={{height:20, }}>&nbsp;</div>
                                             <ImageDiv
-                                                width={300}
-                                                height={300}
+                                                width={400}
+                                                height={400}
                                                 about={imageSelected.name}
                                                 style={{ textShadow: "2px 2px 2px black", overflow:"hidden" }}
-                                                className={styles.bubbleActive__item}
+                                                className={styles.bubble__item}
                                                 netImage={{
                                                     scale: 1.15,
                                                     backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)",
@@ -291,9 +355,13 @@ export const ImagePicker = (props ={}) =>{
                                         </div>
 
                                    
-
+                                       
                                     </div>
-                            
+                                               
+                                        
+                             
+                                   
+                                </>
                   }
                   {!imageSelected &&
                                     <div style={{
@@ -304,12 +372,20 @@ export const ImagePicker = (props ={}) =>{
                                         justifyContent: "center",
                                         alignItems: "center",
                                     }}>
-                                        <div style={{ height: 50,  }}>&nbsp;</div>
-                                        <ImageDiv width={300} height={300} about={"Select Image"} style={{ textShadow: "2px 2px 2px black", }} className={styles.bubble__item} netImage={{ backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius: 40, backgroundColor: "", image: "" }} />
+                                        <div style={{ height: 20,  }}>&nbsp;</div>
+                                        <ImageDiv width={400} height={400} about={"Select Image"} style={{ textShadow: "2px 2px 2px black", }} className={styles.bubble__item} netImage={{ backgroundImage: "linear-gradient(to bottom,  #00030450,#13161780)", borderRadius: 40, backgroundColor: "", image: "" }} />
                                     </div>
                                 }
 
 
+                                <div style={{ width: 300, padding: 10, marginTop: 30 }} className={styles.bubble}>
+
+                                    <textarea placeholder="Description..."
+                                        rows={2}
+                                        style={{ backgroundColor: "#00000000", resize: "none", fontSize: "13px", outline: 0, width: "100%", border: 0, color: "white", fontFamily: "Webrockwell" }}
+                                        ref={textRef}
+                                    />
+                                </div>
                             </div>
                             
                             <div style={{ paddingBottom: 15 }}>
@@ -322,18 +398,18 @@ export const ImagePicker = (props ={}) =>{
 
 
                                 }}>
-                                    <div style={{ width: 100 }} className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
+                                    <div style={{ width: 90 }} className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
 
                                     <div style={{
 
-                                        marginLeft: "20px", marginRight: "20px",
+                                        marginLeft: "10px", marginRight: "10px",
                                         height: "50px",
                                         width: "1px",
                                         backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
                                     }}>
 
                                     </div>
-                                    <div style={{ width: 100 }} className={imageSelected != null ? styles.OKButton : styles.OKDisabled} onClick={onOkClick} >Ok</div>
+                                    <div style={{ width: 90 }} className={imageSelected != null ? styles.OKButton : styles.OKDisabled} onClick={onOkClick} >Ok</div>
                                 </div>
                             </div>
                         </div>
@@ -349,25 +425,37 @@ export const ImagePicker = (props ={}) =>{
 
 
                         }}>
-                            
-                            <div style={{marginBottom:20, justifyContent: "center", display: "flex", width: 300, height: 430, overflowX: "visible", overflowY: "scroll", color: "white", }}>
+                       <div style={{width:250}}>
+                        <div style={{
+                            display:"flex",
+                            overflowX: "clip",
+                            overflowClipMargin:100,
+                            overflowY: "scroll",
+                            maxHeight: 630,
+                            width: "100%",
+                          
+}}>
                                 <FileList
+                                    onDoubleClick={(e)=>{setViewImage(e)}}
                                     className={styles.bubble__item}
                                     activeClassName={styles.bubbleActive__item}
-                                    onChange={onImageSelected}
-                                    filter={{ name: imageSearch, directory: currentDirectory }}
+                                    onChange={onHashSelected}
+                                    filter={{ name: imageSearch,mimeType:"image", directory: currentDirectory }}
                                     fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100, scale:1.2 } }}
-                                    files={imagesFiles}
+                                    files={allFiles}
                                 />
                             </div>
 
                         </div>
+                    </div>
                     
                 </div>
 
             </div>
 
-
+            {viewImage != null &&
+                <ImageViewer errorImage={"/Images/icons/person.svg"} currentImage={viewImage} close={() => { setViewImage(null) }} />
+            }
 
         </>
     )

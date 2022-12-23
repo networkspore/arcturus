@@ -101,7 +101,9 @@ export const HomePage = (props ={}) => {
                 case "/account":
                     setshowIndex(4)
                     break;
-              
+                case "/selectImage":
+                    setshowIndex(10)
+                    break;
                 default:
                     setshowIndex(0)
             }
@@ -111,6 +113,10 @@ export const HomePage = (props ={}) => {
 
     const onUpdateUserImage = (onUpdate) =>{
         const file = onUpdate.file
+        const text = onUpdate.text
+        const title = onUpdate.title
+        const accessID = onUpdate.accessID
+        const userAccess = onUpdate.userAccess
 
         const fileInfo = {
             name: file.name, 
@@ -118,11 +124,15 @@ export const HomePage = (props ={}) => {
             size: file.size, 
             type: file.type, 
             mimeType: file.mimeType, 
-            lastModified: file.lastModified
+            lastModified: file.lastModified,
+            title: title,
+            text: text,
+            accessID: accessID,
+            userAccess: userAccess
         }
        
 
-        setSocketCmd({cmd: "updateUserImage", params:{imageInfo:fileInfo, accessID: onUpdate.accessID, userAccess: onUpdate.userAccess}, callback:(updateResult)=>{
+        setSocketCmd({cmd: "updateUserImage", params:{imageInfo:fileInfo }, callback:(updateResult)=>{
             if("success" in updateResult && updateResult.success)
             {
                 updateUserImage(updateResult.file)
@@ -147,7 +157,8 @@ export const HomePage = (props ={}) => {
 
                     <ImageDiv width={150} height={150} onClick={(e) => {
                         if(imagesDirectory.handle != null){
-                        setshowIndex(10)}
+                        navigate("/home/selectImage")
+                        }
                     }}  about={"Select Image"}  className={className} netImage={{
                         scale:1,
                         update: {
@@ -214,7 +225,7 @@ export const HomePage = (props ={}) => {
                  
                     {subDirectory == "/localstorage" && localDirectory.handle != null &&
                     <div style={{marginLeft:30}}>
-                            {assetsDirectory.handle != null &&
+                          
                                 <>
                                    
 
@@ -292,8 +303,8 @@ export const HomePage = (props ={}) => {
 
                                         </div>
                                     }</>
-                            }
-                    {imagesDirectory.handle != null &&
+                            
+                
                      
                         <div onClick={(e) => { navigate("/home/localstorage/images") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                             <div>
@@ -304,8 +315,7 @@ export const HomePage = (props ={}) => {
                             </div>
                         </div>
                      
-                    } 
-                    {modelsDirectory.handle != null &&
+               
                      
                         <div onClick={(e) => { navigate("/home/localstorage/models") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                             <div>
@@ -316,10 +326,10 @@ export const HomePage = (props ={}) => {
                             </div>
                         </div>
                     
-                    }
+                    
                            
              
-                    {mediaDirectory.handle != null &&
+               
                  
                                 <div onClick={(e) => { navigate("/home/localstorage/media") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
@@ -329,20 +339,9 @@ export const HomePage = (props ={}) => {
                                         Media
                                     </div>
                                 </div>
-                   
-                            }
+                                      
                            
-                            {cachesDirectory.handle != null &&
-                                
-                                <div onClick={(e) => { navigate("/home/localstorage/cache") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
-                                    <div>
-                                        <img style={{ filter: subSubDirectory == "/cache" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/cache" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
-                                    </div>
-                                    <div style={{ paddingLeft: "10px", color: subSubDirectory == "/cache" ? "white" : "" }} >
-                                        Cache
-                                    </div>
-                                </div>
-                            }
+                        
                            
                     </div>
                     }

@@ -23,10 +23,11 @@ export const ImageViewer = (props = {}) =>{
         {currentImage != null &&
         <div id='ImageViewer' style={{
             position: "fixed",
+            zIndex:100,
             backgroundColor: "rgba(0,3,4,.95)",
-            left: fullSize ? 85 : "50%",
+            left: fullSize ?0 : "50%",
             top: fullSize ? 0 : "50%",
-            width: fullSize ? pageSize.width - 85 : 800,
+            width: fullSize ? pageSize.width  : 800,
             height: fullSize ? pageSize.height: 600,
             transform:fullSize ? "" : "translate(-50%,-50%)",
             boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
@@ -34,9 +35,9 @@ export const ImageViewer = (props = {}) =>{
             <div style={{
               
                 display:"flex",
-                alignItems:"start",
+                alignItems:"center",
                 justifyContent:"center",
-                width: fullSize ? pageSize.width - 85 : 800,
+                width: fullSize ? pageSize.width : 800,
                 paddingTop: 0,
                 fontFamily: "WebRockwell",
                 fontSize: "18px",
@@ -69,10 +70,11 @@ export const ImageViewer = (props = {}) =>{
             }}><ImageDiv width={18} height={20} netImage={{ filter: "invert(100%)", image: "/Images/icons/scan-outline.svg" }} />
             </div>
                 
-                        <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center" }}> {currentImage.userFileName == undefined ? currentImage.name : currentImage.userFileName}</div>
+                        <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center" }}> {currentImage.title == undefined ? currentImage.name : currentImage.userFileName}</div>
+                <div style={{width:50, height:40}}>&nbsp;</div>
             </div>
-                    <div style={{ width: fullSize ? pageSize.width - 85 : 800, flex:1, height:"100%"}}>
-                        <ImageDiv width={fullSize ? pageSize.width - 85 : 800} height={fullSize ? pageSize.height -30 : 600-30} netImage={{
+                    <div style={{ width: fullSize ? pageSize.width  : 800, flex:1, height:"100%"}}>
+                        <ImageDiv width={fullSize ? pageSize.width  : 800} height={fullSize ? pageSize.height -50 : 600-50} netImage={{
                             scale: 1,
                             update: {
                                 command: "getImage",

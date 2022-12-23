@@ -18,13 +18,6 @@ export const FileHandler = ( props = {}) =>{
 
     const [active, setActive] = useState()
   
-    const cacheFiles = useZust((state) => state.cacheFiles)
-    const imagesFiles = useZust((state) => state.imagesFiles)
-    const modelsFiles = useZust((state) => state.modelsFiles)
-  
-    const mediaFiles = useZust((state) => state.mediaFiles)
-
-    const updateImages = useZust((state) => state.updateImages)
 
 
     const setDownloadRequest = useZust((state) => state.setDownloadRequest)
@@ -118,60 +111,87 @@ export const FileHandler = ( props = {}) =>{
             
             switch (request.command) {
                 case "getFile":
-                    const mimeType = request.file.mimeType
-                    
-                    switch(mimeType)
-                    {
-                        case "image":
-                            checkLocalImages(request).then((localResult) =>{
-                                if(localResult != null)
-                                {
-                                    resolve({success:true, file: localResult, request:request})
-                                }else{
-                                    resolve({error: new Error("File not found")})
-                                }
-                            })
-                            break;
-                    }
+                    searchLocalFiles(request).then((result) => {
+                        if(result == undefined)
+                        {
+                            if (request.p2p) {
+
+                                makeDownloadRequest(request).then((peersResult) => {
+
+                                    resolve(peersResult)
+
+                                })
+                            } else {
+                                resolve({ error: "not connected" })
+                            }
+                        }else{
+                           resolve( { success: true, file: result, request: request })
+                         
+                        }
+                        
+                    })
                     
                     break;
+                case "getImage":
                 case "getIcon":
-                    if (request.file.mimeType == "image") {
+                 
+                    switch (request.file.mimeType ) {
 
-                     
+                        case "image":
+                           
                             checkLocalImages(request).then((localResult)=>{
+                               
+                             
+                                if(localResult !== undefined && localResult != -1)
+                                {
                                 
-                                if (localResult != null) {
-                                 
-                                    if("icon" in localResult)
-                                    {
-                                        const iconResult = { success: true, file: localResult, request: request }
-                                        resolve(iconResult)
-                                    } else if(localResult != null){
-                                        getLocalIcon(request, localResult).then((imageResult) => {
-                                            resolve(imageResult)
-                                        })
-                                    }
-                                } else {
-                                 
-                                    if (request.p2p) {
+                                    const iconResult = { success: true, file: localResult, request: request }
+
+                                    resolve(iconResult)
+                                } 
+                                if(localResult === undefined){
+                                  
+                                    searchLocalFiles(request).then((localFile)=>{
                                     
-                                        makeDownloadRequest(request).then((peersResult) => {
-                                          
+                                        if (localFile === undefined)
+                                        {
+                                            if( request.p2p) {
+                                            
+                                                makeDownloadRequest(request).then((peersResult) => {
+                                                
+                                                
+                                                    resolve(peersResult)
+                                                
+                                                })
+                                            } else {
+                                                resolve({ error: "not connected" })
+                                            }
+                                        }else{
                                            
-                                            resolve(peersResult)
-                                         
-                                        })
-                                    } else {
-                                        resolve({ error: "not connected" })
-                                    }
+                                            if (request.command == "getImage"){
+                                                const promise = loadImage(request, localFile)
+                                                resolve({ success: false, loading: promise, request: request })
+                                            }else{
+                                                const promise = loadIcon(request, localFile)
+                                                resolve({ success: false, loading: promise, request: request })
+                                            }
+                                            
+                                        }
+                                    })
+                                }
+                                if(localResult == -1){
+                                    console.log("not supported")
+                                    resolve({error: "not supported"})
                                 }
                             })
                             break;
-                         }else{
+                            case "media":
+                              
+                            default:
                             resolve({ error: "not implemented" })
                         }
                     break;
+                    /*
                 case "getImage":
                    
                     if(request.file.mimeType == "image") {
@@ -207,7 +227,7 @@ export const FileHandler = ( props = {}) =>{
                     }else{
                         resolve({ error: "not implemented" })
                     }
-                    break;
+                    break;*/
                    
                 default:
                     resolve({ error: "not implemented" })
@@ -233,7 +253,7 @@ export const FileHandler = ( props = {}) =>{
                 }
                 
                 setDownloadRequest({download:newDownload, callback:(downloadID) => {
-                    
+
                     console.log(newDownload)
                     console.log(downloadID)
                     if(downloadID == undefined || downloadID == null)
@@ -253,116 +273,22 @@ export const FileHandler = ( props = {}) =>{
         })
     }
 
-
-    async function getLocalImage(request, localFile){
-        
-        try{
-        
-        const dataURL = await worker.getImageHandleDataURL(localFile);
-        set(localFile.hash + ".arcimage", dataURL)
-        const objNames = Object.getOwnPropertyNames(request.file)
-        let newFile = {}
-        objNames.forEach(name => {
-            newFile[name] = request.file[name]
-        });
-        
-        const localNames = Object.getOwnPropertyNames(localFile)
-        
-        localNames.forEach(name => {
-            newFile[name] = localFile[name]
-        });
-        
-        newFile.value = dataURL
-
-        return { success: true, file: newFile, request: request }
-        }catch(err){
-            return { error: new Error("Cannot get image from file.")}
-        }
-    }
-
-    async function getLocalIcon(request, localFile) {
-
-        try {
-         
-
-            const dataURL = await worker.getThumnailFile(await localFile.handle.getFile())
-
-            set(localFile.hash + ".arcicon", dataURL)
-
-            const objNames = Object.getOwnPropertyNames(request.file)
-            let newFile = {}
-            objNames.forEach(name => {
-                newFile[name] = request.file[name]
-            });
-
-            const localNames = Object.getOwnPropertyNames(localFile)
-
-            localNames.forEach(name => {
-                newFile[name] = localFile[name]
-            });
-
-            newFile.icon = dataURL
-       
-            return { success: true, file: newFile, request: request }
-        } catch (err) {
-            return { error: new Error("Cannot get image from file.") }
-        }
-    }
-
     async function searchLocalFiles(request){
+        console.log("searching")
+        const allFiles = await get("arc.cacheFile")
 
-        switch(request.file.mimeType)
-        {
-            case "image":
-                const imgIndex = imagesFiles.findIndex(iFile => iFile.hash == request.file.hash)
-                
-                if(imgIndex != -1) return imagesFiles[imgIndex]
+        console.log("checking files")
+        const index = allFiles.findIndex(iFile => iFile.hash == request.file.hash )
+        
+        if(index != -1){ 
+            return allFiles[index]
 
-              
-
-                const cacheIndex = cacheFiles.findIndex(file => file.hash == request.file.hash)
-            
-                return cacheIndex == -1 ? undefined : cacheFiles[cacheIndex]
-
-                break;
-        }
-
-    }
-
-    async function getLocalData(request){
-        try{
-            
-
-            const localFile = await searchLocalFiles(request)
-            
-            if (localFile == undefined) throw new Error("File not found")
-            
-            const data = await worker.getFileData(localFile)
-
-            set(localFile.hash + ".arcdata", data)
-
-            const objNames = Object.getOwnPropertyNames(request.file)
-            let newFile = {}
-            objNames.forEach(name => {
-                newFile[name] = request.file[name]
-            });
-
-            const localNames = Object.getOwnPropertyNames(localFile)
-
-            localNames.forEach(name => {
-                newFile[name] = localFile[name]
-            });
-
-            newFile.data = data
-
-            return { success: true, file: newFile, request: request }
-
-        }catch(err){
-      
-            console.log(err)
-            return {error: new Error("Error getting local data")}
+        }else{
+            return undefined
         }
     }
+
+
 
     /*
     const quota = await navigator.storage.estimate();
@@ -370,35 +296,16 @@ export const FileHandler = ( props = {}) =>{
     const usedSpace = quota.usage;
     */
 
+   
+
     const checkLocalImages = (request) => {
         return new Promise(resolve => { 
+            const fileHash = request.file.hash
             switch (request.command)
             {
-                case "getFile":
-                    get(request.file.hash + ".arcdata").then((imageData) =>{
-                        if(imageData != undefined)
-                        {
-                            const objNames = Object.getOwnPropertyNames(request.file)
-                            let newFile = {}
-                            objNames.forEach(name => {
-                                newFile[name] = request.file[name]
-                            });
-
-                            newFile.data = imageData
-
-                            resolve(newFile)
-                        }else{
-                           
-                            getLocalData(request).then((result)=>{
-                                resolve(result)
-                            })
-        
-                        }
-                    })
-                   
-                    break;
+              
                 case "getIcon":
-                    get(request.file.hash + ".arcicon").then((iconDataURL) => {
+                    get(fileHash + ".arcicon").then((iconDataURL) => {
 
                         if (iconDataURL != undefined) {
 
@@ -412,19 +319,15 @@ export const FileHandler = ( props = {}) =>{
 
                             resolve(newFile)
                         } else {
-                            searchLocalFiles(request).then((localFile)=>{
-                                if (localFile != undefined) {
-                                    resolve(localFile)
-                                } else {
-                                    resolve(null)
-                                }
-                            })
+                         
+                            
+                            resolve(undefined)
                             
                         }
                     })
                     break;
                 case "getImage":
-                    get(request.file.hash + ".arcimage").then((iconDataURL) => {
+                    get(fileHash + ".arcimage").then((iconDataURL) => {
                         if (iconDataURL != undefined) {
                             const objNames = Object.getOwnPropertyNames(request.file)
                             let newFile = {}
@@ -436,18 +339,16 @@ export const FileHandler = ( props = {}) =>{
 
                             resolve(newFile)
                         } else {
-                            searchLocalFiles(request).then((localFile) => {
-                                if (localFile != undefined) {
-                                    resolve(localFile)
-                                } else {
-                                    resolve(null)
-                                }
-                            })
+                          
+                           
+                            resolve(undefined)
+                              
+
                         }
                     })
                     break;
                 default:
-                    resolve(null)
+                    resolve(-1)
                     break;
             }
        
@@ -456,8 +357,80 @@ export const FileHandler = ( props = {}) =>{
     
     }
 
+    const loadingImages = useRef({value:[]})
+
+    const loadingIcons = useRef({value:[]})
 
 
+    const loadImage = (request, localFile) =>{
+        return new Promise(resolve => {
+            
+            const fileHash = request.file.hash
+
+            const loadingImageIndex = loadingImages.current.value.findIndex(imgs => imgs.hash == fileHash)
+
+            if (loadingImageIndex == -1) {
+
+                const promise = worker.getImageHandleDataURL(localFile)
+                loadingImages.current.value.push({ hash: fileHash, promise: promise })
+
+                p.then((dataUrl) => {
+
+                    set(fileHash + ".arcimage", dataUrl).then((inDB) => {
+                        const itemIndex = loadingImages.current.value.findIndex(imgs => imgs.hash == fileHash)
+                        loadingImages.current.value.splice(itemIndex, 1)
+                        resolve({ dataUrl: dataUrl, hash: fileHash })
+
+                    })
+
+                })
+
+            } else {
+                const promise = loadingImages.current.value[loadingImageIndex].promise
+
+                promise.then((dataUrl) => {
+                    resolve({ dataUrl: dataUrl, hash: fileHash })
+                })
+
+            }
+
+        })
+    }
+
+    const loadIcon = (request, localFile) => {
+        return new Promise(resolve => {
+      
+            const fileHash = request.file.hash
+
+            const loadingImageIndex = loadingIcons.current.value.findIndex(imgs => imgs.hash == fileHash)
+
+            if (loadingImageIndex == -1) {
+
+                const p = worker.getThumnailFile(localFile)
+                loadingIcons.current.value.push({ hash: fileHash, promise: p})
+
+                p.then((dataUrl) => {
+
+                    set(fileHash + ".arcicon", dataUrl).then((inDB) => {
+                        const itemIndex = loadingIcons.current.value.findIndex(imgs => imgs.hash == fileHash)
+                        loadingIcons.current.value.splice(itemIndex, 1)
+                        resolve({dataUrl:dataUrl, hash: fileHash})
+               
+                    })
+
+                })
+               
+            } else {
+                const promise = loadingIcons.current.value[loadingImageIndex].promise
+
+                promise.then((dataUrl)=>{
+                    resolve({ dataUrl: dataUrl, hash: fileHash })
+                })
+
+            }
+
+        })
+    }
 
     return (
         <>

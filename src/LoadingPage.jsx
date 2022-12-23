@@ -9,7 +9,7 @@ export const LoadingPage = (props ={}) => {
     const navigate = useNavigate()
 
     const setConfigFile = useZust((state) => state.setConfigFile)
-
+    const loadingStatus = useZust((state) => state.loadingStatus)
     useEffect(()=>{
 
         if (props.state != null) {
@@ -36,10 +36,33 @@ export const LoadingPage = (props ={}) => {
         <>  <div className={loadingStyles.loading}  >
             <div >
                 <div className={loadingStyles.logo}></div>
-                <div className={loadingStyles.loadingText}>
-                    Loading
-
+                <div style={{
+                    position: "fixed",
+                    bottom: "140px",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection:"column",
+                    flex: 1,
+                    
+                }}>
+                    <div style={{
+                        fontFamily: "Webpapyrus",
+                        fontSize: "30px",
+                        fontWeight: "bolder",
+                        color: "#cdd4da",
+                        textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffffc0",
+                    }}>Loaded: </div> 
+                    <div style={{
+                        paddingTop:20,
+                        fontFamily: "Webpapyrus",
+                        fontSize: "20px",
+                        color: "#cdd4da",
+                    }}>{loadingStatus}</div>
                 </div>
+                
 
             </div>
 

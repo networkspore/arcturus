@@ -1,6 +1,32 @@
 //Monsters
 import React from "react";
 
+export const tableChunkSize = 100000;
+export const MB = 1048576
+
+export const fileTypes = Object.freeze({
+    image: ["webp", "apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
+    model: ["json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml"],
+    audio: ["pcm", "mp3", "ogg", "webm", "aac", "wav",],
+    video: ["3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", "oga",],
+    media: ["3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", "oga", "pcm", "mp3", "ogg", "webm", "aac", "wav",],
+    asset: ["arctype", "arcpc","arcnpc","arcpl","arctex", "arcterr"],
+    type: ["arctype"],
+    PC: ["arcpc"],
+    NPC: ["arcnpc"],
+    placeables: ["arcpl"],
+    textures: ["arctex"],
+    terrain: ["arcterr"],
+    all: [
+        "arctype", "arcpc", "arcnpc", "arcpl", "arctex", "arcterr", 
+        "webp", "apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur",
+        "json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml",
+        "pcm", "mp3", "ogg", "webm", "aac", "wav", "3gp", 
+        "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", "oga",]
+})
+
+
+
 export const access = Object.freeze({
     private: 0,
     contacts: 1,

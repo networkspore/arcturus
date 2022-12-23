@@ -10,6 +10,8 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   loadingStatus: "",
+   setLoadingStatus: (value) => set({loadingStatus:value}),
    currentContact: null,
    setCurrentContact: (value) => set({currentContact:value}),
    contactsCmd: {cmd:null, params:null, callback:null},
@@ -107,25 +109,30 @@ const useZust = create((set) => ({
    updateRealm: (value, i) => set(produce((state) => {
       state.realm[i] = value
    })),
-   publishedFiles:[],
-   setPublishedFiles: (value = []) => set({publishedImages: value}),
+
    userPeerID:"",
    setUserPeerID:(value = "") => set({userPeerID:value}),
 
-   cachesDirectory: { name: "cache", handle: null, directories: []},
-   setCachesDirectory: (value = { name: "cache", handle: null, directories: [] }) => set({ cachesDirectory: value }),
+   cacheDirectory: {name:"cache", handle:null},
+   setCacheDirectory: (value = {name:null, handle:null}) => set({cacheDirectory: value}),
 
    imagesDirectory: {  name: "images", handle: null, directories: [] },
-   setImagesDirectory: (value = {  name: "images", handle: null, directories: [] }) => set({ imagesDirectory: value }),
+   setImagesDirectory: (value = {  name: null, handle: null, directories: [] }) => set({ imagesDirectory: value }),
 
    modelsDirectory: { name: "models", handle: null, directories: [] },
    setModelsDirectory: (value = { name: "models", handle: null, directories: [] }) => set({ modelsDirectory: value }),
 
 
 
-   mediaDirectory: { name: "media", handle: null, directories: [] },
-   setMediaDirectory: (value = { lname: "media", handle: null, directories: [] }) => set({mediaDirectory: value }),
+   mediaDirectory: { name: "media", handle: null, },
+   setMediaDirectory: (value = { lname: "media", handle: null,  }) => set({mediaDirectory: value }),
+    audioDirectory: { name: "audio", handle: null, directories: [] },
+    setAudioDirectory: (value = { name: null, handle: null, directories: [] }) => set({ audioDirectory: value }),
    
+    videoDirectory: { name: "video", handle: null, directories: [] },
+   setVideoDirectory: (value = { name: null, handle: null, directories: [] }) => set({ videoDirectory: value }),
+   
+
    realmsDirectory: { name: "realms", handle: null },
    setRealmsDirectory: (value = { name: "realms", handle: null }) => set({ realmsDirectory: value }),
 
@@ -138,7 +145,7 @@ const useZust = create((set) => ({
    setAssetsDirectory: (value = { name: null, handle: null, directories: [] }) => set({ assetsDirectory: value }),
 
    placeablesDirectory: { name: "placeables", handle: null, directories: [] },
-   setPlaceablesDirectory: (value = { name: "placeables", handle: null, directories: [] }) => set({ placeablesDirectory: value }),
+   setPlaceablesDirectory: (value = { name: null, handle: null, directories: [] }) => set({ placeablesDirectory: value }),
 
    pcsDirectory: { name: "", handle: null, directories: [] },
    setPcsDirectory: (value = { name: null, handle: null, directories: [] }) => set({ pcsDirectory: value }),
@@ -150,62 +157,54 @@ const useZust = create((set) => ({
    setTexturesDirectory: (value = { name: null, handle: null, directories: [] }) => set({ texturesDirectory: value }),
    
    terrainDirectory: { name: "terrain", handle: null, directories: [] },
-   setTerrainDirectory: (value = { name: "terrain", handle: null, directories: [] }) => set({ terrainDirectory: value }),
+   setTerrainDirectory: (value = { name: null, handle: null, directories: [] }) => set({ terrainDirectory: value }),
    
    typesDirectory: { name: "types", handle: null, directories: [] },
-   setTypesDirectory: (value = { name: "types", handle: null, directories: [] }) => set({ typesDirectory: value }),
-
-   typesFiles: [],
-   setTypesFiles: (value = []) => set({ typesFiles: value }),
-
-   pcsFiles: [],
-   setPcsFiles: (value = []) => set({ pcsFiles: value }),
-   
-   npcsFiles: [],
-   setNpcsFiles: (value = []) => set({ npcsFiles: value }),
-   
-   texturesFiles: [],
-   setTexturesFiles: (value = []) => set({ texturesFiles: value }),
-   
-   placeablesFiles: [],
-   setPlaceablesFiles: (value = []) => set({ placeablesFiles: value }),
+   setTypesDirectory: (value = { name: null, handle: null, directories: [] }) => set({ typesDirectory: value }),
 
    userFiles: [],
    setUserFiles: (value = []) => set({ userFiles: value }),
 
-   realmsFiles: [],
-   setRealmsFiles: (value = []) => set({ realmsFiles: value }),
- 
-   cacheFiles: [],
-   setCacheFiles: (value = []) => set({cacheFiles: value}),
 
-   addCacheFile: (value) => set(produce((state) => {
-      const index = state.cacheFiles.findIndex(file => file.hash == value.hash)
 
-      if (index == -1) {
-         state.cacheFiles.push(value)
-      }
-   })),
-   imagesFiles: [],
-   setImagesFiles: (value = []) => set({imagesFiles:value}),
-   addImagesFile: (value) =>set(produce((state) =>{
-      const index = state.imagesFiles.findIndex(img => img.hash == value.hash)
+   allFiles: [],
+   setAllFiles: (value = []) => set({imagesFiles:value}),
+   addFile: (value) =>set(produce((state) =>{
+      const index = state.allFiles.findIndex(file => file.hash == value.hash)
 
       if(index == -1)
       {
-         state.imagesFiles.push(value)
+         let newFile = { 
+            directory: value.directory, 
+            mimeType: value.mimeType, 
+            name: value.name, 
+            hash: value.hash, 
+            size: value.size, 
+            type: value.type, 
+            lastModified: value.lastModified,
+            handle: value.handle, 
+         }
+        
+         state.allFiles.push(newFile)
       }
    })),
-   modelsFiles: [],
-   setModelsFiles: (value = []) => set({ modelsFiles: value }),
+   addFiles: (files = []) => set(produce((state)=>{
+      files.forEach(value => {
 
-   terrainFiles: [],
-   setTerrainFiles: (value = []) => set({ terrainFiles: value }),
+         let newFile = {
+            directory: value.directory,
+            mimeType: value.mimeType,
+            name: value.name,
+            hash: value.hash,
+            size: value.size,
+            type: value.type,
+            lastModified: value.lastModified,
+            handle: value.handle,
+         }
 
-
-   mediaFiles: [],
-   setMediaFiles: (value = []) => set({ mediaFiles: value }),
-
+         state.allFiles.push(newFile)
+      });
+   })),
    localDirectory: { name: "", handle: null },
    setLocalDirectory: (value = { name: "", handle: null }) => set({ localDirectory: value }),
 

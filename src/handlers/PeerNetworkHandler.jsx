@@ -5,9 +5,9 @@ import { ImageDiv } from "../pages/components/UI/ImageDiv";
 import { useEffect, useRef } from "react";
 import Peer from "peerjs";
 import { useNavigate } from "react-router-dom";
-import { status } from "../constants/constants";
+import { status, tableChunkSize } from "../constants/constants";
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
-import { set } from "idb-keyval";
+import { get, set } from "idb-keyval";
 
 const createWorker = createWorkerFactory(() => import('../constants/utility'));
 
@@ -15,17 +15,29 @@ export const PeerNetworkHandler = (props ={}) => {
     const navigate = useNavigate()
     const worker = useWorker(createWorker)
     const user = useZust((state) => state.user)
-    const localDirectory = useZust((state) => state.localDirectory)
+   // const localDirectory = useZust((state) => state.localDirectory)
     const configFile = useZust((state) => state.configFile)
     const userPeerID = useZust((state) => state.userPeerID)
     const setUserPeerID = useZust((state) => state.setUserPeerID)
-    const addCacheFile = useZust((state) => state.addCacheFile)
+   // const addCacheFile = useZust((state) => state.addCacheFile)
 
     const peerConnection = useZust((state) => state.peerConnection);
     const setPeerConnection = useZust((state) => state.setPeerConnection);
     const setSocketCmd = useZust((state) => state.setSocketCmd)
     const setDownloadRequest = useZust((state) => state.setDownloadRequest)
-  
+
+    const addFile = useZust((state) => state.addFile)
+    const imagesDirectory = useZust((state) => state.imagesDirectory)
+    const modelsDirectory = useZust((state) => state.modelsDirectory)
+    const audioDirectory = useZust((state) => state.audioDirectory)
+    const videoDirectory = useZust((state) => state.videoDirectory)
+    const placeablesDirectory = useZust((state) => state.placeablesDirectory)
+    const pcsDirectory = useZust((state) => state.pcsDirectory)
+    const npcsDirectory = useZust((state) => state.npcsDirectory)
+    const texturesDirectory = useZust((state) => state.texturesDirectory)
+    const terrainDirectory = useZust((state) => state.terrainDirectory)
+    const typesDirectory = useZust((state) => state.typesDirectory)
+    const cacheDirectory = useZust((state) => state.cacheDirectory)
    
     const downloadRequest = useZust((state) => state.downloadRequest)
     const uploadRequest = useZust((state) => state.uploadRequest)
@@ -372,9 +384,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
                         if(uploadFileIndex != -1)
                         {
-                          //  const fileIndex = uploadFiles.current.value.findIndex(files => files.hash == fileHash)
-
-                         //   uploadFiles.current.value.splice(fileIndex, 1)
+         
                           
                             const uploadFileIndex = uploadFiles.current.value.findIndex(file => file.hash == fileHash)
                             
@@ -476,9 +486,28 @@ export const PeerNetworkHandler = (props ={}) => {
                                         break;
                                     case "getFile":
                                           
-                                            const file = response.file
-                                            uploadFiles.current.value.push(file)
-                                            callback(downloadTicket)
+                                            const localFile = response.file
+                                            localFile.handle.getFile().then((file)=>{
+                                                worker.getFileCRCTable(file).then((crcTable) =>{
+
+                                                    const newFile = { 
+                                                        directory: localFile.directory, 
+                                                        mimeType: localFile.mimeType, 
+                                                        name: localFile.name, 
+                                                        hash:localFile.hash, 
+                                                        size: localFile.size, 
+                                                        type: localFile.type, 
+                                                        lastModified: localFile.lastModified, 
+                                                        handle: localFile.handle,
+                                                        file:file,
+                                                        crcTable: crcTable
+                                                    }
+
+                                                    uploadFiles.current.value.push(newFile)
+                                                    callback(downloadTicket)
+                                                })
+                                            })
+                    
                                         break;
                                 }
                               
@@ -598,9 +627,6 @@ export const PeerNetworkHandler = (props ={}) => {
 
                 peerDataConnections.current.value.push(dataConnection)
 
-             //   const fileHash = upload.request.file.hash;
-             //   const fileIndex = uploadFiles.current.value.findIndex(files => files.hash == fileHash)
-
 
 
                 dataConnection.on('data', (data) => {
@@ -620,6 +646,7 @@ export const PeerNetworkHandler = (props ={}) => {
                             
                         }else{
                             const nextUpload = processingUpload.current.value[upIndex]
+                            const fileIndex = uploadFiles.current.value.findIndex(files => files.hash == fileHash)
 
                             switch(data.command){
                                 case "getIcon":
@@ -649,23 +676,55 @@ export const PeerNetworkHandler = (props ={}) => {
                                     addFileRequest(fileRequest)
                                     break;
                                 case "getFile":
-                                    const fileIndex = uploadFiles.current.value.findIndex(files => files.hash == fileHash)
+                                   
 
-                                    if (fileIndex == -1 && nextUpload.peerID != peerID && nextUpload.status != "Waiting") {
+                                    if (fileIndex == -1 && nextUpload.peerID != peerID ) {
 
                                         updatePeerUploadStatus(id, "Error")
                                         dataConnection.close()
 
                                     } else {
-                          
-                                        const file = uploadFiles.current.value[fileIndex]
-                                 
                                         updatePeerUploadStatus(id, "Uploading")
-                                        dataConnection.send({
-                                            command:"getFile",
-                                            id: id,
-                                            file: file
+                                        const file = uploadFiles.current.value[fileIndex].file
+
+                                        const chunkNumber = data.chunkNumber
+                                        const chunkSize = data.chunkSize
+
+                                        worker.getChunkData(file, chunkNumber, chunkSize).then((result) => {
+                                            const chunkData = result.data
+                                       
+
+                                            dataConnection.send({
+                                                command: "getFile",
+                                                fileHash: fileHash,
+                                                id: id,
+                                                data: chunkData,
+                                                chunkNumber: chunkNumber,
+                                              
+                                            })
                                         })
+                                    }
+                                    break;
+                                case "getTable":
+                                 
+                                  
+
+                                    if (fileIndex == -1 && nextUpload.peerID != peerID ) {
+
+                                        updatePeerUploadStatus(id, "Error")
+                                        dataConnection.close()
+
+                                    } else {
+                                        updatePeerUploadStatus(id, "Sending Data")
+                                        const crcTable = uploadFiles.current.value[fileIndex].crcTable
+                                 
+                                        dataConnection.send({
+                                            command: "crcTable",
+                                            crcTable: crcTable,
+                                            fileHash: fileHash, 
+                                            id: id,
+                                        })
+                                       
 
                                     }
                                     break;
@@ -696,6 +755,8 @@ export const PeerNetworkHandler = (props ={}) => {
         }
     }
 
+    const partsRef = useRef({value:[]})
+    const streamRef = useRef({value:[]})
     function startDownload(download, peerID){
        
         console.log("starting download")
@@ -732,15 +793,16 @@ export const PeerNetworkHandler = (props ={}) => {
                                         if ("id" in peerResponse) {
                                             
                                         
-                                        
+                                            
 
                                         
                                             const id = peerResponse.id
                                             const peerID = peerResponse.peerID
                                             const file = request.file
                                             const fileHash = file.hash
-                                        //  const fileName = file.name
-                                            
+
+                                           
+
                                             const dataConnectionIndex = peerDataConnections.current.value.findIndex(dataC => dataC.peer == peerID)
 
                                             const dataConnection = dataConnectionIndex == -1 ? peerConnection.connect(peerID, { label: peerID, metadata: id, reliable: true }) : peerDataConnections.current.value[dataConnectionIndex]
@@ -748,20 +810,64 @@ export const PeerNetworkHandler = (props ={}) => {
                                             updatePeerDownloadStatus(downloadID, "Connecting")
 
                                             try {
-                                                const requestFile = () => {
+                                               
+                                                const newPeerTransfer = () => {
                                                 
                                                 
 
                                                     updatePeerDownloadStatus(downloadID, "Downloading")
 
-                                                    
-                                                    dataConnection.send({command:request.command, fileHash: fileHash, id:id})
+                                                    switch(request.command)
+                                                    {
+                                                        case "getFile":
+                                                            const receivedPartsIndex = partsRef.current.value.findIndex(pRef => pRef.id == id)
+
+                                                            if(receivedPartsIndex == -1)
+                                                            {
+                                                                dataConnection.send({
+                                                                    command: "getTable",
+                                                                    fileHash: fileHash,
+                                                                    id: id,
+                                                                })
+                                                            }else{
+                                                                const partsCurrent = partsRef.current.value[receivedPartsIndex]
+
+                                                                const parts = partsCurrent.parts
+
+                                                                const nextChunkIndex = parts.findIndex(rP => rP.status == status.invalid)
+
+                                                                let newParts = []
+
+                                                                parts.forEach((part, i) => {
+
+                                                                    if (i == nextChunkIndex) {
+                                                                        newParts.push({ status: status.confirming })
+                                                                    } else {
+                                                                        newParts.push(part)
+                                                                    }
+                                                                });
+
+                                                                partsRef.current.value[receivedPartsIndex] = { id: id, parts: newParts }
+
+
+                                                            }
+                                                           
+                                                           
+                                                            break;
+                                                        default:
+                                                            dataConnection.send({
+                                                                command: request.command,
+                                                                fileHash: fileHash,
+                                                                id: id
+                                                            })
+                                                    }
+                                                   
                                                     
                                                 }
                         
 
                                                 if(!dataConnection.open){
-                                                    dataConnection.on('open', requestFile)
+                                                    dataConnection.on('open', newPeerTransfer)
                                                     dataConnection.on('data', (data)=>{
                                                     
                                                     
@@ -776,12 +882,35 @@ export const PeerNetworkHandler = (props ={}) => {
                                                                 case "getFile":
                                                                     receiveFile(dataConnection, data)
                                                                     break;
+                                                                case "crcTable":
+                                                                    receiveTable(data).then((result)=>{
+                                                                        if("success" in result){
+                                                                            const parts = result.parts
+                                                                            const nextIndex = parts.findIndex(nP => nP.status == status.invalid)
+
+                                                                            dataConnection.send(
+                                                                                dataConnection.send({
+                                                                                    command: "getFile",
+                                                                                    fileHash: fileHash,
+                                                                                    id: id,
+                                                                                    chunkNumber: nextIndex,
+                                                                                })
+                                                                            )
+                                                                        }else{
+                                                                            console.log("Incorrect table")
+
+                                                                            dataConnection.close()
+                                                                            i = i + 1;
+                                                                            tryPeers()
+                                                                        }
+                                                                    })
+                                                                    break;
                                                             }
                                                            
                                                         }
                                                     })
                                                 }else{
-                                                    requestFile()
+                                                    newPeerTransfer()
                                                 }
                                             
                                             } catch (err) {
@@ -857,6 +986,7 @@ export const PeerNetworkHandler = (props ={}) => {
             if (index != -1) {
                 const download = processingDownload.current.value[index]
 
+            
 
                 
                // worker.getDataHash(fileData).then((hash) => {
@@ -864,10 +994,10 @@ export const PeerNetworkHandler = (props ={}) => {
                 switch(data.command)
                 {
                     case "getIcon":
-                        set(fileHash + ".arcicon", file.icon)
+                        set(fileHash + ".arcicon", file.icon + "")
                         break;
                     case "getImage":
-                        set(fileHash + ".arcimage", file.value)
+                        set(fileHash + ".arcimage", file.value + "")
                         break;
                 }
                
@@ -898,59 +1028,362 @@ export const PeerNetworkHandler = (props ={}) => {
         })
     }
 
-    const receiveFile = (dataConnection, data, command) => {
+
+
+    const receiveTable = (data) => {
+        return new Promise(resolve => {
+
+            const id = data.id + ""
+            const crcTableString = data.crcTable + ""
+            const fileHash = data.fileHash + ""
+
+            const index = processingDownload.current.value.findIndex(pDl => pDl.request.file.hash == fileHash && pDl.request.command == "getFile")
+
+
+            if (index != -1)
+            {
+               
+                const file = processingDownload.current.value[index].request.file
+                const fileID = file.fileID
+                const fileName = file.name
+                const fileSize = file.size
+                const chunkSize = tableChunkSize
+                const chunks = Math.ceil(fileSize / chunkSize)
+
+                const partsIndex = partsRef.current.value.findIndex(parts => parts.id == id)
+
+                if(partsIndex == -1){
+                    worker.getStringHash(crcTableString, 32).then((hash)=>{
+                        const tableHash = fileHash.slice(fileHash.length - hash.length)
+
+                        if(tableHash == hash)
+                        {
+                            const crcTable = crcTableString.split(":")
+                            const cacheFileName = fileID + "-" + fileName
+
+                            //function for starting from scratch
+                            const resolveNewParts = () =>{
+                                let receivedParts = []
+
+                                for (let i = 0; i < chunks; i++) {
+                                    
+                                    receivedParts[i] = { status: status.invalid }
+                                }
+
+
+                                consolee.log("chunkLength: " + receivedParts.length + " crcTableLength : " + crcTable.length)
+
+                                worker.getNewFileStream(cacheDirectory.handle, cacheFileName, fileSize).then((fileStream)=>{
+                                    partsRef.current.value.push({ id: id, parts: receivedParts, crcTable: crcTable })
+
+                                    streamRef.current.value.push({id: id, fileStream: fileStream})
+
+                                    resolve({ success: true, parts: receivedParts })
+                                })
+
+                             
+                                
+                            }
+
+                            cacheDirectory.handle.getFileHandle(cacheFileName).then((handle)=>{
+                                
+                                handle.getFile().then((diskFile)=>{
+                                
+                                    const existingFileSize = diskFile.size
+
+                                    if(existingFileSize != fileSize){
+
+                                        
+                                        resolveNewParts() 
+                                  
+                        
+                                    }else{
+                                        worker.getFileCRCTable(diskFile).then((existingCrcTableString) => {
+                                            
+                                            const existingCRCTable = existingCrcTableString.split(":")
+
+                                            let receivedParts = []
+
+                                            for (let i = 0; i < crcTable.length ; i++)
+                                            {
+                                                const validPart = crcTable[i] == existingCRCTable[i]
+                                                const statusMsg = validPart ? status.valid : status.invalid
+
+                                                receivedParts.push({status: statusMsg})
+                                                
+                                            }
+                                            handle.createWritable().then((fileStream)=>{
+                                                partsRef.current.value.push({ id: id, parts: receivedParts, crcTable: crcTable })
+                                                streamRef.current.value.push({id: id, fileStream: fileStream})
+                                                resolve({success:true, parts: receivedParts})
+                                            })
+                                        })
+                                    }
+                                    
+                                })
+                            }).catch((rejected)=>{
+                                console.log(rejected)
+
+                                if (rejected.message = "NotFoundError")
+                                {
+                                    resolveNewParts()
+                                }else{
+                                    resolve({error: new Error("No access to cache")})
+                                }
+                                
+                            })
+                            
+                        }else{
+                            resolve({error: new Error(`Incorrect crc table.`)})
+                        }
+                       
+                    })
+                    
+                }else{
+                    const parts = partsRef.current.value[partsIndex].parts
+                    resolve({success:false, parts: parts})
+                }
+                
+                
+            }
+            
+        })
+    }
+
+    const receiveFile = (dataConnection, data) => {
         return new Promise(resolve => {
             
-        
-            const file = data.file
+           
             const id = data.id
-            const fileHash = file.hash
-            const fileName = file.name
-            const fileID = file.fileID
+            const fileHash = data.fileHhash
+            
 
-            const index = processingDownload.current.value.findIndex(pDl => pDl.request.file.hash == fileHash && pDl.request.command == data.command)
+            const chunkNumber = data.chunkNumber
+
+            const getNextPart = () =>{
+                
+                const partsRefIndex = partsRef.current.value.findIndex(ref => ref.id == id)
+                const partsRefCurrent = partsRef.current.value[partsRefIndex]
+
+                const parts = partsRefCurrent.parts
+                const crcTable = partsRefCurrent.crcTable
+
+                const nextIndex = parts.findIndex(nP => nP.status == status.invalid)
+
+                if(nextIndex != -1){
+                    const newParts = []
+
+                    for(let i = 0; i < parts.length ; i ++)
+                    {
+                        if(i != nextIndex){
+                            const part = { status: parts[i].status }
+                            newParts.push(part)
+                        }else{
+                            newParts.push( {status: status.confirming })
+                        }
+                    }
+
+                    partsRef.current.value.splice(partsRefIndex, 1, {id:id, crcTable: crcTable, parts: parts})
+
+                    dataConnection.send({
+                        command: "getFile",
+                        fileHash: fileHash,
+                        id: id,
+                        chunkNumber: nextIndex,
+                    })
+                    
+                }else{
+                    const waitingIndex = parts.findIndex(nP => nP.status == status.confirming)
+                    
+                    if(waitingIndex != -1)
+                    {
+                        dataConnection.send({
+                            command: "getFile",
+                            fileHash: fileHash,
+                            id: id,
+                            chunkNumber: waitingIndex,
+                        })
+                    }
+                }
+                
+            }
+           
+
+            const index = processingDownload.current.value.findIndex(pDl => pDl.request.file.hash == fileHash && pDl.request.command == "getFile")
          
 
             if(index != -1)
             {
                 const download = processingDownload.current.value[index]
+
+            
   
+                const partsRefIndex = partsRef.current.value.findIndex(ref => ref.id == id)
+
                 
-                const fileData = file.data
-                worker.getDataHash(fileData).then((hash) => {
-                    if (fileHash == hash) {
 
-                        dataConnection.send({ downloadComplete: true, id: id})
+                if(partsRefIndex == -1)
+                {
+                    dataConnection.send(
+                        dataConnection.send({
+                            command: "getTable",
+                            fileHash: fileHash,
+                            id: id,
+                           
+                        })
+                    )
+                }else{
 
-                        worker.cacheFile(localDirectory.handle, fileData, fileID, fileName).then((cacheFile) => {
-                            if (cacheFile == undefined) {
-                                const err = new Error("Write failed")
-                                updatePeerDownloadStatus(download.id, "Error")
-                                throw err
-                            } else {
+                
+                    const partsRefCurrent = partsRef.current.value[partsRefIndex]
+                    const parts = partsRefCurrent.parts
 
-                                addCacheFile(cacheFile)
+                    if(parts[chunkNumber].status != status.valid)
+                    {
+                        const streamIndex = streamRef.current.value.findIndex(streams => streams.id == id)
 
-                                updatePeerDownloadStatus(download.id, "Complete")
-                          
+                    
+
+                        const fileStream = streamRef.current.value[streamIndex].fileStream
+
+                        const crcTable = partsRefCurrent.crcTable
+
+                       
+                        const chunkData = data.data
+
+
+
+                        worker.crc32FromArrayBufferAsync(chunkData).then((crc)=>{
+
+                            if(crcTable[chunkNumber] == crc)
+                            {
+                                let newParts = []
+                                let finished = true;
+
+
+                                parts.forEach((part, i) => {
+
+                                    if (i == chunkNumber) {
+                                        newParts.push({ status: status.valid })
+                                    } else {
+                                        if (part.status != status.valid) {
+                                            finished = false;
+                                        }
+                                        newParts.push(part)
+                                    }
+                                });
+
+                                partsRef.current.value.splice(partsRefIndex, 1, { id: id, parts: newParts, crcTable: crcTable })
+                                
+                                const seek = chunkNumber * chunkSize
+
+                                worker.writeFileStreamPart(fileStream, chunkData, seek).then((written)=>{
+                                   
+
+                                    if(!finished)
+                                    {
+                                       
+                                        getNextPart()
+                                       
+                                    }else{
+                                        
+                                        fileStream.close().then((closed) => {
+                                            streamRef.current.value.splice(streamIndex, 1)
+                                           
+                                           // partsRef.current.value.splice(partsRefIndex, 1)
+                                            const dlFile = download.request.file
+                                            const fileID = dlFile.fileID
+                                            const fileName = dlFile.name
+
+                                            cacheDirectory.handle.getFileHandle(fileID + "-" + fileName).then((fileHandle) =>{
+                                                
+                                                worker.getFileInfo(fileHandle, cacheDirectory.handle).then((fileInfo) =>{
+                                                    if (fileHash == fileInfo.hash) {
+                                                        partsRef.current.value.splice(partsRefIndex, 1)
+                                                        dataConnection.send({ downloadComplete: true, id: id })
+
+                                                        fileInfo.fileID = fileID
+
+                                                        const locations = [
+                                                            { type: "image", directory: imagesDirectory },
+                                                            { type: "model", directory: modelsDirectory },
+                                                            { type: "audio", directory: audioDirectory },
+                                                            { type: "video", directory: videoDirectory },
+                                                            { type: "arcpl", directory: placeablesDirectory },
+                                                            { type: "arcpc", directory: pcsDirectory },
+                                                            { type: "arcnpc", directory: npcsDirectory },
+                                                            { type: "arctex", directory: texturesDirectory },
+                                                            { type: "arcterr", directory: terrainDirectory },
+                                                            { type: "arctype", directory: typesDirectory },
+
+                                                        ]
+                                                       
+
+                                                        worker.moveFile(locations, fileInfo, "unsorted").then((newFile) => {
+                                                            if (newFile == undefined) {
+                                                                const err = new Error("Write failed")
+                                                                updatePeerDownloadStatus(download.id, "Error")
+                                                                throw err
+                                                            } else {
+
+                                                                addFile(newFile)
+
+                                                                updatePeerDownloadStatus(download.id, "Complete")
+
+                                                                resolve(true)
+                                                            }
+
+                                                        })
+
+
+                                                    } else {
+                                                        console.log("File hash failed checking file")
+                                                     //   partsRef.current.value.splice(partsRefIndex, 1)
+                                                        fileHandle.getFile((diskFile) =>{
+                                                            worker.getFileCRCTable(diskFile).then((existingCrcTableString) => {
+
+                                                                const existingCRCTable = existingCrcTableString.split(":")
+
+                                                                let receivedParts = []
+
+                                                                for (let i = 0; i < crcTable.length; i++) {
+                                                                    const validPart = crcTable[i] == existingCRCTable[i]
+                                                                    const statusMsg = validPart ? status.valid : status.invalid
+
+                                                                    receivedParts.push({ status: statusMsg })
+
+                                                                }
+                                                                handle.createWritable().then((fileStream) => {
+                                                                    partsRef.current.value.push({ id: id, parts: receivedParts, crcTable: crcTable })
+                                                                    streamRef.current.value.push({ id: id, fileStream: fileStream })
+                                                                    getNextPart()
+                                                                })
+                                                            })
+                                                        })
+                                                    }
+                                                })
+                                            })
+                                        })
+                                    }
+                                })
+                            
+                            }else{
+                                getNextPart()
                                 resolve(true)
                             }
 
                         })
-
-
-                    } else {
-                        const err = new Error("Wrong Hash")
-                        updatePeerDownloadStatus(download.id, "Not found")
-                        dataConnection.send({error: err, id: id})
-                        resolve(false)
+                    }else{
+                        getNextPart()
+                        resolve(true)
                     }
-                })
+                }
                 
             }else{
                 const err = new Error("Not Downloading file")
-                updatePeerDownloadStatus(download.id, "Not found")
+             
                 dataConnection.send({ error: err, id: id })
+            
                 resolve(false)
             }
         })
@@ -968,7 +1401,7 @@ export const PeerNetworkHandler = (props ={}) => {
             {peerUpload.length > 0 &&
                 <div style={{ height: 30, display: "flex", alignItems: "start", justifyContent: "start" }}>
                     <ImageDiv onClick={(e) => {
-                            navigate("/home/localstorage/status")
+                            navigate("/home/peernetwork/status")
                     }} width={20} height={30} netImage={{ image: "/Images/icons/file-tray-outline.svg", scale: .7, filter: "invert(100%)" }} />
                 </div>
             }
@@ -976,7 +1409,7 @@ export const PeerNetworkHandler = (props ={}) => {
                 peerDownload.length > 0 &&
                 <div style={{height:30, display:"flex", alignItems:"end", justifyContent:"end" }}>
                     <ImageDiv onClick={(e) => {
-                        navigate("/home/localstorage/status")
+                        navigate("/home/peernetwork/status")
                     }} width={20} height={20} netImage={{ image: "/Images/icons/file-tray-full-outline.svg", scale: .7, filter: "invert(100%)" }} />
                 </div>
             }

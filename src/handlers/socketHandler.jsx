@@ -218,7 +218,7 @@ export const SocketHandler = (props = {}) => {
                         })
                         break;
                     case "updateUserImage":
-                        sock.current.value.emit("updateUserImage", socketCmd.params.imageInfo, socketCmd.params.accessID, socketCmd.params.userAccess, (response) => {
+                        sock.current.value.emit("updateUserImage", socketCmd.params.imageInfo, (response) => {
                             socketCmd.callback(response)
                         })
                         break;

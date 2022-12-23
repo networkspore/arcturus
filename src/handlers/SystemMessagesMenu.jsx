@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -7,6 +7,7 @@ import { ImageDiv } from "../pages/components/UI/ImageDiv";
 
 import styles from '../pages/css/home.module.css'
 import produce from "immer";
+import { useLayoutEffect } from "react";
 
 export const SystemMessagesMenu = (props = {}) => {
 
@@ -16,8 +17,9 @@ export const SystemMessagesMenu = (props = {}) => {
     const navigate = useNavigate();
 
     const [menuList, setMenuList] = useState([]);
+    const loadingStatus = useZust((state) => state.loadingStatus)
 
-
+    const [statusMessage, setStatusMessage] = useState(null)
     const systemMessages = useZust((state) => state.systemMessages)
 
     const removeSystemMessage = (id) => useZust.setState(produce((state) => {
@@ -116,8 +118,23 @@ export const SystemMessagesMenu = (props = {}) => {
         }
 
     }, [systemMessages])
+    const timerRef = useRef({ timeoutID:null})
+    useLayoutEffect(()=>{
+        if(loadingStatus != "") setStatusMessage(<div style={{color:"white", backgroundColor:"black", whiteSpace:"nowrap", fontFamily:"Webpapyrus"}}>Loading: { " " + loadingStatus}</div>)
+     
+        if (timerRef.current.timeoutID != null)
+        {
+          
+            clearTimeout(timerRef.current.timeoutID)
+            timerRef.current.timeoutID = null
+        }
+        
 
-
+        timerRef.current.timeoutID = setTimeout(() => {
+            setStatusMessage(null)
+        }, 5000);
+        
+    },[loadingStatus])
 
     return (
         
@@ -125,7 +142,7 @@ export const SystemMessagesMenu = (props = {}) => {
         <div style={{
             display:"flex",
             flexDirection:"column",
-            width:260,
+         
             position:"fixed",
             right: 0,
             top: 33,
@@ -135,7 +152,7 @@ export const SystemMessagesMenu = (props = {}) => {
         }}>
           
             {menuList}
-                
+            {statusMessage}
         </div>
       
       
