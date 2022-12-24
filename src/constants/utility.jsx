@@ -329,7 +329,12 @@ export async function getFirstDirectoryAllFiles(dirHandle) {
     return { files: files, directories: directories }
 
 }
-
+/*async function asyncFind(arr, asyncCallback) {
+    const promises = arr.map(asyncCallback);
+    const results = await Promise.all(promises);
+    const index = results.findIndex(result => result);
+    return arr[index];
+}*/
 
 export function asyncFind(array, findFunction) {
     return new Promise(resolve => {
@@ -345,6 +350,16 @@ export function asyncFind(array, findFunction) {
             }
         });
     });
+}
+export async function findAsyncSequential(array, predicate) {
+    let i = 0
+    for (const t of array) {
+        if (await predicate(t)) {
+            return i;
+        }
+        i++
+    }
+    return undefined;
 }
 
 export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
@@ -384,81 +399,6 @@ export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
 
 
 
-/*
-export async function getFirstDirectoryFiles(dirHandle,  onStatus) {
-    
-    let files = []
-    let directories = []
-
-    
-    await getDirectoryFiles(
-        dirHandle,  
-        (file) => {
-            onStatus(file.name)
-            files.push(file)
-        },  
-        (d) => {
-            onStatus(d.name)
-            directories.push(d)
-        }
-    )
-
-    return { files: files, directories: directories, cache: cache }
-
-}*/
-export async function getDirectoryFiles(dirHandle, onStatus) {
-    
-    const statusConst = onStatus
-
-    const tmpCache = await get("arc.cacheFile")
-
-    let cache = []
-
-    tmpCache.forEach(element => {
-        cache.push(element)
-    });
-    console.log(cache)
-    for await (const entry of dirHandle.values()) {
-
-        if (entry.kind === "file") {
-          
-            const name = await entry.name;
-            
-            statusConst(name)
-
-            const lastIndex = name.lastIndexOf(".");
-
-            const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
-
-        
-            if(ext != null && ext != "" && fileTypes.all.includes(ext)) 
-            {
-                
-                       
-                const index = cache.findIndex(file => file.handle.isSameEntry(entry))
-                console.log(index)
-                const newFileInfo = index == -1 ? null : await getFileInfo(entry)
-                console.log(newFileInfo)
-                if(newFileInfo != null) cache.push(newFileInfo)
-               
-            }
-          
-
-            
-        } else if (entry.kind == 'directory') {
-         
-            await getDirectoryFiles(entry, statusConst)
-        }
-
-    }
-    update("arc.cacheFile", currentArray =>{
-        cache.forEach(element => {
-            currentArray
-        });
-    })
-    return true;
-
-}
 export const getChunkHash = (data) =>{
     
     return new Promise(resolve => {
@@ -533,11 +473,10 @@ export const getFileHash = (file) =>{
 
       
         const size = file.size
-        const MB = 1048576
-        const chunkSize = (5 * MB)
+        const chunkSize = MB * 5
         const chunks = Math.ceil(size / chunkSize)
         
-        const spark = chunks > 1 ? new SparkMD5.ArrayBuffer() : null
+       // const spark = chunks > 1 ? new SparkMD5.ArrayBuffer() : null
         
         let i = 0;
         let hash = ""
@@ -550,15 +489,15 @@ export const getFileHash = (file) =>{
             const arrayBuffer = await blob.arrayBuffer()
          
            
-            if (i == 0) {
+         //   if (i == 0) {
                 
-                const hashLength = new Uint8Array(32).length
+                const hashLength = new Uint8Array(64).length
                 const input = new Uint8Array(arrayBuffer);
-                hash = blake2b(hashLength).update(input).digest('hex')
+                hash += blake2b(hashLength).update(input).digest('hex')
               
-            } else {
-                spark.append(arrayBuffer)
-            }
+          //  } else {
+             //   spark.append(arrayBuffer)
+         //   }
 
             i = i + 1
             
@@ -567,9 +506,10 @@ export const getFileHash = (file) =>{
                 getHashRecursive()
 
             }else{
-                if (chunks > 1) {
-                    hash = hash + spark.end()
-                }
+               // if (chunks > 1) {
+               //     hash = hash + spark.end()
+             //   }
+                hash = await getStringHash(hash,64)
                 resolve(hash)
             }
         }
@@ -619,50 +559,45 @@ export async function getFileCRCTable(file){
 
 export async function getFileInfo(entry, dirHandle) {
    
-    return new Promise(resolve => {
-     
-        entry.getFile().then((file) => {
-            
-            const fileSize = file.size;
-            
-            const firstIndex = file.type.indexOf("/")
+   
+    const file = await entry.getFile()
+    
+    const fileSize = file.size;
+    
+    const firstIndex = file.type.indexOf("/")
 
-            const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
+    const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
 
-            
+    
 
-            const name = entry.name + "";
+    const name = entry.name + "";
 
-            const lastIndex = name.lastIndexOf(".");
+    const lastIndex = name.lastIndexOf(".");
 
-            const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
+    const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
 
-            const isCustomType = type == "" ? fileTypes.asset.includes(ext) : false
+    const isCustomType = type == "" ? fileTypes.asset.includes(ext) : false
 
-            const isMediaType = isCustomType ? false : fileTypes.media.includes(ext)
+    const isMediaType = isCustomType ? false : fileTypes.media.includes(ext)
 
-            const fileMimeType = isCustomType ? "asset" : isMediaType ? "media" : type
-            
-            const fileType = isCustomType ? ext : file.type
+    const fileMimeType = isCustomType ? "asset" : isMediaType ? "media" : type
+    
+    const fileType = isCustomType ? ext : file.type
 
-            getFileHash(file).then((fileHash) => {
-                getFileCRCTable(file).then((crcTable)=>{
-                    getStringHash(crcTable, 32).then((strHash) => {
+    const fileHash = await getFileHash(file)
+    const crcTable = await getFileCRCTable(file)
+    const strHash = await getStringHash(crcTable, 32)
 
-                        const hash = fileHash + strHash
+    const hash = fileHash + strHash
+   
 
-                        const fileInfo = {loaded:true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
-                        
-                        resolve(fileInfo)
-                    })
-                })
-            })
-            
-           
-            
-        })
-       
-    })
+    const fileInfo = {loaded:true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
+    if (fileMimeType == "image") {
+        const dataUrl = await getThumnailFile(fileInfo)
+        await set(hash + ".arcicon", dataUrl)
+    }
+    return fileInfo     
+    
 }
 /*
 export async function getFileInfo(entry, dirHandle, type) {
@@ -897,11 +832,6 @@ export async function getThumnailFile(localFile, size = { width: 100, height: 10
     const dataUrl = resampledCanvas.toDataURL();
 
     return dataUrl
-            // resolve(resampledCanvas)*/
-
-      
-
- 
 
 }
 

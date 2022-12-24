@@ -107,10 +107,12 @@ const FileList = (props = {}, ref) => {
     useEffect(() => {
 
         var array = [];
-        const filter = props.filter != undefined ? props.filter : {name:"", directory:"", type:""}
+      
         let rows = null 
     
         if (files != null) {
+          
+            const filter = "filter" in props ? props.filter : { name: "", directory: "", type: "", loaded: false }
            // const bounds =  divRef.current.getBoundingClientRect() 
             const width = props.width != undefined ? props.width : 600
             const floor = Math.floor( width / (fileView.iconSize.width + 20))
@@ -141,15 +143,15 @@ const FileList = (props = {}, ref) => {
                 const mimeType = ("mimeType" in file) ? file.mimeType : "";
                 const iType = ("type" in file) ? file.type : "";
                 const iLoaded = ("loaded" in file) ? file.loaded : false 
-
+             
                 const filterName = (filter.name != undefined && filter.name != null && filter.name != "" );
                 const filterDirectory = (filter.directory != undefined && filter.directory != null && filter.directory != "")
                 const filterMimeType = (filter.mimeType != undefined && filter.mimeType != null && filter.mimeType != "" )
                 const filterType = (filter.type != undefined && filter.type != null && filter.type != "" )
-                const filterLoaded = (filter.loaded != undefined && filter.loaded != null && file.loaded != "" )
+                const filterLoaded = filter.loaded != undefined 
                 
                
-
+            
                 let show = false;
 
                 if(filterDirectory){
@@ -182,16 +184,17 @@ const FileList = (props = {}, ref) => {
                     show = lowerName.includes(lowerFilterName)
    
                 }
-
-                if(show && filterLoaded)
+         
+                if (show && filterLoaded )
                 {
-                    show == iLoaded == filter.loaded
+                    
+                    show = iLoaded == filter.loaded
                 }
 
 
             
 
-                if( show)
+                if( show || iType == "link")
                 {
                     const iSize = formatBytes(file.size)
                     const iModified = formatedNow(new Date(file.lastModified));
@@ -262,7 +265,7 @@ const FileList = (props = {}, ref) => {
                                                 }}
                                             
                                             key={i} style={{ overflow: "clip", maxWidth: 120, overflowClipMargin: iHash == selectedHash ? 100 : 0,  zIndex: iHash == selectedHash ? 99:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}><ImageDiv key={i}
-                                            style={{ margin: 10, overflow: "hidden" }}
+                                            style={{ margin: 10, overflow: "hidden", opacity:iLoaded ? 1 : .7 }}
                                             
                                             className={iHash == selectedHash ? activeIconClassName  : iconClassName}
                                             height={fileView.iconSize.width}
@@ -367,7 +370,7 @@ const FileList = (props = {}, ref) => {
      
         setList( array)
 
-    }, [files, selectedHash, props.filter, fileView, props.width])
+    }, [files, selectedHash, props, fileView, props.filter])
 
 
     useImperativeHandle(

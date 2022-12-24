@@ -17,6 +17,9 @@ export const FileHandler = ( props = {}) =>{
     const worker = useWorker(createWorker)
 
     const [active, setActive] = useState()
+ 
+    const localDirectory = useZust((state) => state.localDirectory)
+    const loadingStatus = useZust((state) => state.loadingStatus)
   
 
 
@@ -273,12 +276,10 @@ export const FileHandler = ( props = {}) =>{
         })
     }
 
-    async function searchLocalFiles(request){
-        console.log("searching")
-        const allFiles = await get("arc.cacheFile")
 
-        console.log("checking files")
-        const index = allFiles.findIndex(iFile => iFile.hash == request.file.hash )
+    async function searchLocalFiles(request){
+        const allFiles = await get("arc.cacheFile")
+        const index = allFiles.findIndex(iFile => iFile.loaded && iFile.hash == request.file.hash)
         
         if(index != -1){ 
             return allFiles[index]
@@ -374,7 +375,7 @@ export const FileHandler = ( props = {}) =>{
                 const promise = worker.getImageHandleDataURL(localFile)
                 loadingImages.current.value.push({ hash: fileHash, promise: promise })
 
-                p.then((dataUrl) => {
+                promise.then((dataUrl) => {
 
                     set(fileHash + ".arcimage", dataUrl).then((inDB) => {
                         const itemIndex = loadingImages.current.value.findIndex(imgs => imgs.hash == fileHash)
@@ -406,10 +407,10 @@ export const FileHandler = ( props = {}) =>{
 
             if (loadingImageIndex == -1) {
 
-                const p = worker.getThumnailFile(localFile)
-                loadingIcons.current.value.push({ hash: fileHash, promise: p})
+                const promise = worker.getThumnailFile(localFile)
+                loadingIcons.current.value.push({ hash: fileHash, promise: promise})
 
-                p.then((dataUrl) => {
+                promise.then((dataUrl) => {
 
                     set(fileHash + ".arcicon", dataUrl).then((inDB) => {
                         const itemIndex = loadingIcons.current.value.findIndex(imgs => imgs.hash == fileHash)

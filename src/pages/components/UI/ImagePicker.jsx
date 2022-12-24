@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useId } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 
 import useZust from "../../../hooks/useZust";
 import { ImageDiv } from "./ImageDiv";
@@ -6,9 +6,10 @@ import styles from "../../css/home.module.css"
 import FileList from "./FileList";
 import SelectBox from "./SelectBox";
 import { ImageViewer } from "./ImageViewer";
-
 import { errorSelectingImage, initDirectory, initStorage } from "../../../constants/systemMessages";
 import { access } from "../../../constants/constants";
+import { get } from "idb-keyval";
+
 
 
 export const ImagePicker = (props ={}) =>{
@@ -20,20 +21,47 @@ export const ImagePicker = (props ={}) =>{
 
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
-    const allFiles = useZust((state) => state.allFiles)
+    const [allFiles, setAllFiles] = useState([])
     const userFiles = useZust((state) => state.userFiles)
 
     const localDirectory = useZust((state) => state.localDirectory)
     const imagesDirectory = useZust((state) => state.imagesDirectory)
-
+    const loadingStatus = useZust((state) => state.loadingStatus)
     const addSystemMessage = useZust((state) => state.addSystemMessage)
     const [viewImage, setViewImage] = useState(null)
     const [imageSelected, setImageSelected] = useState(null);
     const [imageSearch, setImageSearch] = useState("")
     const [directoryOptions, setDirectoryOptions] = useState([])
     const [currentDirectory, setCurrentDirectory] = useState("")
-   
+
+    function onRefresh() {
+        if (localDirectory.handle != null) {
+
+            get("arc.cacheFile").then((files) => {
+
+                if (files != undefined) {
+                    setAllFiles(files)
+                } else {
+                    setAllFiles([])
+                }
+            })
+        } else {
+            setAllFiles([])
+        }
+    }
+
     useEffect(() => {
+
+        onRefresh()
+
+    }, [localDirectory])
+
+    useEffect(() => {
+        onRefresh()
+    }, [loadingStatus])
+
+
+   useLayoutEffect(() => {
         if (imagesDirectory.directories != null) {
 
             const options = []
@@ -100,11 +128,14 @@ export const ImagePicker = (props ={}) =>{
             }else{
                 textRef.current.value = ""
             }
+            
             setImageSelected(props.selectedImage)
-        }else if(accessRef.current != undefined){
-            console.log("setting public")
-            accessRef.current.setValue(access.public)
-        }
+        }else{
+            if (accessRef.current) {
+                console.log("setting public")
+                accessRef.current.setValue(access.public)
+            }
+        } 
     },[props.selectedImage])
 
 
@@ -425,7 +456,7 @@ export const ImagePicker = (props ={}) =>{
 
 
                         }}>
-                       <div style={{width:250}}>
+                       <div style={{width:300}}>
                         <div style={{
                             display:"flex",
                             overflowX: "clip",
@@ -440,7 +471,7 @@ export const ImagePicker = (props ={}) =>{
                                     className={styles.bubble__item}
                                     activeClassName={styles.bubbleActive__item}
                                     onChange={onHashSelected}
-                                    filter={{ name: imageSearch,mimeType:"image", directory: currentDirectory }}
+                                    filter={{ name: imageSearch,mimeType:"image", directory: currentDirectory, loaded:true }}
                                     fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100, scale:1.2 } }}
                                     files={allFiles}
                                 />

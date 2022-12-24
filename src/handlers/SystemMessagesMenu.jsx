@@ -18,8 +18,8 @@ export const SystemMessagesMenu = (props = {}) => {
 
     const [menuList, setMenuList] = useState([]);
     const loadingStatus = useZust((state) => state.loadingStatus)
-
-    const [statusMessage, setStatusMessage] = useState(null)
+    const setLoadingStatus = useZust((state) => state.setLoadingStatus)
+  
     const systemMessages = useZust((state) => state.systemMessages)
 
     const removeSystemMessage = (id) => useZust.setState(produce((state) => {
@@ -118,22 +118,20 @@ export const SystemMessagesMenu = (props = {}) => {
         }
 
     }, [systemMessages])
-    const timerRef = useRef({ timeoutID:null})
+  //  const timerRef = useRef({ timeoutID:null})
+    const [complete, setComplete] = useState(false)
     useLayoutEffect(()=>{
-        if(loadingStatus != "") setStatusMessage(<div style={{color:"white", backgroundColor:"black", whiteSpace:"nowrap", fontFamily:"Webpapyrus"}}>Loading: { " " + loadingStatus}</div>)
-     
-        if (timerRef.current.timeoutID != null)
-        {
-          
-            clearTimeout(timerRef.current.timeoutID)
-            timerRef.current.timeoutID = null
-        }
-        
+        const isComplete = loadingStatus != null ? loadingStatus.complete && loadingStatus.index == loadingStatus.length - 1 : true
 
-        timerRef.current.timeoutID = setTimeout(() => {
-            setStatusMessage(null)
-        }, 5000);
-        
+        setComplete( isComplete)
+        if (isComplete && loadingStatus != null)
+        {
+            setTimeout(() => {
+              setLoadingStatus(null)
+            }, 2000);
+        }
+
+       
     },[loadingStatus])
 
     return (
@@ -142,7 +140,7 @@ export const SystemMessagesMenu = (props = {}) => {
         <div style={{
             display:"flex",
             flexDirection:"column",
-         
+            width:250,
             position:"fixed",
             right: 0,
             top: 33,
@@ -152,7 +150,32 @@ export const SystemMessagesMenu = (props = {}) => {
         }}>
           
             {menuList}
-            {statusMessage}
+            { loadingStatus != null &&
+                <div onClick={(e)=>{setLoadingStatus(null)}} style={{
+                    display: "flex",
+                    flex: 1,
+                    width:"100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                   
+                    backgroundImage: `linear-gradient(to right, #ffffff ${(loadingStatus.index / loadingStatus.length * 100) + "%"}, #00000030 ${(loadingStatus.index / loadingStatus.length * 100) + "%"})`,
+                    boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff40, inset 0 0 30px #77777740",
+                }}>
+                    
+                     <div style={{ 
+                        color:  "#888888",
+                        fontFamily: "webpapyrus", 
+                        fontSize: 13, paddingTop: 3, 
+                        paddingBottom: 3, 
+                         mixBlendMode: "difference", 
+                         fontWeight:"bold",
+                         textShadow:"#ffffff50"
+                         }}> 
+
+                        {complete ? "Complete" : loadingStatus.name.length > 30 ? loadingStatus.name.slice(0,30) + ".." : loadingStatus.name}
+                    </div>
+                </div>
+            }
         </div>
       
       

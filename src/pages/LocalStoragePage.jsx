@@ -62,7 +62,7 @@ export const LocalStoragePage = () => {
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const [fileViewType, setFileViewType] = useState("icons")
-
+    const [fileViewLoaded, setFileViewLoaded] = useState(true)
 
     const location = useLocation();
 
@@ -230,7 +230,7 @@ export const LocalStoragePage = () => {
                         directoryOptionsRef.current.setValue(sD)
                         setCurrentMimeType("image")
                         setCurrentType("")
-                        setShowIndex(2)
+                        setShowIndex(0)
                         break;
                     case "/assets":
                       
@@ -258,7 +258,7 @@ export const LocalStoragePage = () => {
                                 setCurrentType("arcpc")
                                 setCurrentMimeType("asset")
 
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                             case "/assets/npcs":
                                 setCurrentDirectories(npcsDirectory.directories)
@@ -268,7 +268,7 @@ export const LocalStoragePage = () => {
                                 setCurrentType("arcnpc")
                                 setCurrentMimeType("asset")
 
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                             case "/assets/placeables":
                                 setCurrentDirectories(placeablesDirectory.directories)
@@ -278,7 +278,7 @@ export const LocalStoragePage = () => {
                                 setCurrentType("arcpl")
                                 setCurrentMimeType("asset")
 
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                             case "/assets/textures":
                                 setCurrentDirectories(texturesDirectory.directories)
@@ -286,7 +286,7 @@ export const LocalStoragePage = () => {
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arctex")
                                 setCurrentMimeType("asset")
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                             case "/assets/terrain":
                                 setCurrentDirectories(terrainDirectory.directories)
@@ -294,7 +294,7 @@ export const LocalStoragePage = () => {
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcterr")
                                 setCurrentMimeType("asset")
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                             case "/assets/types":
                                 setCurrentDirectories(typesDirectory.directories)
@@ -302,7 +302,7 @@ export const LocalStoragePage = () => {
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arctype")
                                 setCurrentMimeType("asset")
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                      
                     
@@ -312,7 +312,7 @@ export const LocalStoragePage = () => {
                          directoryOptionsRef.current.setValue(sD)
                         setCurrentType("")
                         setCurrentMimeType("model")
-                        setShowIndex(2)
+                        setShowIndex(0)
                         break;
                     case "/media":
                        
@@ -341,7 +341,7 @@ export const LocalStoragePage = () => {
                                 setCurrentType("")
                                 setCurrentMimeType("media")
 
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                     case "/media/audio":
                                 setCurrentDirectories(audioDirectory.directories)
@@ -350,7 +350,7 @@ export const LocalStoragePage = () => {
                                 setCurrentType("audio")
                                 setCurrentMimeType("media")
 
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                     case "/media/video":
                                 setCurrentDirectories(videoDirectory.directories)
@@ -359,7 +359,7 @@ export const LocalStoragePage = () => {
                                 setCurrentType("video")
                                 setCurrentMimeType("media")
 
-                                setShowIndex(2)
+                                setShowIndex(0)
                                 break;
                       
                    
@@ -374,7 +374,7 @@ export const LocalStoragePage = () => {
                         setShowIndex(0);
                         break;
                     default:
-                        directoryOptionsRef.current.setValue(sD)
+                        if (directoryOptionsRef.current)directoryOptionsRef.current.setValue(sD)
                         setCurrentFiles([
                             { to: directory + "/all", name: "All", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                             { to: directory + "/assets", name: "Assets", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
@@ -413,10 +413,10 @@ export const LocalStoragePage = () => {
         }
     }
 
-    async function onRefresh() {
+   function onRefresh() {
         if (localDirectory.handle != null) {
             get("arc.cacheFile").then((files) => {
-
+               
                 if (files != undefined) {
                     setAllFiles(files)
                 } else {
@@ -426,7 +426,6 @@ export const LocalStoragePage = () => {
         }else{
             setAllFiles([])
         }
-        return true
     }
 
 
@@ -783,9 +782,10 @@ export const LocalStoragePage = () => {
 
                                 <FileList
                                     width={fileListWidth}
-                                   
+                                    onDoubleClick={(e) => { setViewImage(e) }}
                                     fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
-                                  
+                                    onChange={fileSelected}
+                                    filter={{ name: searchText, mimeType: currentMimeType, type: currentType, loaded: fileViewLoaded }}
                                     files={currentFiles}
                                 />
                             </div>
@@ -801,36 +801,11 @@ export const LocalStoragePage = () => {
                         }}
                     />
                     }
-                {configFile.handle != null && showIndex == 2 &&
-                    
-                        <div  style={{ alignItems:"center", display: "flex", flexDirection: "column", width: "100%", flex: 1, marginRight:10, marginLeft:10 }}>
-                            <div style={{ height: 50 }}>&nbsp;</div>
-                        <div ref={fileListDivRef} style={{
-                            overflowX: fileListWidth > 480 ? 'hidden' : "scroll",
-                            minWidth: "600",
-                            overflowY: "scroll",
-                            maxHeight: "95%",
-                            width:"100%", 
-                          
-                            display:"flex"
-
-                        }}>
-                           
-                            <FileList
-                                width={fileListWidth}
-                                onDoubleClick={(e)=>{setViewImage(e)}}
-                                fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
-                                onChange={fileSelected}
-                                filter={{ name: searchText, mimeType: currentMimeType, type: currentType }}
-                                files={currentFiles} 
-                                />
-                        </div>
-                    </div>
-                }
+              
                   
             </div>
         </div>
-            {showIndex == 2 && 
+            {showIndex == 0 && 
                 <div style={{borderRadius:5, position: "fixed", top: 97, left: pageSize.width /2 + 150 + 45 ,transform:"translateX(-50%)", height: 40, backgroundColor: "#333333C0", display: "flex" }}>
                 <div onClick={(e) => {
                     navigate(-1)
@@ -895,6 +870,15 @@ export const LocalStoragePage = () => {
                     <img src={"/Images/icons/list-outline.svg"} width={20} height={20} style={{ filter: fileViewType == "details" ? "Invert(100%)" : "Invert(60%)" }} />
 
                 </div>
+                    <div onClick={(e) => {
+                       
+                        setFileViewLoaded(prev => !prev)
+                       
+                    }} about={fileViewLoaded ? "Show unavailable" : "Show available"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltipCenter__item} >
+
+                        <img src={fileViewLoaded ? "/Images/icons/eye-outline.svg" : "/Images/icons/eye-off-outline.svg"} width={20} height={20} style={{ filter: fileViewType == "details" ? "Invert(100%)" : "Invert(60%)" }} />
+
+                    </div>
 
             </div>}
 

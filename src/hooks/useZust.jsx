@@ -10,7 +10,9 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
-   loadingStatus: "",
+   allFiles:[],
+   setAllFiles: (value) => set({allFiles:value}),
+   loadingStatus: null,
    setLoadingStatus: (value) => set({loadingStatus:value}),
    currentContact: null,
    setCurrentContact: (value) => set({currentContact:value}),
@@ -165,46 +167,6 @@ const useZust = create((set) => ({
    userFiles: [],
    setUserFiles: (value = []) => set({ userFiles: value }),
 
-
-
-   allFiles: [],
-   setAllFiles: (value = []) => set({imagesFiles:value}),
-   addFile: (value) =>set(produce((state) =>{
-      const index = state.allFiles.findIndex(file => file.hash == value.hash)
-
-      if(index == -1)
-      {
-         let newFile = { 
-            directory: value.directory, 
-            mimeType: value.mimeType, 
-            name: value.name, 
-            hash: value.hash, 
-            size: value.size, 
-            type: value.type, 
-            lastModified: value.lastModified,
-            handle: value.handle, 
-         }
-        
-         state.allFiles.push(newFile)
-      }
-   })),
-   addFiles: (files = []) => set(produce((state)=>{
-      files.forEach(value => {
-
-         let newFile = {
-            directory: value.directory,
-            mimeType: value.mimeType,
-            name: value.name,
-            hash: value.hash,
-            size: value.size,
-            type: value.type,
-            lastModified: value.lastModified,
-            handle: value.handle,
-         }
-
-         state.allFiles.push(newFile)
-      });
-   })),
    localDirectory: { name: "", handle: null },
    setLocalDirectory: (value = { name: "", handle: null }) => set({ localDirectory: value }),
 

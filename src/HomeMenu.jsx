@@ -45,7 +45,7 @@ const HomeMenu = () => {
 
     const userLoaded = useRef({value:false})
 
-
+    const setLoadingStatus = useZust((state) => state.setLoadingStatus)
     const setCacheDirectory = useZust((state) => state.setCacheDirectory)
     const setRealmsDirectory = useZust((state) => state.setRealmsDirectory);
 
@@ -237,12 +237,11 @@ const HomeMenu = () => {
 
                 let newItem = {}
                 names.forEach(name => {
-                    if(name == "loaded"){
-                        newItem.loaded = false
-                    }else{
+                    if(name != "loaded"){
                         newItem[name] = item[name]
                     }
                 });
+                newItem.loaded = false
 
                 loadedCache.push(newItem)
             });
@@ -444,11 +443,7 @@ const HomeMenu = () => {
 
 
     //const addFiles = useZust((state) => state.addFiles)
-    const setLoadingStatus = useZust((state) => state.setLoadingStatus)
-    async function onStatus(text){
-        setLoadingStatus(text)
-        return true;
-    }
+
 
     async function setFolderDefaults(config) {
         
@@ -480,7 +475,7 @@ const HomeMenu = () => {
                 const audio = await worker.getFirstDirectoryAllFiles(audioHandle);
           
                 const video = await worker.getFirstDirectoryAllFiles(videoHandle);
-                console.log(video)
+             
                
                 const types = await worker.getFirstDirectoryAllFiles(typesHandle)
               
@@ -562,7 +557,7 @@ const HomeMenu = () => {
 
                if(allFiles.length > 0) {
                     await checkAllFiles(allFiles)
-                    console.log("checked all files")
+                   
                     return true
                 }else{
                     return false
@@ -585,26 +580,28 @@ const HomeMenu = () => {
                 const isArray = Array.isArray(idbCacheArray)
                 const noCache = (isArray && idbCacheArray.length == 0) || !isArray
                 let newCache = []
+               
 
                 async function checkFilesRecursive(){
                     const entry = allFiles[i].handle
                     const directory = allFiles[i].directory
                     
                     const name = await entry.name
-                    setLoadingStatus(name)
+                   // setLoadingStatus({name:name, index: i, length: allFiles.length, complete:false})
         
                     if(noCache)
                     {
              
                         const newFileInfo = await worker.getFileInfo(entry, directory)
+                       
 
                         const contains =  (newCache.findIndex(c => c.hash == newFileInfo.hash) != -1)
 
                         if(!contains) newCache.push(newFileInfo)
-
+                       
                         i = i + 1
                         set("arc.cacheFile", newCache)
-
+                        setLoadingStatus({ name: name, index: i, length: allFiles.length, complete: true })
                         if (i < allFiles.length) {
                            
                             checkFilesRecursive()
@@ -618,33 +615,55 @@ const HomeMenu = () => {
                         })
                     
                         if (index != undefined) {
-                            const item = idbCacheArray[index]
+                            const item = idbCacheArray.splice(index,1)[0]
                             const names = Object.getOwnPropertyNames(item)
 
                             let newItem = {}
                             names.forEach(name => {
-                                if (name == "loaded") {
-                                    newItem.loaded = true
-                                } else {
+                                if (name != "loaded") {    
                                     newItem[name] = item[name]
                                 }
                             });
-                            idbCacheArray[index] = newItem
+                            newItem.loaded = true
+                            get("arc.cacheFile").then((oldCache)=>{
+                               
+                                const oldIndex = oldCache.findIndex(o => o.hash == newItem.hash)
+                                
+                                oldCache[oldIndex] = newItem
+                                set("arc.cacheFile", oldCache).then((done)=>{
+                                    setLoadingStatus({ name: name, index: i, length: allFiles.length, complete: true })
+                                    i = i + 1
+
+                                    if (i < allFiles.length) {
+                                        checkFilesRecursive()
+                                    } else {
+                                        resolve(true)
+                                    }
+                                })
+                                
+                            })
                         }else{
                             const newFileInfo = await worker.getFileInfo(entry, directory)
-                            idbCacheArray.push(newFileInfo)
+                           
+
+                            get("arc.cacheFile").then((oldCache)=>{
+                                 oldCache.push(newFileInfo)
+                                set("arc.cacheFile", oldCache).then((done)=>{
+                                    setLoadingStatus({ name: name, index: i, length: allFiles.length, complete: true })
+                                    i = i + 1
+
+                                    if (i < allFiles.length) {
+                                        checkFilesRecursive()
+                                    } else {
+                                        resolve(true)
+                                    }
+                                })
+                            })
+                           
                         }
 
-                        set("arc.cacheFile", idbCacheArray)
                         
-                        i = i + 1
-
-                        if (i < allFiles.length) {
-                            checkFilesRecursive()
-                        } else {
-                        // await set("arc.cacheFile", idbCacheArray)
-                            resolve(true)
-                        }
+                        
                     }
 
                     
