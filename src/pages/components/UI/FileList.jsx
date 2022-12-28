@@ -200,17 +200,43 @@ const FileList = (props = {}, ref) => {
                     const iModified = formatedNow(new Date(file.lastModified));
                     
                     const iType = ("type" in file) ? file.type : "";
-                    
+          
                     const iTo = "to" in file ? file.to : null
-                    const iHandle = file.handle;
-                    const iIcon = ("icon" in file) ? file.icon : "/Images/icons/document-outline.svg";
+                   // const iHandle = file.handle;
+                    
+                    
+               
                     const iHash = ("hash" in file) ? file.hash : null
+
+                    const iApplication = "application" in file ? file.application : undefined
+                    
+                    const staticIcon = ("icon" in file) ? file.icon : undefined
+
+                    let iIcon = staticIcon != undefined ? staticIcon : ""
+
+                    if(staticIcon == undefined)
+                    {
+                        switch(iApplication)
+                        {
+                            case "image":
+                                iIcon = "/Images/icons/image-outline.svg"
+                                break;
+                            case "video":
+                                iIcon = "/Images/icons/film-outline.svg"
+                                break;
+                            case "audio":
+                                iIcon = "/Images/icons/musical-notes-outline.svg"
+                                break;
+                            default:
+                                iIcon = "/Images/icons/document-outline.svg"
+                        }
+                    }
                     
                     const update = iTo == null ? {
                         command: "getIcon",
                         file: file,
-                        waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
-                        error: { url: "/Images/icons/document-outline.svg", style: { filter: "invert(100%)" } },
+                        waiting: { url: "/Images/spinning.gif", },
+                        error: { url: iIcon, style: { filter: "invert(100%)" } },
 
                     } : null
 

@@ -17,6 +17,8 @@ import { PeerDownloadPage } from './PeerDownloadPage';
 import { PeerUploadPage } from './PeerUploadPage';
 import { ImageViewer } from './components/UI/ImageViewer';
 import { useLayoutEffect } from 'react';
+import { MediaViewer } from './components/UI/MediaViewer';
+
 
 export const LocalStoragePage = () => {
 
@@ -29,6 +31,7 @@ export const LocalStoragePage = () => {
     const [directoryOptions, setDirectoryOptions] = useState([])
 
     const [viewImage, setViewImage] = useState(null)
+    const [viewMedia, setViewMedia] = useState(null)
 
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
@@ -368,7 +371,6 @@ export const LocalStoragePage = () => {
                         directoryOptionsRef.current.setValue(sD)
                         setCurrentFiles([
                             { to: "/home/localstorage/init", name: "Setup", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-
                         ])
                       
                         setShowIndex(0);
@@ -444,6 +446,20 @@ export const LocalStoragePage = () => {
         }
     }
 
+    const onFileDoubleClick = (file) =>{
+        if("loaded" in file && file.loaded){
+            switch(file.mimeType)
+            {
+                case "image":
+                    setViewImage(file)
+                    break;
+                case "media":
+                    setViewMedia(file)
+                break;
+            }  
+            
+        }
+    }
  
 
  
@@ -782,7 +798,7 @@ export const LocalStoragePage = () => {
 
                                 <FileList
                                     width={fileListWidth}
-                                    onDoubleClick={(e) => { setViewImage(e) }}
+                                    onDoubleClick={onFileDoubleClick}
                                     fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
                                     onChange={fileSelected}
                                     filter={{ name: searchText, mimeType: currentMimeType, type: currentType, loaded: fileViewLoaded }}
@@ -886,6 +902,9 @@ export const LocalStoragePage = () => {
                 <ImageViewer errorImage={"/Images/icons/person.svg"} currentImage={viewImage} close={() => { setViewImage(null) }} />
             }
 
+            {viewMedia != null &&
+                <MediaViewer errorImage={"/Images/icons/film-outline.svg"} currentVideo={viewMedia} close={() => { setViewMedia(null) }} />
+            }
 
 </>
     )

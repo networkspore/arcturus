@@ -17,17 +17,33 @@ const SunBloom = ({ bloomScene, strength = 0, radius = 0, threshold = 0 }) => {
     const { scene, gl, camera, size } = useThree()
     const blurshaderRef = useRef({ shader: null});
     //const [scene, setScene] = useState();
-    const page = useZust((state) => state.page)
-    
+    const loadingStatus = useZust((state) => state.loadingStatus)
+
+    //const setPixelRatio = useThree((state) => state.setPixelRatio)
+    const regress = useThree((state) => state.performance.regress)
+    const current = useThree((state) => state.performance.current)
+ 
+    const frameLimiter = useRef({ delta: 0, interval: (1 / 30)  });
+
+    useEffect(() => {
+        const isComplete = loadingStatus != null ? loadingStatus.complete && loadingStatus.index == loadingStatus.length : true
+
+        if (loadingStatus != null && !isComplete) {
+            regress()
+        }
+    }, [loadingStatus])
+
+
     const effect = useRef();
 
     const aspect = useMemo(() => new THREE.Vector2(size.width, size.height), [
         size
     ]);
+
     useEffect(()=> {
         if(bloomScene.current !== undefined){
             gl.autoClear = false;
-            gl.setPixelRatio(window.devicePixelRatio);
+           
             const renderPass = new RenderPass(bloomScene.current, camera)
             const bloomPass = new UnrealBloomPass(aspect, strength, radius, threshold);
             
@@ -37,6 +53,7 @@ const SunBloom = ({ bloomScene, strength = 0, radius = 0, threshold = 0 }) => {
             
             const shaderPass = new ShaderPass(shader)
             const shaderPass2 = new ShaderPass(shader2)
+
             effect.current = {composer:new EffectComposer(gl)}
            // effect.current.composer.renderToScreen = true;
           //  
@@ -46,54 +63,32 @@ const SunBloom = ({ bloomScene, strength = 0, radius = 0, threshold = 0 }) => {
            
             effect.current.composer.addPass(bloomPass);
             effect.current.composer.addPass(shaderPass);
- effect.current.composer.addPass(shaderPass2);
+            effect.current.composer.addPass(shaderPass2);
             
             
            
-             }
-    },[aspect,bloomScene])
-    
-
-
-  
-    
-    let brighter = false;
-
-    let swing = .5;
-
-    let swingI = .01;
-
-
-
-
+        }
+    },[aspect,bloomScene,current])
     
 
   //  useEffect(() => void scene && composer.current.setSize(size.width / 20, size.height / 20), [size])
     useFrame(({clock}) => {
-      /*  
-        if(brighter){
-            bloomer.current.strength += swingI;
-            if(bloomer.current.strength > strength + swing){
-                brighter = !brighter;
-            }
-        }else{
-            bloomer.current.strength -= swingI;
-            if (bloomer.current.strength < strength) {
-                brighter = !brighter;
-            }
-        }
-    */
-        if(effect.current != undefined){
-        if(effect.current.composer !== undefined){
+    
 
-        gl.clear();
-        effect.current.composer.render(clock.getDelta())
-}}      //  composer.current.render();
-      gl.clearDepth();
-      
-        gl.render(scene,camera);
+            if (effect.current != undefined && effect.current.composer !== undefined) {
+
+                gl.clear();
+                effect.current.composer.render(clock.getDelta())
+           }    
+
+          
+            gl.clearDepth();
+
+            gl.render(scene, camera);
+
         
     }, 1)
+
     return (
         <>
             

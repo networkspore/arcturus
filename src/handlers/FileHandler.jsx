@@ -135,6 +135,29 @@ export const FileHandler = ( props = {}) =>{
                     })
                     
                     break;
+                case "getVideo":
+                    switch(request.file.application){
+                        case "video":
+                            searchLocalFiles(request).then((localFile) => {
+                               
+                                if(localFile != undefined)
+                                {
+                                    
+                                        
+                                    resolve({ success: true, localFile: localFile, request: request })
+                                    
+                                  
+                                }else{
+                                    resolve({ error: "not found" })
+                                }
+
+                                
+                            })
+                            break;
+                        default:
+                            resolve({ error: "not supported" })
+                    }
+                    break;
                 case "getImage":
                 case "getIcon":
                  
@@ -155,8 +178,8 @@ export const FileHandler = ( props = {}) =>{
                                 if(localResult === undefined){
                                   
                                     searchLocalFiles(request).then((localFile)=>{
-                                    
-                                        if (localFile === undefined)
+                                        console.log(localFile)
+                                        if (localFile == undefined)
                                         {
                                             if( request.p2p) {
                                             
@@ -169,14 +192,20 @@ export const FileHandler = ( props = {}) =>{
                                             } else {
                                                 resolve({ error: "not connected" })
                                             }
+                                        }else if (localFile == -1){
+                                            resolve({ success: false, loading: true, request: request })
                                         }else{
                                            
-                                            if (request.command == "getImage"){
-                                                const promise = loadImage(request, localFile)
-                                                resolve({ success: false, loading: promise, request: request })
-                                            }else{
-                                                const promise = loadIcon(request, localFile)
-                                                resolve({ success: false, loading: promise, request: request })
+                                            switch(request.command){
+                                                case "getImage":
+                                              
+                                                        resolve({ success: false, opening: loadImage(request, localFile), request: request })
+                                                break;
+                                                case "getIcon":
+                                                    resolve({ success: false, opening: loadIcon(request, localFile), request: request })
+                                                break;
+                                                default:
+                                                    resolve({ error: "not supported" })
                                             }
                                             
                                         }
@@ -189,7 +218,8 @@ export const FileHandler = ( props = {}) =>{
                             })
                             break;
                             case "media":
-                              
+                            resolve({ error: "not supported" })
+                              break;
                             default:
                             resolve({ error: "not implemented" })
                         }
@@ -279,10 +309,11 @@ export const FileHandler = ( props = {}) =>{
 
     async function searchLocalFiles(request){
         const allFiles = await get("arc.cacheFile")
-        const index = allFiles.findIndex(iFile => iFile.loaded && iFile.hash == request.file.hash)
+        const index = allFiles.findIndex(iFile => iFile.hash == request.file.hash)
         
-        if(index != -1){ 
-            return allFiles[index]
+        if(index != -1){
+            const iFile = allFiles[index]
+            return iFile.loaded ? iFile : -1
 
         }else{
             return undefined
@@ -349,7 +380,7 @@ export const FileHandler = ( props = {}) =>{
                     })
                     break;
                 default:
-                    resolve(-1)
+                    resolve(undefined)
                     break;
             }
        
@@ -363,6 +394,9 @@ export const FileHandler = ( props = {}) =>{
     const loadingIcons = useRef({value:[]})
 
 
+
+  
+
     const loadImage = (request, localFile) =>{
         return new Promise(resolve => {
             
@@ -372,7 +406,7 @@ export const FileHandler = ( props = {}) =>{
 
             if (loadingImageIndex == -1) {
 
-                const promise = worker.getImageHandleDataURL(localFile)
+                const promise = worker.getImageHandleDataURL(localFile.handle)
                 loadingImages.current.value.push({ hash: fileHash, promise: promise })
 
                 promise.then((dataUrl) => {

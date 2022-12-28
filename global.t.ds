@@ -1,2 +1,3 @@
 declare module 'ergo-dapp-connector';
 declare module '@bitgo/blake2b';
+declare module 'mp4box';

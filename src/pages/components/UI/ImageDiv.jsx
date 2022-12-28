@@ -39,7 +39,7 @@ export const ImageDiv = (props = {}) => {
     const [updated, setUpdated] = useState(null) 
 
     const waiting = useRef({value:null})
-
+    const loadingStatus = useZust((state) => state.loadingStatus)
     
 
 
@@ -54,8 +54,18 @@ export const ImageDiv = (props = {}) => {
                 setUpdated(null)
             }
         }
-    },[userPeerID])
+    },[userPeerID, configFile])
 
+    useEffect(()=>{
+        if (waiting.current.value != undefined && waiting.current.value == "loading" && props.netImage.update != undefined && props.netImage.update.file != undefined )
+        {
+            const fileHash = props.netImage.update.file.hash
+            if (loadingStatus.complete && loadingStatus.hash == fileHash ){
+                waiting.current.value = null
+                setUpdated(null)
+            }
+        }
+    }, [loadingStatus, props.netImage.update])
 
 
     const onUpdate = (response) => {
@@ -87,22 +97,28 @@ export const ImageDiv = (props = {}) => {
                     setUpdated({error: new Error("No peer network")})
                 }
 
+            }else if("opening" in response){
+               
+                const promise = response.opening
+            
+                promise.then((result) => {
+                
+                    setUpdated({ success: true, url: result.dataUrl, hash: result.hash })
+                })
+                
             }else if("loading" in response){
-                switch (response.request.command) {
-                    case "getIcon":
-                    case "getImage":
-                        const promise = response.loading
-                        console.log(promise)
-                        promise.then((result) => {
-                        
-                            setUpdated({ success: true, url: result.dataUrl, hash: result.hash })
-                        })
-                    
-                    break;
+                if (response.loading) {
+
+                    waiting.current.value = "loading";
+                    setUpdated(null)
+                } else {
+                    waiting.current.value = "error"
+                    setUpdated({ error: new Error("No peer network") })
                 }
+
             }
         }else{
-          //  waiting.current.value = null;
+            waiting.current.value = "error"
             setUpdated({error: new Error("file request error")})
         }
     }
@@ -114,7 +130,7 @@ export const ImageDiv = (props = {}) => {
 
 
 
-            if (waitingID != "error") {
+            if (waitingID != "error" && waitingID != "loading") {
 
 
                 const index = peerDownload.findIndex(pDl => pDl.id == waitingID)

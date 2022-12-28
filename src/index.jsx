@@ -20,25 +20,10 @@ import useZust from './hooks/useZust';
 import Sizing from './dom/Sizing';
 
 
-import { MapSelector } from './pages/components/MapSelector';
-
-import  {CharacterSelection}  from './pages/components/CharacterSelection';
-
-import { PlaceableViewer } from './pages/components/PlaceableViewer';
-
-
 import HomeMenu from './HomeMenu';
 
 
 import { LandingPage } from './LandingPage';
-import { SocketHandler } from './handlers/socketHandler';
-
-
-
-
-
-
-
 
 
 const Loader = (<>  <div className={loadingStyles.loading}  >
@@ -90,7 +75,7 @@ const App = () => {
                             {page!= null  &&
                                 <Suspense fallback={Loader}>
 
-                                <Canvas  performance={{ min: 0.5, debounce: 100 }} mode="concurrent" shadows  camera={{ fov: 60, near: 1.0, far: 100000.0 }}>
+                                <Canvas  performance={{current:1, min: 0.9, debounce: 200 }} mode="concurrent" shadows  camera={{ fov: 60, near: 1.0, far: 100000.0 }}>
                                         {(page < 10 &&
                                         <>
                                             <Transition position={[1000,1000,1000]} />

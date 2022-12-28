@@ -6,6 +6,7 @@ import blake2b from 'blake2b'
 import SparkMD5 from 'spark-md5'
 import { get, set, update } from "idb-keyval";
 
+
 import { randInt } from "three/src/math/MathUtils";
 import {  fileTypes, MB, tableChunkSize } from "./constants";
 
@@ -471,7 +472,7 @@ export const getFileHash = (file) =>{
     
     return new Promise(resolve => {
 
-      
+        
         const size = file.size
         const chunkSize = MB * 5
         const chunks = Math.ceil(size / chunkSize)
@@ -582,7 +583,10 @@ export async function getFileInfo(entry, dirHandle) {
 
     const fileMimeType = isCustomType ? "asset" : isMediaType ? "media" : type
     
-    const fileType = isCustomType ? ext : file.type
+    const fileType = isCustomType ? ext + "" : file.type + ""
+
+    const slashIndex = fileType.indexOf("/")
+    const baseType = slashIndex == -1 ? fileType : fileType.slice(0, slashIndex) 
 
     const fileHash = await getFileHash(file)
     const crcTable = await getFileCRCTable(file)
@@ -591,12 +595,20 @@ export async function getFileInfo(entry, dirHandle) {
     const hash = fileHash + strHash
    
 
-    const fileInfo = {loaded:true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
-    if (fileMimeType == "image") {
-        const dataUrl = await getThumnailFile(fileInfo)
+   
+    const exists = await get(hash + ".arcicon")
+    let imgSize = undefined
+    if (fileMimeType == "image" && exists == undefined) {
+        const dataUrl = await getThumnailEntry(entry, {width:150, height:150}, (imageSize)=>{
+            imgSize = imageSize
+        })
         await set(hash + ".arcicon", dataUrl)
     }
+
+    const fileInfo = { width: imgSize == undefined ? undefined : imgSize.width, height: imgSize == undefined ? undefined : imgSize.height, application: baseType, loaded: true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
     return fileInfo     
+    
+   
     
 }
 /*
@@ -783,10 +795,12 @@ export async function getChunkData(file, chunkNumber, chunkSize){
     return {data: arrayBuffer}
 }
 
-export async function getImageHandleDataURL(localFile){
+
+
+export async function getImageHandleDataURL(handle){
    
 
-    const file = await localFile.handle.getFile()
+    const file = await handle.getFile()
 
     const image = await createImageBitmap(file)
 
@@ -807,7 +821,7 @@ export async function getImageHandleDataURL(localFile){
 }
 
 
-export async function getThumnailFile(localFile, size = { width: 100, height: 100 }) {
+export async function getThumnailFile(localFile, size = { width: 100, height: 100 }, onSize) {
 
     const file = await localFile.handle.getFile()
 
@@ -817,6 +831,36 @@ export async function getThumnailFile(localFile, size = { width: 100, height: 10
 
     canvas.width = image.width;
     canvas.height = image.height;
+    onSize({width:image.width, height:image.height})
+    ctx.drawImage(image, 0, 0);
+
+    let scale = 1;
+
+
+    if (image.width > image.height) {
+        scale = size.width / image.width;
+    } else {
+        scale = size.height / image.height;
+    }
+
+    const resampledCanvas = resample(canvas, scale);
+    const dataUrl = resampledCanvas.toDataURL();
+
+    return dataUrl
+
+}
+
+export async function getThumnailEntry(entry, size = { width: 100, height: 100 }, onSize) {
+
+    const file = await entry.getFile()
+
+    const image = await createImageBitmap(file)
+    var canvas = document.createElement('canvas'),
+        ctx = canvas.getContext("2d");
+
+    canvas.width = image.width;
+    canvas.height = image.height;
+    onSize({ width: image.width, height: image.height })
     ctx.drawImage(image, 0, 0);
 
     let scale = 1;

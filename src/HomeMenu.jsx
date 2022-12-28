@@ -31,7 +31,7 @@ import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
 import { StorageHandler } from "./handlers/StorageHandler";
 import { ContactsHandler } from "./handlers/ContactsHandler";
-import { fileTypes } from "./constants/constants";
+import { fileTypes, MB } from "./constants/constants";
 
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
@@ -207,12 +207,14 @@ const HomeMenu = () => {
 
     useEffect(() => {
 
-        if (user.userID > 0 && !userLoaded.current.value) {
-            userLoaded.current.value = true
-            setIdbArray().then(((value)=>{
-                navigate("/", {state:{loadUser:user}})
-            }))
-
+        if (user.userID > 0 ) {
+          
+            if ( !userLoaded.current.value){
+                setIdbArray().then(((value)=>{
+                    navigate("/", {state:{loadUser:user}})
+                }))
+            }
+          
 
             
             //.then((returned)=>{
@@ -223,9 +225,13 @@ const HomeMenu = () => {
         
 
         }
+        
     }, [user])
 
+   
+
     async function setIdbArray(){
+
 
         let idbCacheArray = await get("arc.cacheFile").catch((err) => {
           
@@ -580,14 +586,18 @@ const HomeMenu = () => {
                 const isArray = Array.isArray(idbCacheArray)
                 const noCache = (isArray && idbCacheArray.length == 0) || !isArray
                 let newCache = []
-               
+                userLoaded.current.value = true
+                const loading = userLoaded.current.value
 
                 async function checkFilesRecursive(){
+                    if (loading != userLoaded.current.value) {
+                        return false
+                    }
                     const entry = allFiles[i].handle
                     const directory = allFiles[i].directory
                     
                     const name = await entry.name
-                   // setLoadingStatus({name:name, index: i, length: allFiles.length, complete:false})
+                    setLoadingStatus({ name: name, hash: "", index: i, length: allFiles.length, complete: false })
         
                     if(noCache)
                     {
@@ -600,8 +610,8 @@ const HomeMenu = () => {
                         if(!contains) newCache.push(newFileInfo)
                        
                         i = i + 1
-                        set("arc.cacheFile", newCache)
-                        setLoadingStatus({ name: name, index: i, length: allFiles.length, complete: true })
+                        await set("arc.cacheFile", newCache)
+                        setLoadingStatus({ name: name, hash: newFileInfo.hash, index: i, length: allFiles.length, complete: true })
                         if (i < allFiles.length) {
                            
                             checkFilesRecursive()
@@ -610,63 +620,77 @@ const HomeMenu = () => {
                             resolve(true)
                         }
                     }else{
+                       
                         const index = await worker.asyncFind(idbCacheArray, async item => {
                             return await entry.isSameEntry(item.handle);
                         })
                     
                         if (index != undefined) {
-                            const item = idbCacheArray.splice(index,1)[0]
-                            const names = Object.getOwnPropertyNames(item)
+                            const item = idbCacheArray[index]
+                            
+                            const hasDimensions = item.mimeType == "image"
 
-                            let newItem = {}
-                            names.forEach(name => {
-                                if (name != "loaded") {    
-                                    newItem[name] = item[name]
-                                }
-                            });
-                            newItem.loaded = true
-                            get("arc.cacheFile").then((oldCache)=>{
-                               
-                                const oldIndex = oldCache.findIndex(o => o.hash == newItem.hash)
-                                
-                                oldCache[oldIndex] = newItem
-                                set("arc.cacheFile", oldCache).then((done)=>{
-                                    setLoadingStatus({ name: name, index: i, length: allFiles.length, complete: true })
-                                    i = i + 1
+                            let newItem = {
+                                width: hasDimensions ? item.width : undefined, 
+                                height: hasDimensions ? item.height : undefined, 
+                                application: item.application, 
+                                loaded: true, 
+                                directory: item.directory, 
+                                mimeType: item.mimeType, 
+                                name: item.name, 
+                                hash: item.hash, 
+                                size: item.size, 
+                                type: item.type, 
+                                lastModified: item.lastModified,
+                                handle: item.handle 
+                            }
+                            
+                            idbCacheArray[index] = newItem
 
-                                    if (i < allFiles.length) {
-                                        checkFilesRecursive()
-                                    } else {
-                                        resolve(true)
-                                    }
-                                })
+                            await set("arc.cacheFile", idbCacheArray)
                                 
+                            i = i + 1
+                            setLoadingStatus({ 
+                                name: name, 
+                                hash: newItem.hash, 
+                                index: i, 
+                                length: allFiles.length, 
+                                complete: true 
                             })
+
+                            if (i < allFiles.length) {
+                                checkFilesRecursive()
+                            } else {
+                                
+                                resolve(true)
+                            }
+                       
+                                    
+                            
                         }else{
                             const newFileInfo = await worker.getFileInfo(entry, directory)
+                        
+                            idbCacheArray.push(newFileInfo) 
+                           
+                            await set("arc.cacheFile", idbCacheArray)
+
                            
 
-                            get("arc.cacheFile").then((oldCache)=>{
-                                 oldCache.push(newFileInfo)
-                                set("arc.cacheFile", oldCache).then((done)=>{
-                                    setLoadingStatus({ name: name, index: i, length: allFiles.length, complete: true })
-                                    i = i + 1
-
-                                    if (i < allFiles.length) {
-                                        checkFilesRecursive()
-                                    } else {
-                                        resolve(true)
-                                    }
-                                })
-                            })
-                           
+                            i = i + 1
+                            setLoadingStatus({ name: name, hash: newFileInfo.hash, index: i, length: allFiles.length, complete: true })
+                            if (i < allFiles.length) {
+                                checkFilesRecursive()
+                            } else {
+                                
+                                resolve(true)
+                            }
                         }
 
+                            
+                            
                         
-                        
-                    }
 
-                    
+                    }
                 }
                 if(allFiles.length > 0){
                     checkFilesRecursive()

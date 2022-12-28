@@ -7,6 +7,7 @@ import useZust from "../hooks/useZust";
 
 import { useRef } from "react";
 import { getStringHash } from "../constants/utility";
+import { get, set } from "idb-keyval";
 
 
  const LoginPage = (props = {}) =>  {
@@ -23,6 +24,7 @@ import { getStringHash } from "../constants/utility";
     const navigate = useNavigate(); 
     
     const [disable, setDisable] = useState(false)
+    const [userList, setUserList] = useState(null)
   
     const setLoginPage = useZust((state) => state.setLoginPage);
     const setUserFiles = useZust((state) => state.setUserFiles)
@@ -49,10 +51,36 @@ import { getStringHash } from "../constants/utility";
     useEffect(()=>{
         setLoginPage()
     
-       
+     
 
     }
     ,[]);
+
+    async function getUserList()
+    {
+        const uL = await  get("arc.users")
+
+        if(Array.isArray(uL) && uL.length > 0){
+            setUserList(uL)
+        }
+    }
+     async function updateUserList(user) {
+         const userList = await get("arc.users")
+
+         if (!isArray(userList)) {
+             await set("arc.users", [user])
+         } else {
+             const index = userList.findIndex(u => u.userID == user.userID)
+
+             if (index == -1) {
+                 userList.push(user)
+                 await set("arc.users", userList)
+             } else {
+                 userList.splice(index, 1, user)
+                 await set("arc.users", userList)
+             }
+         }
+     }
 
     function onLostPassword(event){
         if (!disable) {
@@ -103,6 +131,8 @@ import { getStringHash } from "../constants/utility";
     
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
+  
+
     function login(name_email = "", pass ="")
     {
         if(!disable){
@@ -131,6 +161,9 @@ import { getStringHash } from "../constants/utility";
 
 
 return (
+    <>
+    {userList == null &&
+       
     <div style={{
         display: "flex",
         left: "25%",
@@ -250,8 +283,10 @@ return (
             <a onClick={handleCreate} style={{ fontFamily: "WebPapyrus", fontSize: 15 }} className={styles.glowText}>Create Account</a>
         </div>
 
-        </div>
-       
+         </div>
+      
+        }
+         </>
     )
     
     

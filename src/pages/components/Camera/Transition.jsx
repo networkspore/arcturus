@@ -26,13 +26,17 @@ export function Transition(props) {
     const set = useThree((state) => state.set);
     const size = useThree((state) => state.size);
 
-   // const [camera, useCamera] = useState(useThree((state) => state.camera));
-    useEffect(() => { usePosition.current = { position: { x: 2000, y: 500, z:2000 } } }, [])
-    
-
-    const pageSize = useZust((state) => state.pageSize);
     const gl = useThree((state) => state.gl);
     const camera = useThree((state) => state.camera)
+
+    const loadingStatus = useZust((state) => state.loadingStatus)
+    
+  
+
+    useEffect(() => { usePosition.current = { position: { x: 2000, y: 500, z:2000 } } }, [])
+    
+ 
+
     const controls = new CameraControls(camera, gl.domElement);
    
   //  gl.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -92,13 +96,25 @@ export function Transition(props) {
             }
         })
     },[socket,userCharacter])*/
+    const loadinRef = useRef({value:true})
+    useEffect(() => {
+
+        const isComplete = loadingStatus != null ? loadingStatus.complete && loadingStatus.index == loadingStatus.length : true
+
+        loadinRef.current.value = isComplete
+    
+       
+
+    }, [loadingStatus])
 
     const dM = 2;
     const dM3 = 2;
 
     useFrame(({ delta, clock, camera }) => {
+
        
-       if(typeof usePosition.current !== undefined){
+        if (typeof usePosition.current !== undefined ){
+            if (loadinRef.current.value){
             switch (page) {
                 case null:
                     break;
@@ -418,7 +434,64 @@ export function Transition(props) {
                     }
                     break;
             }
+            } else {
+
+                x = -((Math.cos((clock.getElapsedTime() + offset) * speed * .5) * (orbitF.current[0] * 20)));
+                y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                z = (Math.sin((clock.getElapsedTime() + offset) * speed * .5) * (orbitF.current[2] * 20));
+
+                x1 = -((Math.cos((clock.getElapsedTime() + offset) * speed * 5) * (orbitF.current[0] * 5)));
+                y1 = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
+                z1 = (Math.sin((clock.getElapsedTime() + offset) * speed * 4) * (orbitF.current[2] * 5));
+
+                difference = diff(x, usePosition.current.position.x);
+
+              
+                    if (difference > increase * 2) {
+                        x = usePosition.current.position.x;
+                        if (usePosition.current.position.x < x + increase * 2) {
+                            usePosition.current.position.x += increase * 2;
+                        } else if (usePosition.current.position.x > x - increase * 2) {
+                            usePosition.current.position.x -= increase * 2;
+                        }
+                        x = usePosition.current.position.x;
+                    }
+             
+                difference = diff(y, usePosition.current.position.y);
+
+                
+                    if (useFast.current.y) useFast.current.y = false;
+                    if (difference > increase) {
+                        y = usePosition.current.position.y;
+                        if (usePosition.current.position.y < y + increase) {
+                            usePosition.current.position.y += increase;
+                        } else if (usePosition.current.position.y > y - increase) {
+                            usePosition.current.position.y -= increase;
+                        }
+                        y = usePosition.current.position.y;
+                    }
+                
+
+                difference = diff(z, usePosition.current.position.z);
+
+         
+                    if (useFast.current.z) useFast.current.z = false;
+                    if (difference > increase * 2) {
+                        z = usePosition.current.position.z;
+                        if (usePosition.current.position.z < z + increase * 2) {
+                            usePosition.current.position.z += increase * 2;
+                        } else if (usePosition.current.position.z > z - increase * 2) {
+                            usePosition.current.position.z -= increase * 2;
+                        }
+                        z = usePosition.current.position.z;
+                    }
+                
+
+                controls.setLookAt(x, y, z, x1, y1, z1);
+                controls.update(delta);
+            }
        }
+        
     })
 
     return (
