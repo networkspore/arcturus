@@ -1,0 +1,132 @@
+ const loadingvideo = useRef({value:[]})
+
+
+    const getVideoInformation = (request, localFile) =>{
+        return new Promise(resolve =>{
+            const fileHash = request.file.hash
+
+            const loadingVideoIndex = loadingvideo.current.value.findIndex(vids => vids.hash == fileHash)
+
+            if (loadingVideoIndex == -1) {
+
+                const promise = worker.getMp4Info(localFile.handle)
+                loadingvideo.current.value.push({ hash: fileHash, promise: promise })
+
+                promise.then((fileInfo) => {
+
+                   // set(fileHash + ".arcimage", dataUrl).then((inDB) => {
+                    const itemIndex = loadingvideo.current.value.findIndex(vids => vids.hash == fileHash)
+                    loadingvideo.current.value.splice(itemIndex, 1)
+
+                    resolve({ fileInfo: fileInfo })
+
+                 //   })
+
+                })
+
+            } else {
+                const promise = loadingvideo.current.value[loadingVideoIndex].promise
+
+                promise.then((fileInfo) => {
+                    resolve({ fileInfo: fileInfo })
+                })
+
+            }
+        })
+    }
+
+
+       case "getVideo":
+                    switch(request.file.application){
+                        case "video":
+                            searchLocalFiles(request).then((localFile) => {
+                               
+                                if(localFile == undefined)
+                                {
+                                    resolve({ error: "not found" })
+                                    
+                                }else{
+                                    resolve({error:"not found"})
+                                    //resolve({ success: false, promise: getVideoInformation(request, localFile), request: request })
+                                }
+
+                                
+                            })
+                            break;
+                        default:
+                            resolve({ error: "not supported" })
+                    }
+                    break;
+
+
+                    
+    /*function initializeEME(video, mime, key) {
+          KEY = hexStringToByteArray(key);
+        // following config returns correctly in Chrome https or http (even localhost)
+        var configWebM = [{
+            initDataTypes: ['webm'],
+            videoCapabilities: [{
+                contentType: 'video/webm; codecs="vp8"'
+            }]
+        }];
+
+        var configMp4 = [{
+            "initDataTypes": ["cenc"],
+            //"audioCapabilities": [{ "contentType": 'audio/mp4;codecs="mp4a.40.2"', robustness: 'SW_SECURE_CRYPTO' }],
+
+            // codecs config is required
+            "videoCapabilities": [{
+                contentType: 'video/mp4;codecs="avc1.64001E"'
+            }]
+        }];
+
+        var configMp4Mime = [{
+            initDataTypes: ["cenc"],
+            //"audioCapabilities": [{ "contentType": 'audio/mp4;codecs="mp4a.40.2"', robustness: 'SW_SECURE_CRYPTO' }],
+
+            // codecs config is required
+            videoCapabilities: [{
+                contentType: 'video/mp4;codecs="avc1.64001E"'
+            }]
+        }];
+        configMp4Mime[0].videoCapabilities[0].contentType = mime;
+
+      //  var WIDEVINE_KEY_SYSTEM = 'com.widevine.alpha';
+        var CLEARKEY_KEY_SYSTEM = 'org.w3.clearkey';
+
+
+        video.addEventListener('encrypted', handleEncrypted, false);
+
+        navigator.requestMediaKeySystemAccess(CLEARKEY_KEY_SYSTEM, configMp4Mime).then(
+            function (keySystemAccess) {
+                return keySystemAccess.createMediaKeys();
+            }
+        ).then(
+            function (createdMediaKeys) {
+                return video.setMediaKeys(createdMediaKeys);
+            }
+        ).catch(
+            function (error) {
+                console.error('Failed to set up MediaKeys', error);
+            }
+        );
+    }*/
+
+
+     var KEY = new Uint8Array([
+        0x40, 0x6d, 0x5e, 0x65, 0xb8, 0x55, 0x43, 0xf2, 0x49, 0x93, 0x20, 0xd7, 0xf4, 0xb4, 0x2d, 0xfa
+    ]);
+
+    function hexStringToByteArray(str) {
+        var result = new Uint8Array(16);
+        var i = 0;
+        while (str.length >= 2) {
+            if (str.substring(0, 1) == ' ') {
+                str = str.substring(1, str.length);
+            }
+            result[i] = parseInt(str.substring(0, 2), 16);
+            str = str.substring(2, str.length);
+            i++;
+        }
+        return result;
+    }
