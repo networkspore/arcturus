@@ -32,7 +32,9 @@ import { SocketHandler } from "./handlers/socketHandler";
 import { StorageHandler } from "./handlers/StorageHandler";
 import { ContactsHandler } from "./handlers/ContactsHandler";
 import { fileTypes, MB } from "./constants/constants";
-
+import useDynamicRefs from 'use-dynamic-refs';
+import { ImageViewer } from "./pages/components/UI/ImageViewer";
+import MediaViewer from "./pages/components/UI/MediaViewer";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -40,10 +42,13 @@ const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
 const HomeMenu = () => {
     const worker = useWorker(createWorker)
-
+  
+    const currentHash = useZust((state)=> state.currentHash)
+    const setCurrentHash = useZust((state) => state.setCurrentHash)
     const location = useLocation()
-
-    const userLoaded = useRef({value:false})
+    const openFile = useZust((state) => state.openFile)
+    const [getRef, setRef] = useDynamicRefs()
+    const prevUserID = useRef({value:false})
 
     const setLoadingStatus = useZust((state) => state.setLoadingStatus)
     const setCacheDirectory = useZust((state) => state.setCacheDirectory)
@@ -63,7 +68,7 @@ const HomeMenu = () => {
     const setPlaceablesDirectory = useZust((state) => state.setPlaceablesDirectory)
     const setTypesDirectory = useZust((state) => state.setTypesDirectory)
 
-
+    const openApp = useZust((state) => state.openApp)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const [showMenu, setShowMenu] = useState(false)
@@ -73,7 +78,7 @@ const HomeMenu = () => {
 
     const user = useZust((state) => state.user);
 
-
+    const [currentApps, setCurrentApps] = useState([])
     const configFile = useZust((state) => state.configFile)
     const setConfigFile = useZust((state) => state.setConfigFile)
     const setRealms = useZust((state) => state.setRealms)
@@ -106,7 +111,8 @@ const HomeMenu = () => {
 
     const setQuickBar = useZust((state) => state.setQuickBar)
     const quickBar = useZust((state) => state.quickBar)
-
+   
+    
     const [onComplete, setOnComplete] = useState("/contacts")
     const [loadState, setLoadState] = useState(null)
     const [realmQuickBarItems, setRealmQuickBarItems] = useState(null)
@@ -209,7 +215,8 @@ const HomeMenu = () => {
 
         if (user.userID > 0 ) {
           
-            if ( !userLoaded.current.value){
+            if (prevUserID.current.value != user.userID){
+                prevUserID.current.value = user.userID
                 setIdbArray().then(((value)=>{
                     navigate("/", {state:{loadUser:user}})
                 }))
@@ -444,9 +451,160 @@ const HomeMenu = () => {
             
         }
     }
+    useEffect(() => {
+        if (openFile != null) {
+            onOpenFile(openFile)
+        }
+    }, [openFile])
 
-   
 
+ 
+    const addCurrentApp = (item) =>setCurrentApps(produce(state =>{
+       
+        const appHash = item.hash
+        const index = currentApps.findIndex(apps => apps.key == item.hash)
+
+        if(index == -1){
+            const app = { 
+                name: item.name,
+                hash: item.hash, 
+                type: item.type, 
+                mimeType: item.mimeType, 
+                appName: item.appName, 
+                application: item.application 
+            }
+            
+            state.push(
+
+
+                <div key={appHash} onClick={() => {
+                   
+                   setCurrentHash(appHash)
+                    //currentHash == appHash ? styles.menuActive :
+                }} style={{ outline: 0 }} className={ styles.menu__item} about={app.name}>
+
+
+
+                    <ImageDiv width={60} height={60} style={{
+                        backgroundColor:"black",
+                        boxShadow: "0 0 10px #ffffff20, 0 0 20px #ffffff30, inset 0 0 40px #77777730"
+                    }}
+                        netImage={{
+                            update: {
+                                command: "getIcon",
+                                file: app,
+                                waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
+                                error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
+                            },
+
+                            backgroundColor: "#171717",
+                            opacity: 1,
+
+                            scale: .8
+                        }}
+                    />
+                </div>
+            )
+          
+        }
+    }))
+
+    const removeCurrentApp = (item) => setCurrentApps(produce(state =>{
+        const index = state.findIndex(apps => apps.key == item.hash)
+
+        if(index != -1)
+        {
+            if (state.length == 1) {
+                state.pop()
+            } else {
+                state.splice(index, 1)
+            }
+        }
+
+    }))
+
+    useEffect(()=>{
+        console.log(currentApps)
+    },[currentApps])
+
+    const onCloseFile = (file) => {
+
+        removeOpenApp(file)
+    }
+
+    const onOpenFile = (file) => {
+
+        addOpenApp(file)
+
+    }
+
+    const addOpenApp = (item) => useZust.setState(produce((state) => {
+
+       
+
+        const currentFile = {
+            width: "width" in item ? item.width : undefined,
+            height: "height" in item ? item.height : undefined,
+            application: item.application,
+            loaded: item.loaded,
+            directory: item.directory,
+            mimeType: item.mimeType,
+            name: item.name,
+            hash: item.hash,
+            size: item.size,
+            type: item.type,
+            lastModified: item.lastModified,
+            handle: item.handle,
+            fileID: "fileID" in item ? item.fileID : undefined,
+            userFileID: "userFileID" in item ? item.userFileID : undefined,
+            title: "title" in item ? item.title : undefined,
+            text: "text" in item ? item.text : undefined
+        }
+
+
+        const fileHash = currentFile.hash
+
+        const index = state.openApp.findIndex(apps => apps.key == fileHash)
+
+        if(index == -1){
+            switch (currentFile.mimeType) {
+                case "image":
+              
+                    addCurrentApp({name: currentFile.name, hash:currentFile.hash, type: currentFile.type, mimeType: currentFile.mimeType, appName:"Image Viewer", application: currentFile.application})
+                    state.openApp.push(
+                        <ImageViewer key={fileHash} errorImage={"/Images/icons/person.svg"} currentImage={currentFile} close={() => { onCloseFile(currentFile) }} />
+                    )
+                    break;
+                case "media":
+                   
+                    addCurrentApp({ name: currentFile.name, hash: currentFile.hash, type: currentFile.type, mimeType: currentFile.mimeType, appName: "Media Viewer", application: currentFile.application })
+                    state.openApp.push(
+                        <MediaViewer key={fileHash} errorImage={"/Images/icons/film-outline.svg"} currentVideo={currentFile} close={() => { onCloseFile(currentFile) }} />
+                    )
+                    break;
+            }
+        }
+
+    }))
+
+    const removeOpenApp = (file) => useZust.setState(produce((state) => {
+      
+        const fileHash = file.hash
+        if (currentHash == fileHash) setCurrentHash("")
+
+        const index = state.openApp.findIndex(app => app.key == fileHash)
+
+        if (index != -1) {
+            if (state.openApp.length == 1) {
+                state.openApp.pop()
+            } else {
+                state.openApp.splice(index, 1)
+            }
+
+        }
+        const removed = state.openApp.findIndex(app => app.key == fileHash) == -1
+        if(removed) removeCurrentApp(file)
+    }))
 
     //const addFiles = useZust((state) => state.addFiles)
 
@@ -586,13 +744,11 @@ const HomeMenu = () => {
                 const isArray = Array.isArray(idbCacheArray)
                 const noCache = (isArray && idbCacheArray.length == 0) || !isArray
                 let newCache = []
-                userLoaded.current.value = true
-                const loading = userLoaded.current.value
+           
+             
 
                 async function checkFilesRecursive(){
-                    if (loading != userLoaded.current.value) {
-                        return false
-                    }
+                 
                     const entry = allFiles[i].handle
                     const directory = allFiles[i].directory
                     
@@ -752,13 +908,14 @@ const HomeMenu = () => {
         if (showMenu && realms != null && realms.length > 0) {
             const tmp = []
             if (quickBar != undefined && quickBar != null && quickBar.length > 0) {
-                console.log(quickBar)
+               
                 quickBar.forEach((realmID, i) => {
                     
                     const realmIndex = realms.findIndex(r => r.realmID == realmID)
                     if (realmIndex != -1) {
                         const realm = realms[realmIndex];
                         const realmImage = realm.image
+
                        
                         tmp.push(
 
@@ -803,6 +960,9 @@ const HomeMenu = () => {
         }
 
     }, [quickBar, realms, currentRealmID, showIndex,])
+ 
+    
+
 
 
 
@@ -836,7 +996,10 @@ const HomeMenu = () => {
 
                 <Realm />
             }
-
+           
+            
+          
+            
             {(showMenu) &&
                 <div style={{ position: "fixed", top: 0, left: 0, height: pageSize.height, width: 85, backgroundImage: "linear-gradient(to bottom, #000000,#20232570)" }}>
                     <div style={{ display: "flex", flexDirection: "column", height: pageSize.height, fontFamily: "WebPapyrus" }}>
@@ -855,7 +1018,7 @@ const HomeMenu = () => {
                             </div>
 
                             {realmQuickBarItems}
-
+                            {currentApps}
                         </div>
 
                         <div style={{ flex: 0.1 }}>
@@ -885,7 +1048,7 @@ const HomeMenu = () => {
                 </div>
 
             }
-           
+            {openApp}
             <div style={{
                 position: "fixed", top: 0, right: 0, display: "flex", alignItems: "center",  height: 35, backgroundColor: "black",
             }}>
@@ -933,6 +1096,7 @@ const HomeMenu = () => {
                     </div>
 
                 </div>
+             
                 { user.userID > 0 &&
                 <SystemMessagesMenu />
                 }

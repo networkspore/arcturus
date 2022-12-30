@@ -10,6 +10,12 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   currentHash: "",
+   setCurrentHash:(value) => set({currentHash: value}),
+   openApp:[],
+   setOpenApp:(value) => set({openApp: value}),
+   openFile:null,
+   setOpenFile: (value) => set({openFile: value}),
    allFiles:[],
    setAllFiles: (value) => set({allFiles:value}),
    loadingStatus: null,

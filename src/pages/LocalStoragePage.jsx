@@ -13,11 +13,8 @@ import SelectBox from './components/UI/SelectBox';
 import { ImageDiv } from './components/UI/ImageDiv';
 import { getFileInfo, getPermission, getPermissionAsync, readFileJson } from '../constants/utility';
 import { initStorage } from '../constants/systemMessages';
-import { PeerDownloadPage } from './PeerDownloadPage';
-import { PeerUploadPage } from './PeerUploadPage';
-import { ImageViewer } from './components/UI/ImageViewer';
 import { useLayoutEffect } from 'react';
-import { MediaViewer } from './components/UI/MediaViewer';
+
 
 
 export const LocalStoragePage = () => {
@@ -445,23 +442,6 @@ export const LocalStoragePage = () => {
             }
         }
     }
-
-    const onFileDoubleClick = (file) =>{
-        if("loaded" in file && file.loaded){
-            switch(file.mimeType)
-            {
-                case "image":
-                    setViewImage(file)
-                    break;
-                case "media":
-                    setViewMedia(file)
-                break;
-            }  
-            
-        }
-    }
- 
-
  
 
     async function handleFirst (dirHandle) {
@@ -798,7 +778,7 @@ export const LocalStoragePage = () => {
 
                                 <FileList
                                     width={fileListWidth}
-                                    onDoubleClick={onFileDoubleClick}
+                                    
                                     fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
                                     onChange={fileSelected}
                                     filter={{ name: searchText, mimeType: currentMimeType, type: currentType, loaded: fileViewLoaded }}
@@ -898,13 +878,6 @@ export const LocalStoragePage = () => {
 
             </div>}
 
-            {viewImage != null &&
-                <ImageViewer errorImage={"/Images/icons/person.svg"} currentImage={viewImage} close={() => { setViewImage(null) }} />
-            }
-
-            {viewMedia != null &&
-                <MediaViewer errorImage={"/Images/icons/film-outline.svg"} currentVideo={viewMedia} close={() => { setViewMedia(null) }} />
-            }
 
 </>
     )

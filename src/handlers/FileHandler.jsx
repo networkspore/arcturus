@@ -20,8 +20,8 @@ export const FileHandler = ( props = {}) =>{
  
     const localDirectory = useZust((state) => state.localDirectory)
     const loadingStatus = useZust((state) => state.loadingStatus)
-  
-
+ 
+    
 
     const setDownloadRequest = useZust((state) => state.setDownloadRequest)
 
@@ -107,6 +107,7 @@ export const FileHandler = ( props = {}) =>{
     },[processing.current])
 
 
+
     const executeFileCommand = (request) => {
         return new Promise(resolve => {
 
@@ -178,7 +179,7 @@ export const FileHandler = ( props = {}) =>{
                                 if(localResult === undefined){
                                   
                                     searchLocalFiles(request).then((localFile)=>{
-                                        console.log(localFile)
+                                     
                                         if (localFile == undefined)
                                         {
                                             if( request.p2p) {
@@ -466,6 +467,8 @@ export const FileHandler = ( props = {}) =>{
 
         })
     }
+ 
+
 
     return (
         <>

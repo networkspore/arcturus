@@ -1,22 +1,56 @@
 import produce from "immer"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from "react"
 import useZust from "../../../hooks/useZust"
 import { ImageDiv } from "./ImageDiv"
 import styles from '../../css/home.module.css';
 import { VideoDiv } from "./VideoDiv";
 
 
-export const MediaViewer = (props = {}) => {
-    const [fullSize, setFullSize] = useState(false)
+
+const MediaViewer = (props = {}, ref) => {
+
+    const divRef = useRef()
+    const currentHash = useZust((state) => state.currentHash)
+    const setCurrentHash = useZust((state) => state.setCurrentHash)
     const [currentVideo, setCurrentVideo] = useState(null)
+
+    const [mediaSize, setMediaSize] = useState(null)
+
+    const timeout = useRef({ value: null })
+
+    const [currentHeight, setCurrentHeight] = useState(720)
+    const [currentWidth, setCurrentWidth] = useState(480)
     const [showBar, setShowBar] = useState(true)
-    const pageSize = useZust((state) => state.pageSize)
+
+    const setOnce = useRef({value:false})
 
     useEffect(()=>{
         setCurrentVideo(props.currentVideo)
+        if (setOnce.current.value == false && props.currentVideo != undefined){
+            setOnce.current.value = true
+            setCurrentHash(props.currentVideo.hash)
+        }
     },[props.currentVideo])
 
-    const timeout = useRef({ value: null })
+
+
+    useEffect(()=>{
+        
+        
+        if(mediaSize == null){
+            setCurrentWidth(740)
+            setCurrentHeight(480)
+        }else{
+            const ratio = mediaSize.width / mediaSize.height
+            const dw = ratio >= 4/3 ? 740 : mediaSize.height
+            const dh = dw * ratio
+            const w  = mediaSize.width < dw ? mediaSize.width : dw
+            const h = mediaSize.height < dh ? mediaSize.height : dh
+            setCurrentWidth(w)
+            setCurrentHeight(h)
+        }
+        
+    },[ mediaSize])
 
     const onMouseMove = (e) => {
   
@@ -30,91 +64,81 @@ export const MediaViewer = (props = {}) => {
 
 
     }
-    const toggleFullSize = (e) => {
-        setFullSize(state => !state)
-
-    }
-    const callTimeout = () => {
+  
+    const callTimeout = (ms = 2700) => {
       
         timeout.current.value = setTimeout(() => {
             setShowBar(false)
             timeout.current.value = null
-        }, 1000);
+        }, ms);
     }
 
-    const hideBar = (e) =>{
-        setShowBar(false)
 
+
+    const onLoadedMetaData = (e) =>{
+        const {offsetWidth, offsetHeight} = e.target
+    
+        setMediaSize({
+            width: offsetWidth, 
+            height: offsetHeight,
+        })
+
+   
     }
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            
+    }),[])
     
 
     return (
         <>
         {currentVideo != null &&
-            <div   id='MediaViewer' style={{
-            position: "fixed",
-            zIndex:100,
-            backgroundColor: "rgba(0,3,4,.95)",
-            left: fullSize ?0 : "50%",
-            top: fullSize ? 0 : "50%",
-            width: fullSize ? pageSize.width  : 720,
-            height: fullSize ? pageSize.height: 480,
-            transform:fullSize ? "" : "translate(-50%,-50%)",
-            boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
-            display:"flex",
-            flexDirection:"column"
-        }}>
-           {showBar && <div onMouseEnter={(e)=>{
-                if (timeout.current.value != null) clearTimeout(timeout.current.value)
-           }} style={{
-                position:"absolute",
+            <div
+                tabIndex={0}
+            
+                ref={divRef}
+                id='MediaViewer' 
+                style={{
+                    visibility: currentHash == currentVideo.hash ? "visible" : "hidden",
+                position: "fixed",
+                outline:0,
+                backgroundColor: "rgba(0,3,4,.95)",
+                left: "50%",
+                top:  "50%",
+                width:  currentWidth,
+                height:  currentHeight,
+                transform: "translate(-50%,-50%)",
+                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                 display:"flex",
+                flexDirection:"column",
                 alignItems:"center",
                 justifyContent:"center",
-                width: "100%",
-                paddingTop: 0,
-                fontFamily: "WebRockwell",
-                fontSize: "18px",
-                fontWeight: "bolder",
-                color: "#cdd4da",
-                textShadow: "2px 2px 2px #101314",
-                backgroundImage: "linear-gradient(#131514, #000304EE )",
-                zIndex:999
-
             }}>
           
-            <div className={styles.glow} onClick={(e) => {
-                    props.close()
-                }} style={{
-                    opacity: .7,
-                    cursor: "pointer",
-                    paddingLeft: "10px",
-                    paddingTop:5,
-                    textAlign: "center",
-
-            }}><ImageDiv width={20} height={20} netImage={{ filter: "invert(100%)", image: "/Images/icons/close-outline.svg" }} />
-            </div>
-            <div className={styles.glow} onClick={toggleFullSize} style={{
-                opacity: .7,
-                cursor: "pointer",
-                            paddingLeft: "10px",
-                            paddingTop: 5,
-                textAlign: "center",
-
-            }}><ImageDiv width={18} height={20} netImage={{ filter: "invert(100%)", image: "/Images/icons/scan-outline.svg" }} />
-            </div>
+            <div tabIndex={0} style={{display:"flex", flex:1,  height: currentHeight, width:currentWidth}}>
+            <VideoDiv
                 
-                        <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center" }}> {currentVideo.title == undefined ? currentVideo.name : currentVideo.userFileName}</div>
-                <div style={{width:50, height:40}}>&nbsp;</div>
-                    </div>}
-                    <div tabIndex={0} style={{flex:1, display:"flex"}}>
-                    <VideoDiv 
-                        onMouseMove={onMouseMove} 
-                        file={currentVideo}
-                    />
-                    </div>
+                close={props.close}
+                showBar={showBar}
+                cancelTimeout={()=>{
+                    if (timeout.current.value != null) clearTimeout(timeout.current.value)
+                }}
+                width={currentWidth}
+                height={currentHeight}
+                onLoadedMetaData={onLoadedMetaData}
+                onMouseMove={onMouseMove} 
+                file={currentVideo}
+            />
+            </div>
+                   
         </div>
+        
             }
+          
         </>
     )
 }
+export default forwardRef(MediaViewer)

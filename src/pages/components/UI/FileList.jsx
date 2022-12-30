@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useId } from "react";
 import { ImageDiv } from "./ImageDiv";
 import styles from "../../css/home.module.css"
-import { useNavigate } from "react-router-dom";
+import { json, useNavigate } from "react-router-dom";
 import produce from "immer";
 import useZust from "../../../hooks/useZust";
 import { ImageViewer } from "./ImageViewer";
@@ -12,7 +12,7 @@ const FileList = (props = {}, ref) => {
     if (props == null) props = {};
     const onChange = "onChange" in props ? props.onChange : null;
 
-    
+    const setOpenFile =useZust((state) => state.setOpenFile)
     //const fileListID = useId()
   
     const divRef = useRef()
@@ -276,10 +276,9 @@ const FileList = (props = {}, ref) => {
                                         {
                                             rows[rowIndex][columnIndex] = <div 
                                                 onDoubleClick={(e) => {
-                                                    if(props.onDoubleClick != undefined)
-                                                    {
-                                                        props.onDoubleClick(file)
-                                                    }
+                                                
+                                                    setOpenFile(file)
+                                                   
                                                 }}
                                                 onClick={(e) => {
                                                     e.stopPropagation()
@@ -450,7 +449,7 @@ const FileList = (props = {}, ref) => {
     }
 
     function formatedNow(now = new Date(), small = false) {
-
+        
         const year = now.getUTCFullYear();
         const month = now.getUTCMonth()
         const day = now.getUTCDate();
