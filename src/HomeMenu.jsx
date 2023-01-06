@@ -1,5 +1,5 @@
 import useZust from "./hooks/useZust";
-import React, { useEffect, useState, useId } from "react";
+import React, { useEffect, useState, useId, useLayoutEffect } from "react";
 import styles from './pages/css/ContentMenu.module.css';
 import { NavLink, useHref, useLocation, useNavigate } from "react-router-dom";
 
@@ -9,7 +9,7 @@ import WelcomePage from "./pages/WelcomePage";
 import { ContactsPage } from "./pages/ContactsPage";
 import { HomePage } from "./pages/HomePage";
 import { RecoverPasswordPage } from "./pages/RecoverPasswordPage";
-import { RealmsPage } from "./pages/RealmsPage";
+import { AppsPage } from "./pages/AppsPage";
 
 import { SystemMessagesMenu } from "./handlers/SystemMessagesMenu";
 import { get, update, set } from "idb-keyval";
@@ -20,11 +20,10 @@ import { PeerNetworkHandler } from "./handlers/PeerNetworkHandler";
 import { FileHandler } from "./handlers/FileHandler";
 
 
-import { LoadingPage } from "./LoadingPage";
 
-import { getFileInfo, getPermission, readFileJson, getPermissionAsync, getJsonFile } from "./constants/utility";
+import { asyncFind, getFileInfo, getFirstDirectoryAllFiles, getJsonFile } from "./constants/utility";
 import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
-import { Realm } from "./pages/realm/Realm";
+
 import { useRef } from "react";
 
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
@@ -35,14 +34,18 @@ import { fileTypes, MB } from "./constants/constants";
 import useDynamicRefs from 'use-dynamic-refs';
 import { ImageViewer } from "./pages/components/UI/ImageViewer";
 import MediaViewer from "./pages/components/UI/MediaViewer";
+import { AppMenu } from "./pages/components/UI/AppMenu";
+import { LoadingStatusBar } from "./pages/components/UI/LoadingStatusBar";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
 
 
-const HomeMenu = () => {
+const HomeMenu = (props = {}) => {
+    const setLoadingStatus = useZust((state) => state.setLoadingStatus)
+    const loadingComplete = useZust((state) => state.loadingComplete)
     const worker = useWorker(createWorker)
-  
+    const [appList, setAppList] = useState([])
     const currentHash = useZust((state)=> state.currentHash)
     const setCurrentHash = useZust((state) => state.setCurrentHash)
     const location = useLocation()
@@ -50,9 +53,9 @@ const HomeMenu = () => {
     const [getRef, setRef] = useDynamicRefs()
     const prevUserID = useRef({value:false})
 
-    const setLoadingStatus = useZust((state) => state.setLoadingStatus)
+  
     const setCacheDirectory = useZust((state) => state.setCacheDirectory)
-    const setRealmsDirectory = useZust((state) => state.setRealmsDirectory);
+    const setAppsDirectory = useZust((state) => state.setAppsDirectory);
 
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
     const setModelsDirectory = useZust((state) => state.setModelsDirectory);
@@ -81,14 +84,12 @@ const HomeMenu = () => {
     const [currentApps, setCurrentApps] = useState([])
     const configFile = useZust((state) => state.configFile)
     const setConfigFile = useZust((state) => state.setConfigFile)
-    const setRealms = useZust((state) => state.setRealms)
+
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
 
 
     const toNav = useNavigate()
-    const currentRealmID = useZust((state) => state.currentRealmID)
-    const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
 
 
     const [showIndex, setShowIndex] = useState(false);
@@ -107,15 +108,11 @@ const HomeMenu = () => {
 
     const setPage = useZust((state) => state.setPage)
 
-    const realms = useZust((state) => state.realms)
 
-    const setQuickBar = useZust((state) => state.setQuickBar)
-    const quickBar = useZust((state) => state.quickBar)
-   
     
-    const [onComplete, setOnComplete] = useState("/contacts")
+    
     const [loadState, setLoadState] = useState(null)
-    const [realmQuickBarItems, setRealmQuickBarItems] = useState(null)
+
 
     useEffect(() => {
         let currentLocation = location.pathname;
@@ -130,7 +127,15 @@ const HomeMenu = () => {
         if (user.userID > 0) {
 
             if (currentLocation == '/') {
-                if (location.state != undefined && location.state.loadUser != undefined) loadUser(location.state.loadUser)
+                if (location.state != undefined){
+                    if (location.state.configFile != undefined && location.state.configFile != null && location.state.localDirectory != undefined){
+                        setConfigFile(location.state.configFile)
+                        setLocalDirectory(location.state.localDirectory)
+                    }else{
+                       
+                        addSystemMessage(initStorage)
+                    }
+                }
                 if (!showMenu) setShowMenu(true);
                 setShowIndex(0)
                 setPage(1)
@@ -152,20 +157,12 @@ const HomeMenu = () => {
                         setShowIndex(4);
                         setPage(3)
                         break;
-                    case "/realms":
+                    case "/apps":
                         if (!showMenu) setShowMenu(true);
                         setShowIndex(6);
                         break;
-                    case "/realm":
-                        if (location.pathname.length > 5) {
-                            if (!showMenu) setShowMenu(true)
-                        } else {
-                            if (showMenu) setShowMenu(false)
-                        }
-
-                        setShowIndex(7);
-
-                        break;
+                
+                     /*
                     case "/loading":
                        
                         setLoadState(location.state)
@@ -173,11 +170,11 @@ const HomeMenu = () => {
                         setPage(null)
                         setShowMenu(false)
                   
-                        break;
+                        break;*/
 
                     default:
 
-                        navigate('/contacts')
+                        navigate('/')
 
                 }
 
@@ -211,33 +208,10 @@ const HomeMenu = () => {
 
     
 
-    useEffect(() => {
-
-        if (user.userID > 0 ) {
-          
-            if (prevUserID.current.value != user.userID){
-                prevUserID.current.value = user.userID
-                setIdbArray().then(((value)=>{
-                    navigate("/", {state:{loadUser:user}})
-                }))
-            }
-          
-
-            
-            //.then((returned)=>{
-
-               // if(!returned) navigate("/")
-           // })
-          
-        
-
-        }
-        
-    }, [user])
 
    
 
-    async function setIdbArray(){
+    /*async function setIdbArray(){
 
 
         let idbCacheArray = await get("arc.cacheFile").catch((err) => {
@@ -267,119 +241,27 @@ const HomeMenu = () => {
         
         
         return true
-    }
+    }*/
 
-    async function loadUser(user){
-
-        try {
-            const value = await get("localDirectory" + user.userID)
-            const verified = await getPermissionAsync(value.handle)
-           
-            if(!verified)
-            {
-                console.log("Permission not granted")
-                return false
-            } 
-
-            setLocalDirectory(value)
-
-            const homeHandle = await value.handle.getDirectoryHandle("home", { create: true })
-            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true }) 
-            const cacheDirectory = await userHomeHandle.getDirectoryHandle("cache", {create:true})
-
-            setCacheDirectory({name:"cache", handle:cacheDirectory})
-
-            const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.config")
-
-            const fileInfo = await getFileInfo(handle, userHomeHandle)
-
-         
-            setSocketCmd({
-                cmd: "checkStorageHash", params: { hash: fileInfo.hash }, callback: (hashResult) => {
-               
-                    if ("success" in hashResult && hashResult.success) {
-                        readFileJson(handle).then((jsonResult) => {
-                            
-                            if ("success" in jsonResult && jsonResult.success) {
-                                const json = jsonResult.value;
-                                fileInfo.value = json[user.userName];
-                                fileInfo.fileID = hashResult.fileID;
-                                fileInfo.storageID = hashResult.storageID;
-                                setConfigFile(fileInfo)
-                               // navigate("/loading", { state: { configFile: fileInfo, navigate: "/" } })
-                                return true
-                            } else {
-                                console.log("Permission not granted")
-                                addSystemMessage(initStorage)
-                                return false
-                            }
-                            
-                        })
-                    } else {
-                        console.log("Hash check failed")
-                      
-                        return false
-                    }
-                    
-                }
-            })
-            
-        }catch(err){
-
-            console.log(err.message)
-         
-            return false
-        }                 
-    }
-
-
-    useEffect(() => {
-       
-        if (user.userID > 0 && configFile.value != null) {
-            const config = configFile.value;
-            console.log("settingDefaults")
-            setFolderDefaults(config).then((promise) => {
-
-                if (promise == true) {
-                   
-                    setSocketCmd({
-                        cmd: "getRealms", params: {}, callback: (response) => {
-                            if (!("error" in response)) {
-                                if (response.success) {
-                                    setRealms(response.realms)
-                                }
-                            }
-                        }
-                    })
-
-
-                //    navigate(onComplete)
-                } else {
-                    addSystemMessage(initStorage)
-                    navigate("/home/localstorage/")
-                }
-            })
-
-        } 
-
-    }, [configFile, user])
-
+   
     useEffect(()=>{
-       
-    }, [configFile])
+        if (  localDirectory.handle != null && configFile.handle != null){
+            setFolderDefaults(localDirectory, configFile)
+        }
+    }, [localDirectory, configFile])
 
-    useEffect(()=>{
+   /* useEffect(()=>{
         if(realms != null && realms.length > 0){
             setQuickBarDefaults()
 
         }else{
             setQuickBar([])
         }
-    },[user, realms])
+    },[user, realms])*/
 
 
 
-    const setQuickBarDefaults = () => {
+    /*const setQuickBarDefaults = () => {
 
         const userID = user.userID;
 
@@ -440,7 +322,7 @@ const HomeMenu = () => {
             setQuickBar([]);
         }
 
-    }
+    }*/
 
     async function getUserConfig(configFileHandle){
         return await getJsonFile(userConfigHandle)
@@ -462,7 +344,7 @@ const HomeMenu = () => {
     const addCurrentApp = (item) =>setCurrentApps(produce(state =>{
        
         const appHash = item.hash
-        const index = currentApps.findIndex(apps => apps.key == item.hash)
+        const index = currentApps.findIndex(apps => apps.hash == appHash)
 
         if(index == -1){
             const app = { 
@@ -473,44 +355,13 @@ const HomeMenu = () => {
                 appName: item.appName, 
                 application: item.application 
             }
-            
-            state.push(
-
-
-                <div key={appHash} onClick={() => {
-                   
-                   setCurrentHash(appHash)
-                    //currentHash == appHash ? styles.menuActive :
-                }} style={{ outline: 0 }} className={ styles.menu__item} about={app.name}>
-
-
-
-                    <ImageDiv width={60} height={60} style={{
-                        backgroundColor:"black",
-                        boxShadow: "0 0 10px #ffffff20, 0 0 20px #ffffff30, inset 0 0 40px #77777730"
-                    }}
-                        netImage={{
-                            update: {
-                                command: "getIcon",
-                                file: app,
-                                waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
-                                error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
-                            },
-
-                            backgroundColor: "#171717",
-                            opacity: 1,
-
-                            scale: .8
-                        }}
-                    />
-                </div>
-            )
+            state.push(app)
           
         }
     }))
 
     const removeCurrentApp = (item) => setCurrentApps(produce(state =>{
-        const index = state.findIndex(apps => apps.key == item.hash)
+        const index = state.findIndex(apps => apps.hash == item.hash)
 
         if(index != -1)
         {
@@ -524,8 +375,53 @@ const HomeMenu = () => {
     }))
 
     useEffect(()=>{
+        if (currentApps.length > 0)
+        {
+            let icons = []
+            currentApps.forEach(app => {
+                    let netImage = { filter: "invert(100%)" }
+                    switch (app.application) {
+                        case "video":
+                            netImage.image = "/Images/icons/film-outline.svg"
+                            break;
+                        case "audio":
+                            netImage.image = "/Images/icons/musical-notes-outline.svg"
+                            break;
+                        default:
+                            netImage.image = "/Images/icons/document-outline.svg"
+                            break;
+                    }
+                    const appHash = app.hash
+
+                    icons.push(
+
+
+                        <div key={appHash} onClick={() => {
+
+                            setCurrentHash(appHash)
+                            //currentHash == appHash ? styles.menuActive :
+                        }} style={{ outline: 0 }} className={currentHash == appHash ? styles.menuActive : styles.menu__item} about={app.name}>
+
+
+
+                            <ImageDiv width={60} height={60} style={{
+                                backgroundColor: "black",
+                                boxShadow: currentHash == appHash ? "0 0 10px #ffffff20, 0 0 20px #ffffff30, inset 0 0 40px #77777730" : ""
+                            }}
+                                netImage={netImage}
+
+                            />
+                        </div>
+                    )
+                })
+                setAppList(icons)
+        }else{
+            setAppList([])
+        }
         console.log(currentApps)
-    },[currentApps])
+    },[currentHash,currentApps])
+
+
 
     const onCloseFile = (file) => {
 
@@ -609,13 +505,10 @@ const HomeMenu = () => {
     //const addFiles = useZust((state) => state.addFiles)
 
 
-    async function setFolderDefaults(config) {
-        
+    async function setFolderDefaults(localDirectory, configFile) {
+            console.log('getting folders')
             try {
-                
-             
-
-                const realmsHandle = await localDirectory.handle.getDirectoryHandle("realms", { create: true });
+                const appsHandle = await configFile.directory.getDirectoryHandle("apps", { create: true })
 
                 const imageHandle =  await localDirectory.handle.getDirectoryHandle("images", { create: true }) 
                 const modelsHandle = await localDirectory.handle.getDirectoryHandle("models", { create: true }) 
@@ -630,30 +523,35 @@ const HomeMenu = () => {
                 const texturesHandle = await assetsHandle.getDirectoryHandle("textures", { create: true })
                 const terrainHandle = await assetsHandle.getDirectoryHandle("terrain", { create: true })
 
-
-                
-                const images = await worker.getFirstDirectoryAllFiles(imageHandle);
            
-                const models = await worker.getFirstDirectoryAllFiles(modelsHandle);
+                const apps = await getFirstDirectoryAllFiles(appsHandle)
+                
+                const images = await getFirstDirectoryAllFiles(imageHandle);
+           
+                const models = await getFirstDirectoryAllFiles(modelsHandle);
               
-                const audio = await worker.getFirstDirectoryAllFiles(audioHandle);
+                const audio = await getFirstDirectoryAllFiles(audioHandle);
           
-                const video = await worker.getFirstDirectoryAllFiles(videoHandle);
+                const video = await getFirstDirectoryAllFiles(videoHandle);
              
                
-                const types = await worker.getFirstDirectoryAllFiles(typesHandle)
+                const types = await getFirstDirectoryAllFiles(typesHandle)
               
-                const pcs = await worker.getFirstDirectoryAllFiles(pcsHandle)
+                const pcs = await getFirstDirectoryAllFiles(pcsHandle)
            
-                const npcs = await worker.getFirstDirectoryAllFiles(npcsHandle)
+                const npcs = await getFirstDirectoryAllFiles(npcsHandle)
              
-                const placeables = await worker.getFirstDirectoryAllFiles(placeablesHandle)
+                const placeables = await getFirstDirectoryAllFiles(placeablesHandle)
            
-                const textures = await worker.getFirstDirectoryAllFiles(texturesHandle)
+                const textures = await getFirstDirectoryAllFiles(texturesHandle)
                 
-                const terrain = await worker.getFirstDirectoryAllFiles(terrainHandle)
+                const terrain = await getFirstDirectoryAllFiles(terrainHandle)
            
                 let allFiles = []
+
+                apps.files.forEach(entry =>{
+                    allFiles.push(entry)
+                })
 
                 images.files.forEach(entry => {
                    allFiles.push(entry)
@@ -681,6 +579,8 @@ const HomeMenu = () => {
                 terrain.files.forEach(entry => {
                     allFiles.push(entry)
                 });
+
+                setAppsDirectory({name: "apps", handle: appsHandle, directories: apps.directories})
               
                 setAssetsDirectory({ name: "assets", handle: assetsHandle })
 
@@ -706,8 +606,7 @@ const HomeMenu = () => {
 
                 setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
              
-        
-                setRealmsDirectory({ name: realmsHandle.name, handle: realmsHandle, directories: realms.directories })
+
             
                 setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle})
 
@@ -715,82 +614,93 @@ const HomeMenu = () => {
             
 
                 setVideoDirectory({ name: videoHandle.name, handle: videoHandle, directories: video.directories })
-            
-        
-              
-
-               if(allFiles.length > 0) {
-                    await checkAllFiles(allFiles)
-                   
-                    return true
-                }else{
-                    return false
-                }
+               
+                checkAllFiles(allFiles)
 
             } catch (err) {
-                console.log(err)
-                return false
+             
+                addSystemMessage(initStorage)
+                      
             } 
         
        
     }
-
+    const setLoadingComplete = useZust((state) => state.setLoadingComplete)
    
     const checkAllFiles = (allFiles = []) =>{
+       
         return new Promise(resolve => {
             let i = 0;
+            console.log("checking files")
             get("arc.cacheFile").then((idbCacheArray)=>{
                 
                 const isArray = Array.isArray(idbCacheArray)
                 const noCache = (isArray && idbCacheArray.length == 0) || !isArray
                 let newCache = []
-           
-             
+                setLoadingComplete(false)
+
+                console.log(idbCacheArray)
 
                 async function checkFilesRecursive(){
                  
                     const entry = allFiles[i].handle
                     const directory = allFiles[i].directory
                     
-                    const name = await entry.name
+                    const file = await entry.getFile()
+                    const name = file.name
+                    //const size = file.size
+
                     setLoadingStatus({ name: name, hash: "", index: i, length: allFiles.length, complete: false })
-        
-                    if(noCache)
+                    
+                    if(noCache  )
                     {
-             
-                        const newFileInfo = await worker.getFileInfo(entry, directory)
-                       
+                     
+                        const item = await worker.getFileInfo(file, entry, directory)
+                        let newItem = {
 
-                        const contains =  (newCache.findIndex(c => c.hash == newFileInfo.hash) != -1)
+                            application: item.application,
+                            directory: item.directory,
+                            mimeType: item.mimeType,
+                            name: item.name,
+                            hash: item.hash,
+                            size: item.size,
+                            type: item.type,
+                            lastModified: item.lastModified,
+                            handle: item.handle
+                        }
 
-                        if(!contains) newCache.push(newFileInfo)
-                       
+                        const contains =  (newCache.findIndex(c => c.hash == newItem.hash) > -1)
+
+                        if (!contains) newCache.push(newItem)
+                       // console.log(newItem)
                         i = i + 1
-                        await set("arc.cacheFile", newCache)
-                        setLoadingStatus({ name: name, hash: newFileInfo.hash, index: i, length: allFiles.length, complete: true })
+                        const isSet = await set("arc.cacheFile", newCache)
+
+                        setLoadingStatus({ name: name, hash: newItem.hash, index: i, length: allFiles.length, complete: true })
                         if (i < allFiles.length) {
                            
                             checkFilesRecursive()
                         } else {
-                            
+                            setLoadingComplete(true)
                             resolve(true)
                         }
                     }else{
+                   
                        
-                        const index = await worker.asyncFind(idbCacheArray, async item => {
-                            return await entry.isSameEntry(item.handle);
-                        })
-                    
+                        
+                        const index = noCache ? undefined : await worker.asyncFind(idbCacheArray, async item => {
+                                return await entry.isSameEntry(item.handle);
+                            })
+                       
+                       
                         if (index != undefined) {
                             const item = idbCacheArray[index]
                             
-                            const hasDimensions = item.mimeType == "image"
+                           // const hasDimensions = item.mimeType == "image"
 
                             let newItem = {
-                                width: hasDimensions ? item.width : undefined, 
-                                height: hasDimensions ? item.height : undefined, 
+        
                                 application: item.application, 
-                                loaded: true, 
                                 directory: item.directory, 
                                 mimeType: item.mimeType, 
                                 name: item.name, 
@@ -801,9 +711,9 @@ const HomeMenu = () => {
                                 handle: item.handle 
                             }
                             
-                            idbCacheArray[index] = newItem
+                            newCache.push(newItem)
 
-                            await set("arc.cacheFile", idbCacheArray)
+                            await set("arc.cacheFile", newCache)
                                 
                             i = i + 1
                             setLoadingStatus({ 
@@ -817,27 +727,41 @@ const HomeMenu = () => {
                             if (i < allFiles.length) {
                                 checkFilesRecursive()
                             } else {
-                                
+                                setLoadingComplete(true)
                                 resolve(true)
                             }
                        
                                     
                             
                         }else{
-                            const newFileInfo = await worker.getFileInfo(entry, directory)
-                        
-                            idbCacheArray.push(newFileInfo) 
-                           
-                            await set("arc.cacheFile", idbCacheArray)
+                            const item = await worker.getFileInfo(file,entry, directory)
 
-                           
+                            let newItem = {
+        
+                                application: item.application, 
+                                directory: item.directory, 
+                                mimeType: item.mimeType, 
+                                name: item.name, 
+                                hash: item.hash, 
+                                size: item.size, 
+                                type: item.type, 
+                                lastModified: item.lastModified,
+                                handle: item.handle 
+                            }
+
+                            const contains = (newCache.findIndex(c => c.hash == newItem.hash) != -1)
+
+
+                            if (!contains) newCache.push(newItem)
 
                             i = i + 1
-                            setLoadingStatus({ name: name, hash: newFileInfo.hash, index: i, length: allFiles.length, complete: true })
+                            await set("arc.cacheFile", newCache)
+                            setLoadingStatus({ name: name, hash: newItem.hash, index: i, length: allFiles.length, complete: true })
                             if (i < allFiles.length) {
+
                                 checkFilesRecursive()
                             } else {
-                                
+                                setLoadingComplete(true)
                                 resolve(true)
                             }
                         }
@@ -902,7 +826,7 @@ const HomeMenu = () => {
 
 
     const homeMenuID = useId()
-
+/*
     useEffect(() => {
     
         if (showMenu && realms != null && realms.length > 0) {
@@ -960,19 +884,19 @@ const HomeMenu = () => {
         }
 
     }, [quickBar, realms, currentRealmID, showIndex,])
- 
+ */
     
 
-
+ 
 
 
     return (
         <>
 
-            {showIndex == -1 &&
+        {/*showIndex == -1 &&
 
-                <LoadingPage onComplete={onComplete} state={loadState} />
-            }
+                <LoadingPage onComplete={"/"} state={undefined} />
+            */}
 
             {showIndex == 1 &&
                 <LoginPage />
@@ -990,13 +914,9 @@ const HomeMenu = () => {
                 <RecoverPasswordPage />
             }
             {showIndex == 6 &&
-                <RealmsPage />
+               <AppsPage />
             }
-            {showIndex == 7 &&
-
-                <Realm />
-            }
-           
+      
             
           
             
@@ -1017,15 +937,15 @@ const HomeMenu = () => {
                                 <img src="/Images/logo.png" width={50} height={50} />
                             </div>
 
-                            {realmQuickBarItems}
-                            {currentApps}
+          
+                            {appList}
                         </div>
 
                         <div style={{ flex: 0.1 }}>
 
-                            <NavLink style={{ outline: 0 }} className={location.pathname == "/realms" ? styles.menuActive : styles.menu__item} about="Realms"
-                                to={'/realms'}>
-                                <ImageDiv width={60} height={60} netImage={{ image: "/Images/realm.png", filter: "invert(100%)", scale: .75 }} />
+                            <NavLink style={{opacity:.6, outline: 0 }} className={location.pathname == "/apps" ? styles.menuActive : styles.menu__item} about="Apps"
+                                to={'/apps'}>
+                                <ImageDiv width={60} height={60} netImage={{ image: "/Images/icons/apps-outline.svg", filter: "invert(100%)", scale: .6 }} />
                             </NavLink>
 
 
@@ -1033,7 +953,7 @@ const HomeMenu = () => {
                             <NavLink style={{ outline: 0 }} className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
                                 to={'/home'}>
                                 <ImageDiv width={60} height={60}   netImage={{
-                                    image: "/Images/icons/person.svg", filter: "invert(100%)", scale:.8, update: {
+                                    image: "", filter: "", scale:.8, update: {
                                         command: "getIcon",
                                         file: user.image,
                                         waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
@@ -1050,27 +970,32 @@ const HomeMenu = () => {
             }
             {openApp}
             <div style={{
-                position: "fixed", top: 0, right: 0, display: "flex", alignItems: "center",  height: 35, backgroundColor: "black",
+                position: "fixed", top: 0, right: 0, display: "flex", alignItems: "center", height: 35, boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff40, inset 0 0 30px #77777740",
+             
+                backgroundImage: "linear-gradient(to top, black, #cccccc60)",
             }}>
-                <div style={{ display: "flex", }}>
+              
 
-                    <div style={{ display: "flex", alignItems: "center", cursor: "pointer", backgroundColor: "black" }} >
-                        {location.pathname != "/loading" &&
-                        <div onClick={onProfileClick} >
+                    <div style={{ display: "flex", alignItems: "center", cursor: "pointer", backgroundColor: "black", flex:1, }} >
+                        {!loadingComplete && user.userID > 0 &&
+                            < div style={{ paddingLeft: 5, paddingRight: 5 }} >
+                        <ImageDiv width={20} height={20} netImage={{ backgroundImage: "radial-gradient(#000000 30%, #ffffff 98%)", image: "/Images/icons/hourglass-outline.svg", filter: "invert(100%)" }} />
+                            </div>
+                   
+                        }
+                        <LoadingStatusBar />
+                        {location.pathname != "/" && location.pathname != "/login" &&
+                        <div onClick={(e)=>{
+                            navigate("/")
+                        }} >
                             <ImageDiv width={30} height={30} netImage={{
-                                image: "/Images/icons/person.svg", filter: "invert(100%)", scale: .9, update: {
-                                    command: "getIcon",
-                                    file: user.image,
-                                    waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
-                                    error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
-
-                                },
+                                image: "/Images/icons/return-up-back-outline.svg", filter:"invert(100%)", scale: .6,
                             }} />
                                   
                         </div>
                         }
                         {user.userID > 0 &&
-                            <>
+                           <>
                                 <PeerNetworkHandler />
 
                                 <FileHandler />
@@ -1081,7 +1006,7 @@ const HomeMenu = () => {
                
                         <SocketHandler /> 
                    
-                        {location.pathname != "/loading" &&
+                        {user.userID &&
                         <div onClick={onProfileClick} style={{
                             fontFamily: "WebPapyrus",
                             color: "#c7cfda",
@@ -1089,16 +1014,32 @@ const HomeMenu = () => {
                             paddingTop: "5px",
                             paddingLeft: "10px",
                             paddingRight: "15px",
-                            whiteSpace: "nowrap"
-                        }}> {user.userID > 0 ? user.userName : "Log In"}</div>
+                            whiteSpace: "nowrap",
+                            flex:1, 
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"end",
+                            
+                        }}>   <ImageDiv width={30} height={30} netImage={{
+                            image: "", filter: "", scale: .8, update: {
+                                command: "getIcon",
+                                file: user.image,
+                                waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
+                                error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                            },
+                        }} /><div style={{paddingLeft:2}}>{ user.userName}</div> </div>
                      
                         }
                     </div>
-
-                </div>
+                
+        
              
                 { user.userID > 0 &&
+                <>
                 <SystemMessagesMenu />
+                   
+                    </>
                 }
             </div>
 

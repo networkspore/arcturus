@@ -9,6 +9,7 @@ import { ImageViewer } from "./ImageViewer";
 import { errorSelectingImage, initDirectory, initStorage } from "../../../constants/systemMessages";
 import { access } from "../../../constants/constants";
 import { get } from "idb-keyval";
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -79,23 +80,14 @@ export const ImagePicker = (props ={}) =>{
             setDirectoryOptions(options)
         }
     }, [imagesDirectory])
-
+    const navigate = useNavigate()
     useEffect(() => {
-        if (localDirectory.handle != null) {
-            const config = configFile.value;
-
-            if (config == null) {
-             
-                addSystemMessage(initStorage)
-         
-            }
-
-        } else {
-            alert("Local storage required")
-            addSystemMessage(initDirectory)
-       
+        if (configFile.handle == null) {
+            
+            addSystemMessage(initStorage)
+            navigate(-1)
         }
-    }, [configFile, localDirectory])
+    }, [configFile])
 
     useEffect(()=>{
      

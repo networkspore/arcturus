@@ -1,38 +1,40 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useZust from "../hooks/useZust";
-import { RealmCreatePage } from "./RealmCreatePage";
+
 import BubbleList from "./components/UI/BubbleList";
 import styles from "./css/home.module.css"
 import { ImageDiv } from "./components/UI/ImageDiv";
 import produce from "immer";
-import { errorRealmEnd } from "../constants/systemMessages";
+import { AppsAdminPage } from "./AppsAdminPage";
 
 
-export const RealmsPage = () =>{
+
+export const AppsPage = () =>{
     const user = useZust((state) => state.user)
+    const bubbleRef = useRef()
     const navigate = useNavigate();
     const location = useLocation();
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
-    const setCurrentRealmID = useZust((state) => state.setCurrentRealmID)
+  
     const [showIndex, setShowIndex] = useState(0)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
     const [showMenu, setShowMenu] = useState(false)
     
 
-    const [selectedRealm, setSelectedRealm] = useState(null)
+    const [selectedApp, setSelectedApp] = useState(null)
 
     const [selectedItem, setSelectedItem] = useState(null)
 
-    const realms = useZust((state)=> state.realms)
+    const apps = useZust((state)=> state.apps)
 
-    const [realmItems, setRealmItems] = useState([])
+    const [appItems, setAppItems] = useState([])
 
-    const addRealm = (realm) => useZust.setState(produce((state)=>{
-        const index = realms.findIndex(r => r.realmIndex == realm.realmIndex)
-        if(index == -1) state.realms.push(realm)
+    const addApp = (app) => useZust.setState(produce((state)=>{
+        const index = apps.findIndex(r => r.appIndex == app.appIndex)
+        if(index == -1) state.apps.push(app)
     }))
     
     const addSystemMessage = useZust((state) => state.addSystemMessage)
@@ -43,17 +45,20 @@ export const RealmsPage = () =>{
     useEffect(() => {
         const currentLocation = location.pathname;
 
-        const p2pEnabled = configFile.value != null && configFile.value.peer2peer;
+       
 
-        if (p2pEnabled) {
+        if (configFile.handle != null) {
             switch (currentLocation) {
-                case "/realms/create":
+                case "/apps/admin":
+                    setShowIndex(10)
+                    break;
+                case "/apps/add":
                     if ("selectedItem" in location.state) {
                         setSelectedItem(location.state.selectedItem)
                         setShowIndex(1)
                     }
                     break;
-                case "/realms":
+                case "/apps":
                     setShowIndex(0)
                     break;
             }
@@ -64,26 +69,26 @@ export const RealmsPage = () =>{
     
 
     useEffect(()=>{
-        if(realms != null){
+        if(apps != null){
          
-            if(realms.length > 0)
+            if(apps.length > 0)
             {
                 
                 const tmp = []
                 
-                realms.forEach(realm => {
+                apps.forEach(app => {
                     
-                    console.log(realm.image)
+                    console.log(app.image)
                             tmp.push(
                                 {
-                                    index: realm.realmIndex,
-                                    page: realm.realmPage,
-                                    id: realm.realmID,
-                                    name: realm.realmName,
+                                    index: app.appIndex,
+                                    page: app.appPage,
+                                    hash: app.hash,
+                                    name: app.appName,
                                     netImage: {
                                         update: {
                                             command: "getImage",
-                                            file: realm.image,
+                                            file: app.image,
                                             waiting: { url: "/Images/spinning.gif" },
                                             error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
                                         },
@@ -99,39 +104,32 @@ export const RealmsPage = () =>{
                     
                     
                 
-                setRealmItems(tmp)
+                setAppItems(tmp)
             }else{
-                setRealmItems([])
+                setAppItems([])
             }
         }else{
-            setRealmItems([])
+            setAppItems([])
         }
-    },[realms])
+    },[apps])
 
-    const onNewRealm = (realm, callback) => {
+    const onAdd = (app, callback) => {
 
-        const newFile = {
-            mimeType: realm.image.mimeType,
-            name: realm.image.name,
-            hash: realm.image.hash,
-            size: realm.image.size,
-            type: realm.image.type,
-            lastModified: realm.image.lastModified,
-        }
+       
         setSocketCmd({
-            cmd: "createRealm", params: {realmName: realm.realmName,file: newFile,page: selectedItem.page,index: selectedItem.index, }, callback: (response) => {
+            cmd: "addUserApp", params: {app: app,page: selectedItem.page,index: selectedItem.index, }, callback: (response) => {
 
             if ("error" in response) {
                 callback(false)
 
-            } else if ("realm" in response) {
+            } else if ("app" in response) {
 
-                const realm = response.realm
+                const app = response.app
                 callback(true)
 
-                addRealm(realm)
-                setCurrentRealmID(realm.realmID)
-                navigate("/realm/gateway")
+                addApp(app)
+              
+               
 
             }
         }})
@@ -139,69 +137,69 @@ export const RealmsPage = () =>{
     }
 
 
-    const onRealmChange = (r) =>{
+    const onAppChange = (r) =>{
         setShowMenu(false)
         if(r != null && r.id > -1 )
         {
-           const index = realms.findIndex(realm => realm.realmID == r.id)
-           const realm = index > -1 ? realms[index] : null;
+           const index = apps.findIndex(app => app.appID == r.id)
+           const app = index > -1 ? apps[index] : null;
 
            
-            setSelectedRealm(realm)
+            setSelectedApp(app)
             
         }else{
-            setSelectedRealm(null)
+            setSelectedApp(null)
         }
         setSelectedItem(r)
     }
 
-    const onCreateRealm = (e) =>{
+    const onAddApp = (e) =>{
         setShowMenu(false)
-        navigate("/realms/create", {state:{selectedItem:selectedItem}})
+        navigate("/apps/add", {state:{selectedItem:selectedItem}})
 }
-    const onEndRealm = (e) =>{
+    const onDeleteApp = (e) =>{
         setShowMenu(false)
         setShowIndex(-2)
     }
 
-    const removeRealm = (realmID) => useZust.setState(produce((state)=>{
-        const length = state.realms.length;
+    const removeApp = (appID) => useZust.setState(produce((state)=>{
+        const length = state.apps.length;
         if(length != undefined && length > 0)
         {
-            const index = realms.findIndex(realm => realm.realmID == realmID)
+            const index = apps.findIndex(app => app.appID == appID)
 
             
-            state.realms.splice(index, 1)
+            state.apps.splice(index, 1)
             
         }
     }))
 
-    const onEndRealmYes = (e) =>{
+    const onDeleteAppYes = (e) =>{
       
-        const realmID = selectedRealm.realmID;
-        if(realmID == undefined || realmID == null)
+        const appID = selectedApp.appID;
+        if(appID == undefined || appID == null)
         {
             setShowIndex(0)
-            navigate("/realms")
+            navigate("/apps")
         }else{
             setShowIndex(0)
             setSocketCmd({
-                cmd: "deleteRealm", params: {realmID: realmID }, callback: (callback) => {
+                cmd: "deleteApp", params: {appID: appID }, callback: (callback) => {
                 if("error" in callback){
-                    addSystemMessage(errorRealmEnd)
+                    //addSystemMessage(errorAppEnd)
                 }else{
                     if (callback.success) {
-                        removeRealm(realmID)
+                        removeApp(appID)
                     }else{
-                        addSystemMessage(errorRealmEnd)
+                      //  addSystemMessage(errorAppEnd)
                     }
                     
                 }
        
-                setSelectedRealm(null)
-                setCurrentRealmID(null)
+                setSelectedApp(null)
+       
                 setSelectedItem(null)
-              //  navigate("/realms")
+              //  navigate("/apps")
             }})
         }
         
@@ -212,12 +210,7 @@ export const RealmsPage = () =>{
     const onPrevPage = (e) => {
 
     }
-    const onRealmGateway = (e) => {
-        
-            setCurrentRealmID(selectedRealm.realmID)
-            navigate("/realm/gateway")
-        
-    }
+
    
     return (
         <>
@@ -232,9 +225,9 @@ export const RealmsPage = () =>{
                     transform: "translate(-50%,-50%)",
                     boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                 }}>
-                    <div style={{
-
-                        textAlign: "center",
+                    <div  style={{
+                        cursor:"default",
+                        display:"flex",
                         width: "100%",
                         paddingTop: "10px",
                         fontFamily: "WebRockwell",
@@ -244,13 +237,14 @@ export const RealmsPage = () =>{
                         textShadow: "2px 2px 2px #101314",
                         backgroundImage: "linear-gradient(#131514, #000304EE )",
                     }}>
-                        Realms
+                       
+                            
+                        Apps
+                    
                     </div>
-                    <div style={{ fontFamily: "webrockwell", color: "#BBBBBB", paddingBottom: 30, paddingTop:30, fontSize: 13, textAlign: "center" }}>
-                        Notice: This will not delete any of the files associated with this realm.
-                    </div>
+                    
                     <div style={{ fontFamily: "webrockwell", color: "white", paddingBottom: 40, paddingRight: 40, paddingLeft: 40, fontSize: 16, textAlign: "center" }}>
-                       Would you like to end this realm?
+                       Would you like to end this app?
                     </div>
                   
                     <div style={{
@@ -261,7 +255,7 @@ export const RealmsPage = () =>{
                         alignItems: "center",
                         width: "100%"
                     }}>
-                        <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={(e) => { navigate("/realms") }}>No</div>
+                        <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={(e) => { navigate("/apps") }}>No</div>
 
                         <div style={{
 
@@ -272,7 +266,7 @@ export const RealmsPage = () =>{
                         }}>
 
                         </div>
-                        <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={onEndRealmYes} >Yes</div>
+                        <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={onEndAppYes} >Yes</div>
                     </div>
                 </div>
 
@@ -289,7 +283,7 @@ export const RealmsPage = () =>{
                 boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
             }}>
                 <div style={{
-
+                    cursor:"default",
                     textAlign: "center",
                     width: "100%",
                     paddingTop: "10px",
@@ -300,13 +294,13 @@ export const RealmsPage = () =>{
                     textShadow: "2px 2px 2px #101314",
                     backgroundImage: "linear-gradient(#131514, #000304EE )",
                 }}>
-                    Realms
+                    Apps
                 </div>
                 <div style={{ fontFamily: "webrockwell", color: "white", padding: 40, fontSize: 16, textAlign: "center" }}>
-                    Realms require the peer-to-peer network to be enabled.
+                    Apps require local storage to be enabled.
                 </div>
                 <div style={{ fontFamily: "webrockwell", color: "#BBBBBB", paddingBottom: 30, fontSize: 13, textAlign: "center" }}>
-                    Would you like to enable peer-to-peer?
+                    Would you like to enable local storage?
                 </div>
                 <div style={{
                     justifyContent: "center",
@@ -316,7 +310,7 @@ export const RealmsPage = () =>{
                     alignItems: "center",
                     width: "100%"
                 }}>
-                    <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={(e)=>{navigate("/contacts")}}>No</div>
+                    <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={(e)=>{navigate("/")}}>No</div>
 
                     <div style={{
 
@@ -327,7 +321,7 @@ export const RealmsPage = () =>{
                     }}>
 
                     </div>
-                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={(e)=>{navigate("/home/localstorage/init")}} >Yes</div>
+                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={(e)=>{navigate("/home/localstorage")}} >Yes</div>
                 </div>
             </div>
             
@@ -335,7 +329,7 @@ export const RealmsPage = () =>{
         {showIndex == 0 &&
         <>
     
-        <div style={{
+                <div style={{
             position: "fixed",
             width: pageSize.width - 95,
             height: pageSize.height,
@@ -348,8 +342,10 @@ export const RealmsPage = () =>{
         }}>
           
              
-            <div style={{
-             
+            <div 
+                onClick={((e)=>{navigate("/apps/admin")})}
+            style={{
+                cursor:"default",
                 textAlign: "center",
                 width: "100%",
                 paddingTop: "15px",
@@ -363,12 +359,12 @@ export const RealmsPage = () =>{
                     
 
             }}>
-                Realms
+                Apps 
             </div>
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
-                    <div style={{ display:"flex", width:"100%"}}> 
-                    {selectedItem == null && selectedRealm == null && false &&
+                    <div  style={{ display:"flex", width:"100%"}}> 
+                    {selectedItem == null && selectedApp == null && false &&
                     <>
                     < div style={{ display: "flex", justifyContent: "start", alignItems: "center", flex: 1, marginRight:"5%" }}>
                             <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onPrevPage} style={{}}>
@@ -388,18 +384,23 @@ export const RealmsPage = () =>{
                         </div>
                         </>
                     }
-                    {selectedItem != null && selectedRealm == null &&
+                    {selectedItem != null && selectedApp == null &&
                         <>
-                            <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent:"center" }}>
+                            <div onClick={(e) => { 
+                                bubbleRef.current.clear()
+                              
+                            }} style={{  display: "flex", flex: 1, alignItems: "center", justifyContent:"center", zIndex:999 }}>
                             
-                                <div style={{ width: 55, borderRadius: 55 }} about={"Begin a realm"} className={styles.tooltipCenter__item} onClick={onCreateRealm}>
+                                <div style={{ width: 55, borderRadius: 55 }} about={"Find Apps"} className={styles.tooltipCenter__item} onClick={onAddApp}>
 
-                                    <ImageDiv style={{ filter: "drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)" }} width={55} height={55} netImage={{ backgroundColor: "", image: "/Images/icons/earth-outline.svg", filter: "invert(100%) drop-shadow(0 0 10px #ffffff40) drop-shadow(0 0 20px #ffffff40)" }} />
+                                    <ImageDiv style={{ filter: "drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)" }} 
+                                    width={55} height={55} netImage={{ backgroundColor: "", 
+                                    image: "/Images/icons/rocket-outline.svg", filter: "invert(100%) drop-shadow(0 0 10px #ffffff40) drop-shadow(0 0 20px #ffffff40)" }} />
 
                                 </div></div>
                         </>
                     }
-                    {selectedRealm != null &&
+                    {selectedApp != null &&
                         <>
                            
                             <div style={{display:"flex", flex: 1, alignItems:"center" }}> 
@@ -415,13 +416,13 @@ export const RealmsPage = () =>{
                             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex:1,}}>
                               
 
-                                <div about="Gateway" 
+                                <div about="Open" 
                                     className={styles.tooltipCenter__item} 
-                                    onClick={onRealmGateway}  
+                              
                                     style={{display: "flex", 
                                     }}>
                                     <div style={{ width: 100 }}>&nbsp;</div>
-                                    <ImageDiv style={{ filter:"drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)"}} width={55} height={55} netImage={{ scale: 1,  backgroundColor: "", image: "/Images/realm.png", filter: "invert(100%)" }} />
+                                    <ImageDiv style={{ filter:"drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)"}} width={55} height={55} netImage={{ scale: 1,  backgroundColor: "", image: "/Images/icons/enter-outline.png", filter: "invert(100%)" }} />
                                     <div style={{ width: 100 }}>&nbsp;</div>
                                 </div>
                               
@@ -439,10 +440,13 @@ export const RealmsPage = () =>{
                     </div>
             <div style={{width:"100%", display:"flex",height:"100%", flex:1}}>
                 
-                <BubbleList onChange={(item)=>{
+                <BubbleList 
+                    ref={bubbleRef}
+                
+                    onChange={(item)=>{
                   
-                    onRealmChange(item)
-                }} items={realmItems}
+                    onAppChange(item)
+                }} items={appItems}
                             defaultItem={{ netImage:{ backgroundColor:""} }}
                     
                 />
@@ -453,32 +457,33 @@ export const RealmsPage = () =>{
         }
             
             
-        { showIndex == 1 &&
-            <RealmCreatePage onNewRealm={onNewRealm}/>
-        }
-        {showMenu && selectedRealm != null && 
+       
+        {showMenu && selectedApp != null && 
             <div  style={{backgroundColor:"black", display:"flex", flexDirection:"column", position:"fixed", left:135, top: 120, width:200, padding:5 }}>
                     <div className={styles.result} onClick={(e)=>{
                         setShowMenu(false)
-                        onRealmGateway(e)} } style={{display:"flex", alignItems:"center", justifyContent:"left"}}>
+                        } } style={{display:"flex", alignItems:"center", justifyContent:"left"}}>
 
-                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/realm.png", filter: "invert(100%)" }} />
+                    <ImageDiv width={30} height={30} netImage={{ image: "/Images/enter-outline.png", filter: "invert(100%)" }} />
                     <div style={{paddingLeft:10}}>
-                        Enter Gateway
+                        Open
                     </div>
                 </div>
-                    <div className={styles.result} onClick={(e) =>{
-                        
-                        onEndRealm(e)}} style={{ display: "flex", alignItems: "center", justifyContent: "left" }}>
+                    <div className={styles.result} onClick={onDeleteApp} style={{ display: "flex", alignItems: "center", justifyContent: "left" }}>
 
-                        <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/flash-outline.svg", filter: "invert(100%)" }} />
+                        <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/trash-outline.svg", filter: "invert(100%)" }} />
                         <div style={{ paddingLeft: 10 }}>
-                            End Realm
+                            Delete
                         </div>
                     </div>
             </div>
         }
-           
+        {showIndex == 10 &&
+            <AppsAdminPage />
+        }
         </>
     )
 }
+/* { showIndex == 1 &&
+            <AppCreatePage onNewApp={onNewApp}/>
+        }*/

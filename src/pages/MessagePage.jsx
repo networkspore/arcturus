@@ -113,7 +113,7 @@ export const MessagePage = (props = {}) => {
                       
                     }} about={"Menu"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
 
-                        <img src='/Images/icons/menu-outline.svg' width={25} height={25} style={{ filter: configFile.value == null ? "Invert(25%)" : "Invert(100%)" }} />
+                        <img src='/Images/icons/menu-outline.svg' width={25} height={25} style={{ filter: configFile.handle == null ? "Invert(25%)" : "Invert(100%)" }} />
 
                     </div>
                   
@@ -145,7 +145,7 @@ export const MessagePage = (props = {}) => {
                                 <img src='/Images/icons/people-circle-outline.svg' style={{
                                     width: "25px",
                                     height: "25px",
-                                    filter: configFile.value == null ? "Invert(25%)" : "invert(100%)"
+                                    filter: configFile.handle == null ? "Invert(25%)" : "invert(100%)"
                                 }} />
                             </div>
                             
@@ -156,7 +156,7 @@ export const MessagePage = (props = {}) => {
                                     height: "18px",
                                     textAlign: "left",
                                     border: "0px",
-                                    color: configFile.value == null ? "#777777" : "#cdd4da",
+                                    color: configFile.handle == null ? "#777777" : "#cdd4da",
                                     backgroundColor: "#00000000",
 
 

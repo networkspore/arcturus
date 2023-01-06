@@ -11,11 +11,12 @@ import { CreateReferalCode } from "./CreateReferalCode";
 import styles from './css/home.module.css'
 import { access } from "../constants/constants";
 import { ChangeAccessPage } from "./ChangeAccessPage";
+import { ImagePicker } from "./components/UI/ImagePicker";
 
 export const AccountSettingsPage = (props = {}) => {
 
     const pageSize = useZust((state) => state.pageSize)
-
+    const updateUserImage = useZust((state) => state.updateUserImage)
     const user = useZust((state) => state.user)
 
     const [showIndex, setShowIndex] = useState(0);
@@ -39,15 +40,42 @@ export const AccountSettingsPage = (props = {}) => {
         }
     }, [user])
 
-
-    function onCancelClick(e) {
-        props.cancel();
-    }
+    const navigate = useNavigate()
+    
 
     function onOKclick(e) {
-
+        navigate("/home")
     }
+    const onUpdateUserImage = (onUpdate) => {
+        const file = onUpdate.file
+        const text = onUpdate.text
+        const title = onUpdate.title
+        const accessID = onUpdate.accessID
+        const userAccess = onUpdate.userAccess
 
+        const fileInfo = {
+            name: file.name,
+            hash: file.hash,
+            size: file.size,
+            type: file.type,
+            mimeType: file.mimeType,
+            lastModified: file.lastModified,
+            title: title,
+            text: text,
+            accessID: accessID,
+            userAccess: userAccess
+        }
+
+
+        setSocketCmd({
+            cmd: "updateUserImage", params: { imageInfo: fileInfo }, callback: (updateResult) => {
+                if ("success" in updateResult && updateResult.success) {
+                    updateUserImage(updateResult.file)
+                }
+
+            }
+        })
+    }
 
     return (
 
@@ -76,18 +104,27 @@ export const AccountSettingsPage = (props = {}) => {
 
 
                     }}>
-                        Account
+                        {user.userName}
                     </div>
                     <div style={{ paddingLeft: "15px", display: "flex", height: "430px", }}>
 
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 200, padding: "10px" }}>
-                            <ImageDiv width={150} height={150} about={"Account"}  netImage={{
-                                scale: 1,
-                                image: "/Images/icons/id-card-outline.svg",
-                               
+                        <div onClick={(e)=>{
+                            setShowIndex(5)
+                            }} style={{ cursor:"pointer", display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 200, padding: "10px" }}>
+                            <ImageDiv about={"Select Image"} className={styles.bubble__item} width={150} height={150} netImage={{
+                                scale: .97,
+                                update: {
+                                    command: "getImage",
+                                    file: user.image,
+                                    waiting: { url: "/Images/spinning.gif", style: { filter: "invert(0%)" } },
+                                    error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
+
+                                },
+                                backgroundColor: "#44444450",
                                 backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-                                filter:"invert(100%)"
+
                             }} />
+
                         
                         </div>
                         <div style={{ width: 2, height: "100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
@@ -112,7 +149,7 @@ export const AccountSettingsPage = (props = {}) => {
                                             Click to change...
                                         </div>
                                         <div style={{ paddingLeft: "20px" }} onDoubleClick={(e)=>{
-                                                setShowIndex(1)
+                                              if(user.admin)  setShowIndex(1)
                                             }} 
                                         > Password </div>
                                     </div>
@@ -155,8 +192,6 @@ export const AccountSettingsPage = (props = {}) => {
                                     </div>
 
                                     
-                                    <div style={{ height: "20px" }}></div>
-                                </div>
                                 <div style={{
                                     justifyContent: "center",
 
@@ -165,17 +200,13 @@ export const AccountSettingsPage = (props = {}) => {
                                     alignItems: "center",
                                     width: "100%"
                                 }}>
-                                    <div style={{height:40, width: 90}} className={styles.CancelButton} onClick={onCancelClick}>Cancel</div>
 
-                                    <div style={{
 
-                                        marginLeft: "20px", marginRight: "20px",
-                                        height: "50px",
-                                        width: "1px",
-                                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                                    }}></div>
-                                    <div style={{height:40, width:80}} className={styles.OKButton} onClick={onOKclick} >OK</div>
+
+                                    <div style={{ height: 40, width: 80 }} className={styles.OKButton} onClick={onOKclick} >Back</div>
                                 </div>
+                                </div>
+                             
                             </div>
                             
                         </div>
@@ -201,6 +232,10 @@ export const AccountSettingsPage = (props = {}) => {
             {
                 showIndex == 4 &&
                 <ChangeAccessPage back={() => { setShowIndex(0)}} />
+            }
+            {
+                showIndex == 5 && 
+                <ImagePicker selectedImage={user.image} onCancel={() => { setShowIndex(0) }} onOk={onUpdateUserImage}/>
             }
         </>
     )

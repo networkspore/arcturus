@@ -44,26 +44,26 @@ export const SocketHandler = (props = {}) => {
 
     useEffect(()=>{
        
-        if (user.userID > 0 && sock.current.value == null ){
+        if (sock.current.value == null && user.userID > 0){
             setSocketConnected(false)
           
             setShowLogin(true)
            
            
-        } else if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected){
-          
-            sock.current.value = null
-            setSocketConnected(false)
-   
-           
-            setShowLogin(true)
+        } else {
+            if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected) {
 
-            
-        }else{
+                sock.current.value = null
+                setSocketConnected(false)
+
+
+                setShowLogin(true)
+
+            } else{
            
             setShowLogin( false )
         }
-        
+    }
      
     }, [sock.current, user])
 
@@ -73,7 +73,7 @@ export const SocketHandler = (props = {}) => {
 
         sock.current.value.on("connect", () => {
          
-        
+         
       
             sock.current.value.emit("login", socketCmd.params, (response) => {
             
@@ -105,7 +105,7 @@ export const SocketHandler = (props = {}) => {
                 }
 
             })
-
+         
         })
     }
 
@@ -195,14 +195,24 @@ export const SocketHandler = (props = {}) => {
 
                 
                 switch (socketCmd.cmd) {
+                    case "getAppList":
+                        sock.current.value.emit("getAppList", socketCmd.params, (response) => {
+                            socketCmd.callback(response)
+                        })
+                        break;
                     case "getRealms":
                         sock.current.value.emit("getRealms", (response)=>{
                             socketCmd.callback(response)
                         })
                         break;
+                    case "createStorage":
+                        sock.current.value.emit("createStorage", socketCmd.params, (response) => {
+                            socketCmd.callback(response)
+                        })
+                        break;
                     case "checkStorageHash":
-                    
-                        sock.current.value.emit("checkStorageHash", socketCmd.params.hash, (response) =>{
+                        console.log("socket checking hash")
+                        sock.current.value.emit("checkStorageHash", socketCmd.params, (response) =>{
                             socketCmd.callback(response)
                         })
                         break;
@@ -229,21 +239,6 @@ export const SocketHandler = (props = {}) => {
                         break;
                     case "getUserReferalCodes":
                         sock.current.value.emit("getUserReferalCodes", (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-                    case "createStorage":
-                        sock.current.value.emit("createStorage", socketCmd.params.file, socketCmd.params.key, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-                    case "updateStorageConfig":
-                        sock.current.value.emit("updateStorageConfig", socketCmd.params.fileID, socketCmd.params.file, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
-                    case "useConfig":
-                        sock.current.value.emit("useConfig", socketCmd.params.fileID, socketCmd.params.key, (response) => {
                             socketCmd.callback(response)
                         })
                         break;

@@ -29,7 +29,7 @@ export const LocalStoragePage = () => {
 
     const [viewImage, setViewImage] = useState(null)
     const [viewMedia, setViewMedia] = useState(null)
-
+    const appsDirectory = useZust((state) => state.appsDirectory)
     const imagesDirectory = useZust((state) => state.imagesDirectory);
     const modelsDirectory = useZust((state) => state.modelsDirectory);
     const audioDirectory = useZust((state) => state.audioDirectory);
@@ -54,7 +54,7 @@ export const LocalStoragePage = () => {
     const setPlaceablesDirectory = useZust((state) => state.setPlaceablesDirectory)
     const setTypesDirectory = useZust((state) => state.setTypesDirectory)
     const setCacheDirectory = useZust((state) => state.setCacheDirectory)
-    
+    const setAppsDirectory = useZust((state) => state.setAppsDirectory)
 
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
@@ -72,9 +72,7 @@ export const LocalStoragePage = () => {
     const user = useZust((state) => state.user)
 
     const localDirectory = useZust((state) => state.localDirectory)
-    const setLocalDirectory = (value) => useZust.setState(produce((state) => {
-        state.localDirectory = value;
-    }));
+    const setLocalDirectory = useZust((state) => state.setLocalDirectory)
 
     const [currentDirectories, setCurrentDirectories] = useState([])
  
@@ -85,7 +83,7 @@ export const LocalStoragePage = () => {
     const [currentFolder, setCurrentFolder] = useState("")
     const [currentFiles, setCurrentFiles] = useState()
 
-    const [showIndex, setShowIndex] = useState(); 
+    const [showIndex, setShowIndex] = useState(-1); 
 
     const [directoryIndex, setDirectoryIndex] = useState(-1)
 
@@ -100,22 +98,13 @@ export const LocalStoragePage = () => {
     const [searchText, setSearchText] = useState("")
     const [currentMimeType, setCurrentMimeType] = useState("")
     const [currentType, setCurrentType] = useState("")
-    const [allFiles, setAllFiles] = useState([])
+    const allFiles = useRef({current:[]})
     const [typeOptions, setTypeOptions] = useState()
     const [fileListWidth, setFileListWidth] = useState(600)
     
 
-    
-    useEffect(()=>{
-    
-       
-        onRefresh()
-      
-    }, [localDirectory])
 
-    useEffect(()=>{
-        onRefresh()
-    }, [loadingStatus])
+
 
     useEffect(() => { 
         if(fileListDivRef.current)
@@ -128,12 +117,13 @@ export const LocalStoragePage = () => {
     }, [pageSize, fileListDivRef.current])
 
     useEffect(()=>{
-        if(configFile.value != null ){
+        if(configFile.handle != null ){
             setTypeOptions([
                 { value: "", label: localDirectory.name },
                 { value: "/settings", label: "Settings" },
                 { value: "/init", label: "Setup" },
                 { value: "/all", label: "All" },
+                {value: "/apps", label: "Apps"},
                 {
                     value: "/images", label: "Images"
                 },
@@ -175,6 +165,7 @@ export const LocalStoragePage = () => {
                 },
 
             ])
+           
         }else{
             setTypeOptions([
                 { value: "", label: "" },
@@ -182,51 +173,64 @@ export const LocalStoragePage = () => {
             ])
             
         }
+        onRefresh()
     },[configFile, localDirectory])
 
-    useLayoutEffect(()=>{
+    useEffect(()=>{
+        const currentLocation = location.pathname;
+        const secondSlash = currentLocation.indexOf("/", directory.length)
+
+        const subLocation = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
+        const thirdSlash = subLocation.indexOf("/", 1)
+        const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
+        const fourthSlash = subLocation.indexOf("/", thirdSlash == -1 ? subLocation.length : thirdSlash + 1)
+
+        const ssD = thirdSlash != -1 ? subLocation.slice(thirdSlash, fourthSlash == -1 ? subLocation.length : fourthSlash) : ""
 
         if(localDirectory.handle != null)
         {
-            getPermission(localDirectory.handle, (verified)=>{
-            
-                const currentLocation = location.pathname;
-                
-            const secondSlash = currentLocation.indexOf("/", directory.length)
-
-            const subLocation = secondSlash == -1 ? "" : currentLocation.slice(secondSlash)
-
-                
        
-
-            const thirdSlash = subLocation.indexOf("/", 1)
-            const sD = subLocation.slice(0, thirdSlash == -1 ? subLocation.length : thirdSlash)
-            const fourthSlash = subLocation.indexOf("/", thirdSlash == -1 ? subLocation.length : thirdSlash + 1)
-
-            const ssD = thirdSlash != -1 ? subLocation.slice(thirdSlash, fourthSlash == -1 ? subLocation.length : fourthSlash) : ""
+        
 
             const fifthSlash = subLocation.indexOf("/", fourthSlash == -1 ? subLocation.length : fourthSlash + 1)
             const sssD = fourthSlash != -1 ? subLocation.slice(fourthSlash, fifthSlash == -1 ? subLocation.length : fifthSlash) : ""
 
+            console.log(sD + ssD)
+
             setSubDirectory(sD)
        
-                
+              
 
                 switch(sD + ssD){
                     case "/init":
+                        console.log(location)    
+                     
+                        
                         setCurrentFiles([])
                         setShowIndex(1)
                         directoryOptionsRef.current.setValue(sD)
                         break;
                     case "/all":
+
                         directoryOptionsRef.current.setValue(sD)
-                        setCurrentFiles(allFiles)
+                        
+                        setCurrentFiles(allFiles.current.value)
                         setCurrentMimeType("")
                         setCurrentType("")
+                        setShowIndex(0)
+
+                        break;
+                    case "/apps":
+                        setCurrentDirectories(appsDirectory.directories)
+                        setCurrentFiles( allFiles.current.value)
+                        directoryOptionsRef.current.setValue(sD)
+                        setCurrentMimeType("arcnet")
+                        setCurrentType("")
+                        setShowIndex(0)
                         break;
                     case "/images":
                         setCurrentDirectories(imagesDirectory.directories)
-                        setCurrentFiles(allFiles)
+                        setCurrentFiles( allFiles.current.value)
                         directoryOptionsRef.current.setValue(sD)
                         setCurrentMimeType("image")
                         setCurrentType("")
@@ -252,7 +256,7 @@ export const LocalStoragePage = () => {
                                 break;
                             case "/assets/pcs":
                                 setCurrentDirectories(pcsDirectory.directories)
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcpc")
@@ -263,7 +267,7 @@ export const LocalStoragePage = () => {
                             case "/assets/npcs":
                                 setCurrentDirectories(npcsDirectory.directories)
 
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcnpc")
                                 setCurrentMimeType("asset")
@@ -273,7 +277,7 @@ export const LocalStoragePage = () => {
                             case "/assets/placeables":
                                 setCurrentDirectories(placeablesDirectory.directories)
 
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcpl")
                                 setCurrentMimeType("asset")
@@ -282,7 +286,7 @@ export const LocalStoragePage = () => {
                                 break;
                             case "/assets/textures":
                                 setCurrentDirectories(texturesDirectory.directories)
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arctex")
                                 setCurrentMimeType("asset")
@@ -290,7 +294,7 @@ export const LocalStoragePage = () => {
                                 break;
                             case "/assets/terrain":
                                 setCurrentDirectories(terrainDirectory.directories)
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcterr")
                                 setCurrentMimeType("asset")
@@ -298,7 +302,7 @@ export const LocalStoragePage = () => {
                                 break;
                             case "/assets/types":
                                 setCurrentDirectories(typesDirectory.directories)
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arctype")
                                 setCurrentMimeType("asset")
@@ -308,7 +312,7 @@ export const LocalStoragePage = () => {
                     
                     case "/models":
                         setCurrentDirectories(modelsDirectory.directories)
-                        setCurrentFiles(allFiles)
+                        setCurrentFiles( allFiles.current.value)
                          directoryOptionsRef.current.setValue(sD)
                         setCurrentType("")
                         setCurrentMimeType("model")
@@ -320,9 +324,9 @@ export const LocalStoragePage = () => {
                         directoryOptionsRef.current.setValue(sD)
 
                                 setCurrentFiles([
-                                    { to: directory + "/media/audio-video", name: "audio-video", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: directory + "/media/audio", name: "audio", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: directory + "/media/video", name: "video", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: directory + "/media/audio-video", name: "Audio-Video", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: directory + "/media/audio", name: "Audio", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: directory + "/media/video", name: "Video", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
 
                                 ])
                                 setCurrentMimeType("")
@@ -336,7 +340,7 @@ export const LocalStoragePage = () => {
                                 newDirectories = newDirectories.concat(videoDirectory.directories)
 
                                 setCurrentDirectories(newDirectories)
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("")
                                 setCurrentMimeType("media")
@@ -345,7 +349,7 @@ export const LocalStoragePage = () => {
                                 break;
                     case "/media/audio":
                                 setCurrentDirectories(audioDirectory.directories)
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("audio")
                                 setCurrentMimeType("media")
@@ -354,7 +358,7 @@ export const LocalStoragePage = () => {
                                 break;
                     case "/media/video":
                                 setCurrentDirectories(videoDirectory.directories)
-                                setCurrentFiles(allFiles)
+                                setCurrentFiles( allFiles.current.value)
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("video")
                                 setCurrentMimeType("media")
@@ -367,7 +371,7 @@ export const LocalStoragePage = () => {
                         
                         directoryOptionsRef.current.setValue(sD)
                         setCurrentFiles([
-                            { to: "/home/localstorage/init", name: "Setup", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: "/home/localstorage/init", state: { localDirectory: localDirectory.handle }, name: "Setup", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         ])
                       
                         setShowIndex(0);
@@ -385,9 +389,17 @@ export const LocalStoragePage = () => {
                         setShowIndex(0);
                         break;
                 }
-            })
+            
+        }else{
+            switch (sD + ssD) {
+                case "/init":
+                    setShowIndex(1)
+                break;
+                default:
+                    setShowIndex(-1)
+            }
         }
-    }, [location, localDirectory, allFiles])
+    }, [location, localDirectory])
 
     const fileSelected = (selectedFile) => {
 
@@ -415,27 +427,27 @@ export const LocalStoragePage = () => {
    function onRefresh() {
         if (localDirectory.handle != null) {
             get("arc.cacheFile").then((files) => {
-               
+             
                 if (files != undefined) {
-                    setAllFiles(files)
+                    allFiles.current.value = files
                 } else {
-                    setAllFiles([])
+                    allFiles.current.value = []
                 }
             })
         }else{
-            setAllFiles([])
+            allFiles.current.value = []
         }
     }
-
 
     async function pickAssetDirectory() {
         try{
             
-            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-            await turnOffLocalStorage()
            
-            handleFirst(dirHandle)
-            
+            await turnOffLocalStorage()
+            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+          
+                navigate("/home/localstorage/init", { state: { localDirectory: dirHandle } })
+        
         }catch (error) {
             if(error == DOMException.ABORT_ERR) {
                 
@@ -444,90 +456,7 @@ export const LocalStoragePage = () => {
     }
  
 
-    async function handleFirst (dirHandle) {
-        try{
-
-            const name = await dirHandle.name;
-
-        
-            const lDirectory = { name: name, handle: dirHandle }
-            
-            setLocalDirectory(lDirectory)
-            
-            await set("localDirectory" + user.userID, lDirectory)
-  
-            const homeHandle = await dirHandle.getDirectoryHandle("home", { create: true })
-       
-            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true })
-         
-            const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.config")
-       
-
-            const handleFile = await handle.getFile()
-       
-            if (handleFile != undefined) {
-                getFileInfo(handle, dirHandle).then((file) => {
-
-                    setSocketCmd({
-                        cmd: "checkUserStorageHash", params: { hash: file.hash }, callback: (callback) => {
-                        if ("error" in callback) {
-                            addSystemMessage(initStorage)
-                            navigate("/home/localstorage/init")
-                        } else {
-                            if (callback.success) {
-                                readFileJson(handle).then((jsonResult) => {
-                                    if ("error" in jsonResult) {
-                                        addSystemMessage(initStorage)
-                                        navigate("/home/localstorage/init")
-                                    } else {
-                                        if (jsonResult.success) {
-                                            const json = jsonResult.value;
-                                            file.value = json[user.userName];
-                                            file.fileID = callback.fileID;
-
-                                            
-                                            file.fileID = callback.fileID;
-                                            if (callback.success) {
-
-                                                file.storageID = callback.storageID;
-
-                                                setConfigFile(file)
-                                             //   navigate("/loading", { state: { configFile: file, navigate: "/home/localstorage" } })
-                                                navigate("/home/localstorage")
-                                            } else {
-
-                                                navigate("home/localstorage/init", { state: { configFile: file } })
-                                            }
-                                            
-                                        } else {
-                                            console.log(jsonResult.error)
-
-                                            addSystemMessage(initStorage)
-                                            navigate("/home/localstorage/init")
-                                        }
-                                    }
-                                })
-                            } else {
-                                addSystemMessage(initStorage)
-                                navigate("/home/localstorage/init")
-                            }
-                        }
-                    }})
-
-                }).catch((err) => {
-                    console.log(err)
-                    addSystemMessage(initStorage)
-                    navigate("/home/localstorage/init")
-                })
-            }
-              
-       
-    }catch(err){
-            console.log(err)
-            addSystemMessage(initStorage)
-            navigate("/home/localstorage/init")
-    }
-}
+   
     const clearSearch = () =>{
         searchInputRef.current.value = ""
         setCurrentDirectories([])
@@ -541,7 +470,7 @@ export const LocalStoragePage = () => {
         
         try{
             
-
+            setAppsDirectory()
             setImagesDirectory();
 
             setModelsDirectory();
@@ -559,11 +488,10 @@ export const LocalStoragePage = () => {
 
             clearSearch()
 
-            del("localDirectory" + user.userID).catch((err) => {console.log("no local directory in idb")})
-            del(configFile.name + user.userID).catch((err) => {console.log("no configfile in idb")}) 
+            del(user.userID + "localDirectory").catch((err) => {console.log("no local directory in idb")})
 
         
-            setLocalDirectory({ name: "", handel: null });
+            setLocalDirectory();
             setConfigFile();
             return true;
         }catch(err){
@@ -602,12 +530,7 @@ export const LocalStoragePage = () => {
                         backgroundImage: "linear-gradient(#131514, #000304EE )",
 
                 }}>
-                    <div onClick={(e) => {
-                        navigate("/home")
-                    }} about={"Close"} className={styles.glow} style={{cursor:"pointer", paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
-                        <ImageDiv width={15} height={15} netImage={{ image: '/Images/icons/close-outline.svg', filter:"invert(100%) drop-shadow(0px 0px 3px white)"    }}/>
-
-                    </div>
+                 
                   <div style={{flex:1, display:"flex", alignItems:"center", justifyContent:"center", paddingTop:15, paddingBottom:10}}>  Local Storage</div>
                   <div style={{width:45}}>&nbsp;</div>
                 </div>
@@ -744,7 +667,7 @@ export const LocalStoragePage = () => {
 
              
                
-                    {configFile.handle == null && showIndex != 1  &&
+                    {showIndex == -1  &&
                     <div style={{display:"flex",width:"100%", height:"100%", flexDirection:"column", alignItems:"center",justifyContent:"center", color:"white",}}>
                             <ImageDiv onClick={(e) => { pickAssetDirectory() }}
                             style={{cursor:"pointer"}}
@@ -781,7 +704,7 @@ export const LocalStoragePage = () => {
                                     
                                     fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
                                     onChange={fileSelected}
-                                    filter={{ name: searchText, mimeType: currentMimeType, type: currentType, loaded: fileViewLoaded }}
+                                    filter={{ name: searchText, mimeType: currentMimeType, type: currentType, loaded: true }}
                                     files={currentFiles}
                                 />
                             </div>
@@ -790,6 +713,7 @@ export const LocalStoragePage = () => {
               
                 {showIndex == 1 &&
                     <InitStoragePage 
+                        
                         close={()=>{
                             navigate("/home/localstorage")
                         }} resetLocalStorage={()=>{
@@ -866,15 +790,7 @@ export const LocalStoragePage = () => {
                     <img src={"/Images/icons/list-outline.svg"} width={20} height={20} style={{ filter: fileViewType == "details" ? "Invert(100%)" : "Invert(60%)" }} />
 
                 </div>
-                    <div onClick={(e) => {
-                       
-                        setFileViewLoaded(prev => !prev)
-                       
-                    }} about={fileViewLoaded ? "Show unavailable" : "Show available"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltipCenter__item} >
-
-                        <img src={fileViewLoaded ? "/Images/icons/eye-outline.svg" : "/Images/icons/eye-off-outline.svg"} width={20} height={20} style={{ filter: fileViewType == "details" ? "Invert(100%)" : "Invert(60%)" }} />
-
-                    </div>
+                   
 
             </div>}
 

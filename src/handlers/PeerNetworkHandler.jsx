@@ -220,7 +220,7 @@ export const PeerNetworkHandler = (props ={}) => {
     const onPeerDisconnect = () =>{
         setUserPeerID("")
         
-        if(configFile.value != null){
+        if(configFile.handle != null){
           
             peerReconnect()
         }
@@ -230,18 +230,18 @@ export const PeerNetworkHandler = (props ={}) => {
     const peerReconnect = () =>{
         setTimeout(() => {
             if(peerConnection != null){
-                if (configFile.value != null) {
-                    if (configFile.value.peer2peer){
-                        if(!peerConnection.destroyed){
-                            if (peerConnection.disconnected) {
-                         
-                                peerConnection.reconnect()
-                                peerReconnect()
-                            }
-                        }else{
-                            onPeerClose()
+                if (configFile.handle != null) {
+                    
+                    if(!peerConnection.destroyed){
+                        if (peerConnection.disconnected) {
+                        
+                            peerConnection.reconnect()
+                            peerReconnect()
                         }
+                    }else{
+                        onPeerClose()
                     }
+                   
                 }
             }
         }, 4000)
@@ -254,8 +254,8 @@ export const PeerNetworkHandler = (props ={}) => {
 
     useEffect(()=>{
 
-        if(configFile.value != null){
-            if (configFile.value.peer2peer){
+        if(configFile.handle != null){
+         
                 if(peerConnection == null){
                     openPeerConnection()
                 }else{
@@ -265,10 +265,7 @@ export const PeerNetworkHandler = (props ={}) => {
                         
                     }
                 }
-            }else{
-                
-                onPeerClose()
-            }
+            
         }else{
             if (peerConnection != null || userPeerID != "") {
                 onPeerClose()
@@ -1297,7 +1294,7 @@ export const PeerNetworkHandler = (props ={}) => {
 
                                             cacheDirectory.handle.getFileHandle(fileID + "-" + fileName).then((fileHandle) =>{
                                                 
-                                                worker.getFileInfo(fileHandle, cacheDirectory.handle).then((fileInfo) =>{
+                                                worker.getEntryInfo(fileHandle, cacheDirectory.handle).then((fileInfo) =>{
                                                     if (fileHash == fileInfo.hash) {
                                                         partsRef.current.value.splice(partsRefIndex, 1)
                                                         dataConnection.send({ downloadComplete: true, id: id })

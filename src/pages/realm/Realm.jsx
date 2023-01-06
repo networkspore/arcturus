@@ -144,13 +144,8 @@ export const Realm = () => {
     },[realms])
 */
     useEffect(()=>{
-        if(configFile.value != null)
+        if(configFile.handle == null)
         {
-            if(configFile.value.peer2peer == false)
-            {
-                navigate("/realm/disabled")
-            }
-        }else{
             navigate("/realm/disabled")
         }
     },[configFile])
@@ -189,10 +184,10 @@ export const Realm = () => {
                     Realms
                 </div>
                 <div style={{ fontFamily: "webrockwell", color: "white", padding: 40, fontSize: 16, textAlign: "center" }}>
-                        Realms require the peer-to-peer network to be enabled.
+                        Realms require local storage to be enabled.
                 </div>
                 <div style={{ fontFamily: "webrockwell", color: "#BBBBBB", paddingBottom: 30, fontSize: 13, textAlign: "center" }}>
-                    Would you like to enable peer-to-peer?
+                    Would you like to enable local storage?
                 </div>
                 <div style={{
                     justifyContent: "center",
@@ -213,7 +208,7 @@ export const Realm = () => {
                     }}>
 
                     </div>
-                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={(e) => { navigate("/home/localstorage/init") }} >Yes</div>
+                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={(e) => { navigate("/home/localstorage") }} >Yes</div>
                 </div>
             </div>
         }

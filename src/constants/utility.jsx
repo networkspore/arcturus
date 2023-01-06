@@ -7,6 +7,7 @@ import SparkMD5 from 'spark-md5'
 import { get, set, update } from "idb-keyval";
 
 
+
 import { randInt } from "three/src/math/MathUtils";
 import {  fileTypes, MB, tableChunkSize } from "./constants";
 
@@ -90,7 +91,7 @@ function getRandomIntSFC(min, max, sfc) {
     return Math.floor(randResult * (max - min + 1)) + min;
 }
 
-export async function generateCode(word = "") {
+export async function generateCode(word = "", length = 45) {
     const dateString = formatedNow(new Date(), false)
 
     word = word.concat(dateString)
@@ -109,13 +110,13 @@ export async function generateCode(word = "") {
     }
     let code = ""
     
-    for (let i = 0; i < 45 ; i ++)
+    for (let i = 0; i <  length; i ++)
     {
-        const char =  String.fromCharCode(getRandomIntSFC(33, 126, SFC))
+        const char = String.fromCharCode(getRandomIntSFC( 0, 126, SFC))
         code = code.concat(char)
     }
 
-   
+   //0
 
 
     return code
@@ -421,6 +422,16 @@ export const getStringHash = (string, size = 64) =>{
        resolve(hex)
     })
 }
+export const getUintHash = (input, size = 64) => {
+    return new Promise(resolve => {
+        const hash = new Uint8Array(size)
+        const hashLength = hash.length
+
+        blake2b(hashLength).update(input).digest(hash)
+
+        resolve(hash)
+    })
+}
 export const getDataHash = (data) => {
     return new Promise(resolve => {
 
@@ -468,50 +479,55 @@ export const getDataHash = (data) => {
         getHashRecursive()
     })
 }
-export const getFileHash = (file) =>{
+export async function getFileHash(file, size = 64){
+
+    const hashLength = new Uint8Array(32).length
+
+    const arrayBuffer = await file.arrayBuffer()
+
+    const input = new Uint8Array(arrayBuffer);
+    const hash = blake2b(hashLength).update(input).digest('hex')
+    return hash
+
+}
+
+export const getFileHashTable = (file) =>{
     
+
     return new Promise(resolve => {
 
-        
-        const size = file.size
-        const chunkSize = MB * 5
-        const chunks = Math.ceil(size / chunkSize)
-        
-       // const spark = chunks > 1 ? new SparkMD5.ArrayBuffer() : null
-        
-        let i = 0;
-        let hash = ""
 
-        async function getHashRecursive(){
+        const size = file.size
+        const chunkSize = 100000
+        const chunks = Math.ceil(size / chunkSize)
+
+        let i = 0;
+        let hashTable = ""
+        const hashLength = new Uint8Array(64).length
+        
+        async function getHashRecursive() {
             const chunkEnd = (i + 1) * chunkSize
 
-            const blob = await file.slice(i * chunkSize, chunkEnd > size ? size : chunkEnd )
-           
-            const arrayBuffer = await blob.arrayBuffer()
-         
-           
-         //   if (i == 0) {
-                
-                const hashLength = new Uint8Array(64).length
-                const input = new Uint8Array(arrayBuffer);
-                hash += blake2b(hashLength).update(input).digest('hex')
-              
-          //  } else {
-             //   spark.append(arrayBuffer)
-         //   }
+            const blob = await file.slice(i * chunkSize, chunkEnd > size ? size : chunkEnd)
 
+            const arrayBuffer = await blob.arrayBuffer()
+
+           
+            const input = new Uint8Array(arrayBuffer);
+            const hash = blake2b(hashLength).update(input).digest('hex')
+            hashTable  =+ hash
+         
+        
             i = i + 1
-            
-            if (i < chunks){
-                
+
+            if (i < chunks) {
+
                 getHashRecursive()
 
-            }else{
-               // if (chunks > 1) {
-               //     hash = hash + spark.end()
-             //   }
-                hash = await getStringHash(hash,64)
-                resolve(hash)
+            } else {
+                
+                
+                resolve(hashTable)
             }
         }
 
@@ -524,7 +540,7 @@ export async function getFileCRCTable(file){
 
     return new Promise(resolve => {
 
-        const chunkSize = tableChunkSize
+        const chunkSize = 100000
         const size = file.size
         const chunks = Math.ceil(size / chunkSize)
    
@@ -540,7 +556,7 @@ export async function getFileCRCTable(file){
 
             const crc = await crc32FromArrayBufferAsync(arrayBuffer)
 
-            crcTable = i = 0 ? crc : crcTable.concat(":" + crc)
+            crcTable += crc
             i = i + 1
 
             if (i < chunks) {
@@ -557,11 +573,46 @@ export async function getFileCRCTable(file){
     })
 }
 
+export async function getLocalFileSvg(localFile){
+    const file = await localFile.handle.getFile()
+    return await getFileSvg(file)
+}
 
-export async function getFileInfo(entry, dirHandle) {
-   
-   
+export async function getFileSvg(file){
+    const text = await file.text()
+
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(text, "image/svg+xml");
+    const svgElement = doc.getElementsByTagNameNS("http://www.w3.org/2000/svg", "svg").item(0);
+
+    return svgElement
+}
+export async function getFileSvgCanvas(file, size= { width: 150, height: 150 }, onSize = null)
+{
+    const svg = await getFileSvg(file)
+
+    if (onSize != null) onSize({ width: svg.clientWidth, height: svg.clientHeight })
+
+    var canvas = document.createElement('canvas'),
+        ctx = canvas.getContext("2d");
+
+    canvas.width = size.width;
+    canvas.height = size.height;
+
+    ctx.drawImage(svg, 0, 0, size.width, size.height);
+
+    return canvas
+}
+
+export async function getEntryInfo(entry, dirHandle){
     const file = await entry.getFile()
+    return await getFileInfo(file, entry, dirHandle)
+}
+
+export async function getFileInfo(file, entry, dirHandle) {
+   
+   
+   
     
     const fileSize = file.size;
     
@@ -569,47 +620,73 @@ export async function getFileInfo(entry, dirHandle) {
 
     const type = firstIndex == -1 ? file.type : file.type.slice(0,firstIndex )
 
-    
-
-    const name = entry.name + "";
+   
+    const name = file.name + "";
 
     const lastIndex = name.lastIndexOf(".");
 
     const ext = lastIndex != -1 ? lastIndex + 1 == name.length ? "" : name.slice(lastIndex + 1) : null
 
-    const isCustomType = type == "" ? fileTypes.asset.includes(ext) : false
-
-    const isMediaType = isCustomType ? false : fileTypes.media.includes(ext)
-
-    const fileMimeType = isCustomType ? "asset" : isMediaType ? "media" : type
+    const isAssetType =  fileTypes.asset.includes(ext) 
     
-    const fileType = isCustomType ? ext + "" : file.type + ""
+    const isAppType =  fileTypes.app.includes(ext) 
+
+    const isMediaType = fileTypes.media.includes(ext)
+
+    const fileMimeType = isAssetType ? "asset" : isAppType ? "app" : isMediaType ? "media" : type
+    
+    const fileType = isAssetType || isAppType ? ext + "" :  file.type + ""
 
     const slashIndex = fileType.indexOf("/")
     const baseType = slashIndex == -1 ? fileType : fileType.slice(0, slashIndex) 
 
-    const fileHash = await getFileHash(file)
+    const hashTable = await getFileHashTable(file)
+  
+    const fileHash = await getStringHash(hashTable)
+
     const crcTable = await getFileCRCTable(file)
-    const strHash = await getStringHash(crcTable, 32)
+  
+    const strHash = await getStringHash(crcTable)
+
+    
 
     const hash = fileHash + strHash
-   
 
-   
-    const exists = await get(hash + ".arcicon")
-    let imgSize = undefined
-    if (fileMimeType == "image" && exists == undefined) {
-        const dataUrl = await getThumnailEntry(entry, {width:150, height:150}, (imageSize)=>{
-            imgSize = imageSize
-        })
-        await set(hash + ".arcicon", dataUrl)
+    await set(hash + ".hashTable", hashTable)
+    await set(hash + ".crcTable", crcTable)
+    
+
+    if (fileMimeType == "image") {
+        const exists = await get(hash + ".arcicon")
+      
+
+        if(exists == undefined){
+            const svgMime = "image/svg+xml"
+            if (file.type.slice(0, svgMime.length) != svgMime) {
+
+                const dataUrl = await getFileThumnailDataUrl(file,{width:100, height:100}) 
+
+                if(dataUrl != undefined) await set(hash + ".arcicon", dataUrl)
+
+            } else {
+                const text = await file.text()
+
+                const encoded = encodeURIComponent(text)
+                    .replace(/'/g, '%27')
+                    .replace(/"/g, '%22')
+
+                const header = 'data:image/svg+xml'
+                const dataUrl = header + encoded
+
+                if(dataUrl != undefined ) await set(hash + ".arcicon", dataUrl)
+            }
+        }
     }
-
-    const fileInfo = { width: imgSize == undefined ? undefined : imgSize.width, height: imgSize == undefined ? undefined : imgSize.height, application: baseType, loaded: true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
-    return fileInfo     
+  
+    const fileInfo = { application: baseType, loaded: true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
     
    
-    
+    return fileInfo     
 }
 /*
 export async function getFileInfo(entry, dirHandle, type) {
@@ -797,70 +874,39 @@ export async function getChunkData(file, chunkNumber, chunkSize){
 
 
 
-export async function getImageHandleDataURL(handle){
+export async function getLocalFileCanvas(localFile){
    
-
-    const file = await handle.getFile()
-
-    const image = await createImageBitmap(file)
-
-    var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext("2d");
-
-    canvas.width = image.width;
-    canvas.height = image.height;
-    ctx.drawImage(image, 0, 0);
-
-    const dataURL = canvas.toDataURL();
-
-
-
-  
-    return dataURL
-    
-}
-
-
-export async function getThumnailFile(localFile, size = { width: 100, height: 100 }, onSize) {
 
     const file = await localFile.handle.getFile()
 
     const image = await createImageBitmap(file)
+
     var canvas = document.createElement('canvas'),
         ctx = canvas.getContext("2d");
 
     canvas.width = image.width;
     canvas.height = image.height;
-    onSize({width:image.width, height:image.height})
     ctx.drawImage(image, 0, 0);
-
-    let scale = 1;
-
-
-    if (image.width > image.height) {
-        scale = size.width / image.width;
-    } else {
-        scale = size.height / image.height;
-    }
-
-    const resampledCanvas = resample(canvas, scale);
-    const dataUrl = resampledCanvas.toDataURL();
-
-    return dataUrl
-
+  
+    return canvas
+    
 }
 
-export async function getThumnailEntry(entry, size = { width: 100, height: 100 }, onSize) {
 
-    const file = await entry.getFile()
+
+
+export async function getFileThumnailDataUrl(file, size = { width: 100, height: 100 }, onSize = null) {
+
 
     const image = await createImageBitmap(file)
+    
+  
     var canvas = document.createElement('canvas'),
         ctx = canvas.getContext("2d");
 
     canvas.width = image.width;
     canvas.height = image.height;
-    onSize({ width: image.width, height: image.height })
+   if(onSize != null) onSize({ width: image.width, height: image.height })
     ctx.drawImage(image, 0, 0);
 
     let scale = 1;
@@ -873,10 +919,10 @@ export async function getThumnailEntry(entry, size = { width: 100, height: 100 }
     }
 
     const resampledCanvas = resample(canvas, scale);
-    const dataUrl = resampledCanvas.toDataURL();
 
-    return dataUrl
-
+    const dataURL = resampledCanvas.toDataURL()
+   
+    return dataURL
 }
 
 

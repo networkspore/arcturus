@@ -24,6 +24,7 @@ import HomeMenu from './HomeMenu';
 
 
 import { LandingPage } from './LandingPage';
+import { useState } from 'react';
 
 
 const Loader = (<>  <div className={loadingStyles.loading}  >
@@ -41,13 +42,7 @@ const Loader = (<>  <div className={loadingStyles.loading}  >
             flex: 1,
 
         }}>
-            <div style={{
-                fontFamily: "Webpapyrus",
-                fontSize: "30px",
-                fontWeight: "bolder",
-                color: "#cdd4da",
-                textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffffc0",
-            }}>Loading... </div>
+     
      
         </div>
 
@@ -63,7 +58,7 @@ const App = () => {
 
     const page = useZust((state) => state.page);
     const pageSize = useZust((state) => state.pageSize);
-
+    const [loading, setLoading] = useState(false)
  
     return (
         
@@ -72,13 +67,13 @@ const App = () => {
                         
                     <div style={{width: pageSize.width, height: pageSize.height, display:'flex', flexDirection:'column' }}>
                         <div style={{ flex: 1, display: page!=null ? "block": "none" }}>
-                            {page!= null  &&
+                            {page!= null  && !loading &&
                                 <Suspense fallback={Loader}>
 
                                 <Canvas  performance={{current:1, min: 0.9, debounce: 200 }} mode="concurrent" shadows  camera={{ fov: 60, near: 1.0, far: 100000.0 }}>
                                         {(page < 10 &&
                                         <>
-                                            <Transition position={[1000,1000,1000]} />
+                                    <Transition position={[1000,1000,1000]} />
                                        
                                             
 
@@ -91,6 +86,7 @@ const App = () => {
                                     </Canvas>
                                 </Suspense>   
                             }
+                           
                         </div>
                        
                 <Routes>
@@ -102,7 +98,7 @@ const App = () => {
                     <Route path='*' element={ <LandingPage />} />
                 </Routes>   
                 
-                <HomeMenu />
+                <HomeMenu onLoading={(e)=>{setLoading(e)}}/>
     
                         </div>
                     

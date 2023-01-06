@@ -7,10 +7,10 @@ export const StorageHandler = (props = {}) =>{
     const navigate = useNavigate()
     return (
         <>
-        {configFile.value == null &&
+        {configFile.handle == null &&
             <ImageDiv 
                 onClick={(e)=>{
-                    navigate("/home/localstorage/init")
+                    navigate("/home/localstorage")
                 }}
                  width={30} height={30} netImage={{scale:.7, image:"/Images/icons/server-outline.svg", filter:"invert(100%)"}}/>
         }

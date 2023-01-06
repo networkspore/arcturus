@@ -47,7 +47,13 @@ const BubbleList = (props = {}, ref) => {
        
     ])
 
-  
+    useImperativeHandle(
+        ref,
+        () => ({
+            clear:()=>{
+                setCurrentItem(null)
+            }
+        }),[])
 
 
     useEffect(()=>{

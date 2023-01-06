@@ -1,8 +1,50 @@
 //Monsters
 import React from "react";
 
-export const tableChunkSize = 100000;
-export const MB = 1048576
+export const tableChunkSize = 8192
+export const MB = 1065536
+
+export const typeOptions = [
+    { value: { mimeType: "", type: "" }, label: "All" },
+    { value: { mimeType: "app", type: "arcnet" }, label: "Apps" },
+    {
+        value: { mimeType: "image", type: "" }, label: "Images"
+    },
+    {
+        value: { mimeType: "media", type: "" }, label: "Media"
+    },
+    {
+        value: { mimeType: "media", type: "video" }, label: "Video"
+    },
+    {
+        value: { mimeType: "media", type: "audio" }, label: "Audio"
+    },
+    {
+        value: { mimeType: "model", type: "" }, label: "Models"
+    },
+    {
+        value: { mimeType: "asset", type: "" }, label: "Assets"
+    },
+    {
+        value: { mimeType: "asset", type: "arcpc" }, label: "PCs"
+    },
+    {
+        value: { mimeType: "asset", type: "arcnpc" }, label: "NPCs"
+    },
+    {
+        value: { mimeType: "asset", type: "arcpl" }, label: "Placeables"
+    },
+    {
+        value: { mimeType: "asset", type: "arctext" }, label: "Textures"
+    },
+    {
+        value: { mimeType: "asset", type: "arcterr" }, label: "Terrain"
+    },
+    {
+        value: { mimeType: "asset", type: "arctype" }, label: "Types"
+    },
+
+]
 
 export const fileTypes = Object.freeze({
     image: ["webp", "apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur"],
@@ -11,6 +53,7 @@ export const fileTypes = Object.freeze({
     video: ["3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", "oga",],
     media: ["3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", "oga", "pcm", "mp3", "ogg", "webm", "aac", "wav",],
     asset: ["arctype", "arcpc","arcnpc","arcpl","arctex", "arcterr"],
+    app:["arcnet"],
     type: ["arctype"],
     PC: ["arcpc"],
     NPC: ["arcnpc"],

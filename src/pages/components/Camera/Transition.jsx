@@ -12,7 +12,7 @@ import useZust from '../../../hooks/useZust';
 import { OrthographicCamera, PerspectiveCamera } from '@react-three/drei';
 
 
-export function Transition(props) {
+export function Transition(props ={}) {
     
     const page = useZust((state) => state.page);
     const usePosition = useRef();
@@ -29,7 +29,7 @@ export function Transition(props) {
     const gl = useThree((state) => state.gl);
     const camera = useThree((state) => state.camera)
 
-    const loadingStatus = useZust((state) => state.loadingStatus)
+    
     
   
 
@@ -96,16 +96,16 @@ export function Transition(props) {
             }
         })
     },[socket,userCharacter])*/
-    const loadinRef = useRef({value:true})
-    useEffect(() => {
+    const loadingComplete = useZust((state) => state.loadingComplete)
+    const loadingRef = useRef({value:true})
+    useEffect(() => { 
 
-        const isComplete = loadingStatus != null ? loadingStatus.complete && loadingStatus.index == loadingStatus.length : true
-
-        loadinRef.current.value = isComplete
+        if(loadingRef.current.value != loadingComplete){ 
+            loadingRef.current.value = loadingComplete
     
+        }
        
-
-    }, [loadingStatus])
+    }, [loadingComplete])
 
     const dM = 2;
     const dM3 = 2;
@@ -114,7 +114,7 @@ export function Transition(props) {
 
        
         if (typeof usePosition.current !== undefined ){
-            if (loadinRef.current.value){
+            if (loadingRef.current.value){
             switch (page) {
                 case null:
                     break;
@@ -435,7 +435,7 @@ export function Transition(props) {
                     break;
             }
             } else {
-
+                
                 x = -((Math.cos((clock.getElapsedTime() + offset) * speed * .5) * (orbitF.current[0] * 20)));
                 y = (Math.cos((clock.getElapsedTime() + offset) * speed) * orbitF.current[1]);
                 z = (Math.sin((clock.getElapsedTime() + offset) * speed * .5) * (orbitF.current[2] * 20));

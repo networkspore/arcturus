@@ -78,8 +78,6 @@ export const PeerNetworkPage = () => {
             setCurrentPeer(cPeer)
         }
 
-        const config = configFile.value;
-
         const currentLocation = location.pathname;
         const d = currentContact == null ? "/home/peernetwork" : "/contacts/" + currentContact.userName + "/peernetwork";
 
@@ -91,6 +89,7 @@ export const PeerNetworkPage = () => {
         const l = thirdSlash != -1 ? currentLocation.slice(thirdSlash, fourthSlash == -1 ? currentLocation.length : fourthSlash) : "";
         setSubDirectory(l)
         
+        if (configFile.handle != null) {
 
         switch(l){
             case "/settings":
@@ -115,39 +114,35 @@ export const PeerNetworkPage = () => {
                 setShowIndex(5)
                 break;
             default:
-                if(config != null){
-                    if(config.peer2peer){
-                        setCurrentFiles(
-                            [
-                                {
-                                    to: d + "/library",
-                                    name: "Library",
-                                    type: "folder",
-                                    hash: "",
-                                    lastModified: null,
-                                    size: null,
-                                    netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/library-outline.svg", filter: "invert(100%)" }
-                                },
-                            ])
-                        setShowIndex(2);
-                    }else{
-                        setShowIndex(0)
-                    }
-                }else{
-                    setShowIndex(0)
-                }
+           
+                setCurrentFiles(
+                    [
+                        {
+                            to: d + "/library",
+                            name: "Library",
+                            type: "folder",
+                            hash: "",
+                            lastModified: null,
+                            size: null,
+                            netImage: { scale: .5, opacity: .7, backgroundColor: "", image: "/Images/icons/library-outline.svg", filter: "invert(100%)" }
+                        },
+                    ])
+                setShowIndex(2);
+                   
                 break;
         }
-          
+    }else{
+        setShowIndex(0);
+    }
 
 
-    }, [location, currentContact])
+    }, [location, currentContact, configFile])
 
   //  const disable = useRef({value:false})
 
 
     const turnOffPeerNetwork = () => {
-        navigate("/home/localstorage/init")
+        navigate("/home/localstorage")
     }
 
     const onReload = () =>{
@@ -187,20 +182,8 @@ export const PeerNetworkPage = () => {
                 }}>
                   
                     
-                    <div onClick={(e) => {
-                        if (configFile.value != null && configFile.value.peer2peer) {
-                            turnOffLocalStorage()
-                        }else{
-                            navigate("/home/localstorage/init")
-                        }
-                    }} about={configFile.value != null && configFile.value.peer2peer ? "Turn off" : "Start"} className={styles.glow} style={{ cursor: "pointer", paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }}>
-                        <ImageDiv width={15} height={15} netImage={{
-                            image: '/Images/icons/power-outline.svg',
-                            filter: configFile.value != null && configFile.value.peer2peer ? "invert(100%) drop-shadow(0px 0px 3px white)" : "invert(30%) drop-shadow(0px 0px 3px #faa014)"
-                        }} />
-
-                    </div>
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", paddingTop: 15, paddingBottom: 10 }}> Peer Network </div>
+                    
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", paddingTop: 15, paddingBottom: 10 }}>  Peer Network</div>
                     <div style={{ width: 45 }}>&nbsp;</div>
                 </div>
                 <div style={{ 
@@ -271,7 +254,7 @@ export const PeerNetworkPage = () => {
                                     fontFamily: "Webrockwell", 
                                     fontSize: "14px",        
                                 }}>
-                                   {currentPeer.userName}://{peerConnection == null ? configFile.value == null ? "Initialize local storage..." : configFile.value.peer2peer ? "Reconnect..." : "Peer Network disabled" : location.pathname.slice(directory.length +1, location.pathname.length)}
+                                   {currentPeer.userName}://{peerConnection == null ? configFile.handle == null ? "Initialize local storage..." :  "Network unavailable" : location.pathname.slice(directory.length +1, location.pathname.length)}
                                 </div>
                                 
                             </div>
@@ -326,7 +309,7 @@ export const PeerNetworkPage = () => {
              
                
                 {showIndex == 0 &&
-                        <div onClick={(e) => { navigate("/home/localstorage/init") }}
+                        <div onClick={(e) => { navigate("/home/localstorage") }}
                              style={{display:"flex",width:"100%", height:"100%", flexDirection:"column", alignItems:"center",justifyContent:"center", color:"white",
                         }}>
                             <ImageDiv 

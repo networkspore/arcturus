@@ -10,7 +10,7 @@ export const VideoDiv = (props = {}) =>{
     const segRef = useRef({value:[]})
     const [ready, setReady] = useState(null)
     const [showMedia, setShowMedia] = useState(false)
-
+    const setCurrentHash = useZust((state) => state.setCurrentHash)
     const vidID = useId()
     
     const addFileRequest = useZust((state) => state.addFileRequest)
@@ -20,7 +20,7 @@ export const VideoDiv = (props = {}) =>{
        
         if("success" in update && update.success)
         {
-            const localFile = update.localFile
+            const localFile = update.file
             initLocalMp4(localFile)
         }
     }
@@ -191,7 +191,7 @@ export const VideoDiv = (props = {}) =>{
         const file = props.file
         const request = {
             p2p: false,
-            command: "getVideo",
+            command: "getFile",
             page: "vidDiv",
             id: vidID,
             file: file,
@@ -280,24 +280,39 @@ export const VideoDiv = (props = {}) =>{
                     opacity: .7,
                     cursor: "pointer",
                     paddingLeft: "10px",
-                    paddingTop: 5,
+                    paddingTop: 4,
                     textAlign: "center",
                     zIndex:999
                 }}><ImageDiv width={20} height={20} netImage={{ filter: "invert(100%)", image: "/Images/icons/close-outline.svg" }} />
                 </div>
-                <div 
-                    className={styles.glow} 
-                    onClick={toggleFullSize} 
+                <div
+                    className={styles.glow}
+                    onClick={toggleFullSize}
                     style={{
                         opacity: .7,
                         cursor: "pointer",
                         paddingLeft: "10px",
-                        paddingTop: 5,
+                        paddingTop: 4,
                         textAlign: "center",
                         zIndex: 999
                     }}>
-                        <ImageDiv width={18} height={20} netImage={{ filter: "invert(100%)", image: "/Images/icons/scan-outline.svg" }} />
+                    <ImageDiv width={20} height={20} netImage={{scale:.8, filter: "invert(100%)", image: "/Images/icons/scan-outline.svg" }} />
                 </div>
+                <div
+                    className={styles.glow}
+                    onClick={(e) => { setCurrentHash("") }}
+                    style={{
+                        opacity: .7,
+                        cursor: "pointer",
+                        paddingLeft: "10px",
+                        paddingTop: 4,
+                        textAlign: "center",
+                        zIndex: 999
+                    }}>
+                    <ImageDiv width={18} height={20} netImage={{ filter: "invert(100%)", image: "/Images/icons/remove-outline.svg" }} />
+                </div>
+                
+                
                 <div style={{ flex: 1 }}> </div>
                 <div style={{zIndex:1,width:props.width ,position:"absolute", left:0, top:10, display: "flex", flex: 1, alignItems: "center", justifyContent: "center", whiteSpace: "nowrap", overflow: "slice" }}>
                     {props.file.title == undefined ? props.file.name : props.file.userFileName}</div>

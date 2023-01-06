@@ -30,7 +30,7 @@ export const HomePage = (props ={}) => {
 
     const pageSize = useZust((state) => state.pageSize)
     const user = useZust((state) => state.user)
-    const updateUserImage = useZust((state) => state.updateUserImage)
+   
     const [showIndex, setshowIndex] = useState(0)
     const navigate = useNavigate();
 
@@ -101,9 +101,7 @@ export const HomePage = (props ={}) => {
                 case "/account":
                     setshowIndex(4)
                     break;
-                case "/selectImage":
-                    setshowIndex(10)
-                    break;
+
                 default:
                     setshowIndex(0)
             }
@@ -111,55 +109,22 @@ export const HomePage = (props ={}) => {
         
     },[location])
 
-    const onUpdateUserImage = (onUpdate) =>{
-        const file = onUpdate.file
-        const text = onUpdate.text
-        const title = onUpdate.title
-        const accessID = onUpdate.accessID
-        const userAccess = onUpdate.userAccess
-
-        const fileInfo = {
-            name: file.name, 
-            hash: file.hash, 
-            size: file.size, 
-            type: file.type, 
-            mimeType: file.mimeType, 
-            lastModified: file.lastModified,
-            title: title,
-            text: text,
-            accessID: accessID,
-            userAccess: userAccess
-        }
-       
-
-        setSocketCmd({cmd: "updateUserImage", params:{imageInfo:fileInfo }, callback:(updateResult)=>{
-            if("success" in updateResult && updateResult.success)
-            {
-                updateUserImage(updateResult.file)
-            }
-
-        }})
-    }
+  
 
     return (
         
        <>
             
             <div style={{display:"flex", flexDirection:"column", position: "fixed", boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710", backgroundColor: "rgba(10,13,14,.6)", width: 300, height: pageSize.height, left: 95, top: "0px" }}>
-                <div style={{
-                    padding: "10px",
-                    textAlign: "center",
-                 
-                }}></div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems:"center", padding:"10px"}}>
+
+
+                <div about={"Account"} onClick={(e) => {
+                    navigate("/home/account")
+                }} style={{ cursor:"pointer", display: "flex", flexDirection: "column", alignItems:"center", padding:"10px"}}>
                    
 
 
-                    <ImageDiv width={150} height={150} onClick={(e) => {
-                        if(imagesDirectory.handle != null){
-                        navigate("/home/selectImage")
-                        }
-                    }}  about={"Select Image"}  className={className} netImage={{
+                    <ImageDiv className={styles.glow} width={150} height={150}  netImage={{
                         scale:1,
                         update: {
                             command: "getImage",
@@ -174,8 +139,10 @@ export const HomePage = (props ={}) => {
                     }} />
 
                     <div style={{height:20}}> &nbsp;</div>
-                    <div style={{  paddingTop:5, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
-                        <div style={{
+                    <div  style={{cursor:"pointer",  paddingTop:5, width: 200, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)" }}>
+                        <div 
+                            className={styles.glow}
+                            style={{
 
                             textAlign: "center",
                             fontFamily: "WebRockwell",
@@ -196,20 +163,7 @@ export const HomePage = (props ={}) => {
                 <div style={{ width: 260, paddingLeft:"15px", display:"flex", flexDirection:"column",  }}>
                     
                     
-                        <NavLink className={styles.result}  to={ "/home/account"}>
-                        <div  style={{ display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}
-                          
-                        >
-
-                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/id-card-outline.svg" width={20} height={20} />
-                            </div>
-                            <div style={{ paddingLeft: "10px" }} >
-                                Account
-                            </div>
-                        </div>
-                        </NavLink>
-                
+                     
 
                    
                    
@@ -227,7 +181,22 @@ export const HomePage = (props ={}) => {
                     <div style={{marginLeft:30}}>
                           
                                 <>
-                                   
+                                <div onClick={(e) => { navigate("/home/localstorage/all") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                    <div>
+                                        <img style={{ filter: subSubDirectory == "/all" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/all" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px", color: subSubDirectory == "/all" ? "white" : "" }} >
+                                        All
+                                    </div>
+                                </div>
+                                <div onClick={(e) => { navigate("/home/localstorage/apps") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                    <div>
+                                        <img style={{ filter: subSubDirectory == "/apps" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/apps" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                    </div>
+                                    <div style={{ paddingLeft: "10px", color: subSubDirectory == "/apps" ? "white" : "" }} >
+                                        Apps
+                                    </div>
+                                </div>
 
                                 <div onClick={(e) => { navigate("/home/localstorage/assets") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
@@ -339,6 +308,40 @@ export const HomePage = (props ={}) => {
                                         Media
                                     </div>
                                 </div>
+                            {subSubDirectory == "/media" &&
+                                <div style={{ marginLeft: 20 }} >
+                                    <div onClick={(e) => { navigate("/home/localstorage/media/audio-video") }} 
+                                    style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} 
+                                    className={styles.result} >
+                                        <div>
+                                            <img style={{ filter: subSubSubDirectory == "/audio-video" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/audio-video" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                        </div>
+                                        <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/audio-video" ? "white" : "" }} >
+                                            Audio-Video
+                                        </div>
+                                    </div>
+                                    <div onClick={(e) => { navigate("/home/localstorage/media/audio") }}
+                                        style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}
+                                        className={styles.result} >
+                                        <div>
+                                            <img style={{ filter: subSubSubDirectory == "/audio" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/audio" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                        </div>
+                                        <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/audio" ? "white" : "" }} >
+                                            Audio
+                                        </div>
+                                    </div>
+                                    <div onClick={(e) => { navigate("/home/localstorage/media/video") }}
+                                        style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}
+                                        className={styles.result} >
+                                        <div>
+                                            <img style={{ filter: subSubSubDirectory == "/video" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/video" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                        </div>
+                                        <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/video" ? "white" : "" }} >
+                                            Video
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                                       
                            
                         
@@ -552,14 +555,7 @@ export const HomePage = (props ={}) => {
                 <AccountSettingsPage cancel={() => { setshowIndex(0) }}  />
             }
             
-            {showIndex == 10 &&
-                <ImagePicker selectedImage={user.image} 
-                    onCancel ={()=>{
-                        setshowIndex(0)
-                    }}
-                    onOk={onUpdateUserImage}
-                />
-            }
+           
        </>
         
     )

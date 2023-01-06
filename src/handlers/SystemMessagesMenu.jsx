@@ -17,8 +17,6 @@ export const SystemMessagesMenu = (props = {}) => {
     const navigate = useNavigate();
 
     const [menuList, setMenuList] = useState([]);
-    const loadingStatus = useZust((state) => state.loadingStatus)
-    const setLoadingStatus = useZust((state) => state.setLoadingStatus)
   
     const systemMessages = useZust((state) => state.systemMessages)
 
@@ -119,28 +117,7 @@ export const SystemMessagesMenu = (props = {}) => {
 
     }, [systemMessages])
   //  const timerRef = useRef({ timeoutID:null})
-    const [complete, setComplete] = useState(false)
-    const [loadingMessage, setLoadingMessage] = useState("")
-    useLayoutEffect(()=>{
-        
-        const isComplete = loadingStatus != null ? loadingStatus.complete && loadingStatus.index == loadingStatus.length  : true
-        
-        setComplete( isComplete)
-        if (isComplete && loadingStatus != null)
-        {
-            setTimeout(() => {
-              setLoadingStatus(null)
-            }, 2000);
-        } 
-        if (!isComplete && loadingStatus != null){
-           
-                const msg = loadingStatus.name.length > 25 ? loadingStatus.name.slice(0, 25) + ".." : loadingStatus.name
-                setLoadingMessage(msg)
-          
-        }
-
-       
-    },[loadingStatus])
+ 
 
     return (
         
@@ -162,45 +139,7 @@ export const SystemMessagesMenu = (props = {}) => {
             }}>
             {menuList}
             </div>
-            { loadingStatus != null &&
-            <div style={{display:"flex", padding:2, alignItems:"center", justifyContent:"center",
-              boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff40, inset 0 0 30px #77777740",
           
-                    backgroundImage: "linear-gradient(to top, black, #cccccc60)",
-            }}>
-                    <div style={{ 
-                        paddingLeft: 5, 
-                        paddingRight: 5 }}>
-                        <ImageDiv width={20} height={20} style={{}} netImage={{ backgroundImage: "radial-gradient(#000000 30%, #ffffff 98%)", image: "/Images/icons/hourglass-outline.svg", filter: "invert(100%)" }} />
-                    
-                    </div>
-                <div onClick={(e)=>{setLoadingStatus(null)}} style={{
-                    display: "flex",
-                    flex: 1,
-                    width:"100%",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor:"pointer",
-                    backgroundImage: `linear-gradient(to right, #ffffffEE ${(loadingStatus.index / loadingStatus.length * 100) + "%"}, #00000030 ${(loadingStatus.index / loadingStatus.length * 100) + "%"})`,
-                        mixBlendMode: "difference", 
-                        boxShadow: "inset 0 0 15px #cccccc50",
-                }}>
-                   
-                     <div style={{ 
-                        color:  "#eeeeee",
-                        fontFamily: "webpapyrus", 
-                        fontSize: 13, paddingTop: 3, 
-                        paddingBottom: 3, 
-                         mixBlendMode: "difference", 
-                         fontWeight:"bold",
-                         textShadow:"1px 1px 3px #ffffff90"
-                         }}> 
-
-                        {complete ? "Files loaded" : loadingMessage}
-                    </div>
-                </div>
-                </div>
-            }
         </div>
       
       

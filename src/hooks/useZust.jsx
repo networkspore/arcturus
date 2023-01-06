@@ -10,6 +10,8 @@ import {Color, Texture } from 'three';
 //const getLocalStorage = (key) => JSON.parse(window.localStorage.getItem.key);
 //const setLocalStorage = (key, value) => window.localStorage.setItem(key,JSON.stringify(value));
 const useZust = create((set) => ({
+   loadingStatus:null,
+   setLoadingStatus:(value) =>set({loadingStatus: value}),
    currentHash: "",
    setCurrentHash:(value) => set({currentHash: value}),
    openApp:[],
@@ -18,8 +20,7 @@ const useZust = create((set) => ({
    setOpenFile: (value) => set({openFile: value}),
    allFiles:[],
    setAllFiles: (value) => set({allFiles:value}),
-   loadingStatus: null,
-   setLoadingStatus: (value) => set({loadingStatus:value}),
+
    currentContact: null,
    setCurrentContact: (value) => set({currentContact:value}),
    contactsCmd: {cmd:null, params:null, callback:null},
@@ -59,8 +60,7 @@ const useZust = create((set) => ({
    setPeerCmd: (value = { request: null, peers: [], callback: null }) => set(produce((state) => {
       state.peerCmd = value
    })),*/
-   currentRealmID: null,
-   setCurrentRealmID: (value) => set({currentRealmID: value}) ,
+   /*
    updateRealmImage: (realmID, value) => set(produce((state) =>{
       const index = state.realms.findIndex(realm => realm.realmID == realmID)
       console.log(index)
@@ -76,18 +76,9 @@ const useZust = create((set) => ({
       }catch(err){
 
       }
-   })),
+   })),*/
    party:[],
-   quickBar:[],
-   setQuickBar:(value) => set({quickBar:value}),
-   addQuickBarItem:(value) => set(produce(state=>{
-      const index = state.quickBar.findIndex(qBar => qBar.realmID == value.realmID)
-      if(index == -1)
-      {
-         state.quickBar.splice(0, 0, value)
-      }
-   })),
- 
+
    fileRequest: [],
   
    addFileRequest: (value) => set(produce(state => { 
@@ -112,10 +103,10 @@ const useZust = create((set) => ({
          }
       }
    })),
-   realms: [],
-   setRealms: (value = []) => set({realms:value}), 
-   updateRealm: (value, i) => set(produce((state) => {
-      state.realm[i] = value
+   apps: [],
+   setApps: (value = []) => set({ apps:value}), 
+   updateApp: (value, i) => set(produce((state) => {
+      state.apps.splice(i, 1, value)
    })),
 
    userPeerID:"",
@@ -141,8 +132,8 @@ const useZust = create((set) => ({
    setVideoDirectory: (value = { name: null, handle: null, directories: [] }) => set({ videoDirectory: value }),
    
 
-   realmsDirectory: { name: "realms", handle: null },
-   setRealmsDirectory: (value = { name: "realms", handle: null }) => set({ realmsDirectory: value }),
+   appsDirectory: { name: "apps", handle: null },
+   setAppsDirectory: (value = { name: "apps", handle: null, directories: [] }) => set({ appsDirectory: value }),
 
    userHomeDirectory: { name: "", handle: null, directories: [] },
    setUserHomeDirectory: (value = { name: null, handle: null, directories: [] }) => set({ userHomeDirectory: value }),
@@ -173,13 +164,13 @@ const useZust = create((set) => ({
    userFiles: [],
    setUserFiles: (value = []) => set({ userFiles: value }),
 
-   localDirectory: { name: "", handle: null },
+   localDirectory: { name: "", handle: null},
    setLocalDirectory: (value = { name: "", handle: null }) => set({ localDirectory: value }),
 
  
 
-   configFile:{storageID: -1, fileID: -1, value:null, name:"", handle:null},
-   setConfigFile: (value = { storageID:-1, fileID:-1, value: null, name: "", handle: null }) => set({configFile: value}),
+   configFile:{name:"", handle:null},
+   setConfigFile: (value = { name: "", handle: null }) => set({configFile: value}),
    systemMessages:[],
    setSystemMessages: (value = []) => set({systemMessages: value}),
    addSystemMessage:(value) => set(produce((state)=>{
@@ -211,7 +202,8 @@ const useZust = create((set) => ({
    setAutoLogin:(value = true) => set({autoLogin: value}),
    showMenu: false,
    setShowMenu: (value = false) => set({showMenu: value}),
-   showLoadingScreen: false,
+   loadingComplete: true,
+   setLoadingComplete: (value) => set({loadingComplete: value}),
    terrainList: [],
    mode: { main: "", sub: "" , id:-1},
 

@@ -127,7 +127,7 @@
 }
 
 .glow:hover {
-	filter:drop-shadow(0 0 10px #ffffff30)
+	filter:drop-shadow(0 0 5px #ffffff50)
 }
 
 .glowText {

@@ -6,7 +6,7 @@ import sha256 from 'crypto-js/sha256';
 import useZust from "../hooks/useZust";
 
 import { useRef } from "react";
-import { getStringHash } from "../constants/utility";
+import { getFileInfo, getStringHash, getPermissionAsync } from "../constants/utility";
 import { get, set } from "idb-keyval";
 
 
@@ -131,27 +131,84 @@ import { get, set } from "idb-keyval";
     
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-  
+     async function loadConfig(value, user) {
 
-    function login(name_email = "", pass ="")
+         try {
+
+             const homeHandle = await value.handle.getDirectoryHandle("home")
+             const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
+
+
+             const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.key")
+             const file = await handle.getFile()
+             const fileInfo = await getFileInfo(file, handle, userHomeHandle)
+          
+           
+            return fileInfo
+           
+
+         } catch (err) {
+
+             console.log(err.message)
+
+             return undefined
+         }
+     }
+
+
+    async function login(name_email = "", pass ="")
     {
         if(!disable){
             setDisable(true)
+            
            
-            setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback:(response)=>{
+            setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback: async (response)=>{
               
                 setDisable(false)
             if(response.success){
+
                 const user = response.user
                 const contacts = response.contacts
                 const userFiles = response.userFiles
 
-          
-                setUser(user)
+                await set(user.userID + "userFiles", userFiles)
                 setContacts(contacts)
-                setUserFiles(userFiles)                
-             
-                    setConnected(true)
+                setUser(user)
+                
+                const value = await get(user.userID + "localDirectory")
+                
+
+                if(value != undefined ){
+                    const verified = await getPermissionAsync(value.handle)
+                   
+                    const configFile = verified ? await loadConfig(value, user) : undefined
+                    
+                 
+                    if (configFile != undefined) {
+                        const storageHash = configFile.hash
+              
+
+                        setSocketCmd({cmd:"checkStorageHash", params:{storageHash:storageHash}, callback:async (result)=>{
+                            
+                            if("success" in result && result.success){
+
+                              
+                                navigate("/",{state:{configFile:configFile, localDirectory: value}})
+                                
+                            }else{
+                                navigate("/", { state: { error: "config" } })
+                            }
+                        }})    
+
+                    } else {
+                        await get(user.userID + "localDirectory", undefined)
+                        navigate("/", { state: { configFile: null } })
+                    }
+                }else{
+                    
+                    navigate("/", { state: { configFile: null } })
+                }
+                
                 }else{
                     alert("Check your password and try again.")
                 }

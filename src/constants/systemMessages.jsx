@@ -10,8 +10,8 @@ export const initDirectory = {
 
 export const initStorage = {
     id: 2,
-    text: "Start storage engine.",
-    navigate: "/home/localstorage/init",
+    text: "Select a local directory",
+    navigate: "/home/localstorage",
     deleteOn:"seconds:5",
     netImage: { image: "/Images/icons/server-outline.svg", width: 20, height: 20, filter: "invert(100%)" }
 }

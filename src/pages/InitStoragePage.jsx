@@ -9,55 +9,27 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 import produce from "immer";
 import SelectBox from "./components/UI/SelectBox"
 import { set } from "idb-keyval";
-import { generateCode, getFileInfo } from "../constants/utility";
+import { generateCode, getEntryInfo, getFileInfo, getStringHash, getUintHash } from "../constants/utility";
 import { access, constants } from "../constants/constants";
+import { generateKey } from 'openpgp';
+import aesjs from 'aes-js';
 
 export const InitStoragePage = (props = {}) => {
 
     const location = useLocation()
-    const P2PRef = useRef();
-    const ergoRef = useRef();
+
+    
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
   
 
-    const localDirectory = useZust((state) => state.localDirectory)
+    const setLocalDirectory = useZust((state) => state.setLocalDirectory)
     const setConfigFile = useZust((state) => state.setConfigFile)
-    const configFile = useZust((state) => state.configFile)
-
-  
-    const imagesDirectory = useZust((state) => state.imagesDirectory);
-    const modelsDirectory = useZust((state) => state.modelsDirectory);
-    const mediaDirectory = useZust((state) => state.mediaDirectory);
-    const realmsDirectory = useZust((state) => state.realmsDirectory);
- 
-
 
     
-
-    const [engineKey, setEngineKey] = useState("Generate a key")
-
- 
-    const [imagesDefault, setImagesDefault] = useState(true);
-    const [modelsDefault, setModelsDefault] = useState(true);
-    const [texturesDefault, setTexturesDefault] = useState(true);
-    const [mediaDefault, setMediaDefault] = useState(true);
-
-   
-    const [defaultFolders, setDefaultFolders] = useState(false)
-
-    const defaultColor = "#77777750";
-    const enableColor = "#FFFFFF";
-
     const navigate = useNavigate();
 
-
-    const socket = useZust((state) => state.socket);
     const user = useZust((state) => state.user);
-
-
-    const setWelcomePage = useZust((state) => state.setWelcomePage);
-    const [newEmail, setEmail] = useState(""); 
 
 
     const pageSize = useZust((state) => state.pageSize)
@@ -67,68 +39,24 @@ export const InitStoragePage = (props = {}) => {
 
     const [showIndex, setShowIndex] = useState(0)
 
-
-    const [firstRun, setFirstRun] = useState(true)
-  
-
-    const [stateConfig, setStateConfig] = useState(null)
-
+    const [setupInfo, setSetupInfo] = useState(null)
+   
     useEffect(()=>{
-        if(localDirectory.handle == null)
+        console.log(location.state)
+        if (location.state != undefined && location.state.localDirectory != undefined )
         {
+            
+           
+            checkDirectoryKey(user, location.state.localDirectory)
+
+        }else{
             navigate("/home/localstorage")
         }
-    },[localDirectory])
-
-    useEffect(() => {
-      
-        const isState = location.state != null && ("configFile") in location.state ?  location.state.configFile : null
-        setStateConfig(isState)
-        if(stateConfig != null) {
-            setStateConfig(isState)
-        }else{
-            
-            
-            if (configFile.value != null) {
-               try{
-                 
-                    setFirstRun(false)
-                    const config = configFile.value;
-                   
-                    setEngineKey(config.engineKey)
-                    P2PRef.current.setValue(config.peer2peer)
-                    ergoRef.current.setValue(config.ergo)
-                   
+    },[location, user])
 
 
-                }catch(err){
-                    localDirectory.handle.removeEntry(user.userName+".storage.config").then((deleted)=>
-                    {
-                        props.resetLocalStorage()
-                    }).catch((err)=>{
-                        console.log(err)
-                        props.resetLocalStorage()
-                    })
-                    
-                }
-
-            }else{
-             
-                setFirstRunConfig()
-            }
-        }
-        
-
-    }, [location,stateConfig])
 
   
-    const setFirstRunConfig = () =>{
-        setFirstRun(true)
-        generateEngineKey()
-        P2PRef.current.setValue(true);
-    
-        ergoRef.current.setValue(false);
-    }
 
 
     const removeSystemMessage = (id) => useZust.setState(produce((state) => {
@@ -154,159 +82,179 @@ export const InitStoragePage = (props = {}) => {
 
    
 
-    const getLocalPermissions = (callback) =>{
+    async function getLocalPermissions(){
         const opts = { mode: 'readwrite' };
         
-        localDirectory.handle.queryPermission(opts).then((verified) => {
+        const verified = await setupInfo.directory.queryPermission(opts)
             if (verified === 'granted') {
-                callback();
+                return true
             }else{
-                localDirectory.handle.requestPermission(opts).then((verified) =>{
-                    if (verified === 'granted') {
-                        callback()
-                    }
-                })
+                const isVerified = await setupInfo.directory.requestPermission(opts)
+                
+                return isVerified === 'granted'
+                                
             }
-        })
+        
     }
 
 
-    const setupConfigFile = (userName) => {
+
+    async function setupConfigFile(userName, userEmail){
        
-        return new Promise(resolve => {
-            getLocalPermissions(() => {
-                localDirectory.handle.getDirectoryHandle("home", { create: true }).then((homeHandle) => {
-                    homeHandle.getDirectoryHandle(user.userName, { create: true }).then((userHomeHandle) => {
+        const verified = await getLocalPermissions()
+        if(!verified) return ({error: new Error("not verified")})
 
-                        userHomeHandle.getFileHandle(userName + ".storage.config", { create: true }).then((fileHandle) => {
+        try{ 
+            const homeHandle = await setupInfo.directory.getDirectoryHandle("home", { create: true })
+            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true })
+            const fileHandle = await userHomeHandle.getFileHandle(userName + ".storage.key", { create: true })
 
-                    fileHandle.createWritable().then((configFileStream) => {
+            const configFileStream = await fileHandle.createWritable()
+                            
+            const storageKey = await generateCode(userName + userEmail, 128)   
 
-                        const config = {
-                            engineKey: engineKey,
-                            peer2peer: P2PRef.current.getValue,
-                            ergo: ergoRef.current.getValue,
-               
-                        }
-                        let userConfig = {}
-                        userConfig[user.userName] = config;
+       
+            const { privateKey, publicKey, revocationCertificate } = await generateKey({
+                type: 'ecc', 
+                curve: 'curve25519', 
+                userIDs: [{ name: userName, email: userEmail }], 
+                passphrase: storageKey, 
+                format: 'armored' 
+            });
 
-                        configFileStream.write(JSON.stringify(userConfig)).then((value) => {
+            const keyJson = JSON.stringify({privateKey:privateKey, publicKey:publicKey, revocationCertificate: revocationCertificate})
+     
 
-                            configFileStream.close().then((closed) => {
-                               
-                               userHomeHandle.getFileHandle(userName + ".storage.config").then((newHandle) => {
+            
+          
+            const aesKey = await getUintHash(Uint8Array.from(Array.from(storageKey).map(letter => letter.charCodeAt(0))), 32) //arrayKey.slice(0,32)
+
+            var jsonBytes = aesjs.utils.utf8.toBytes(keyJson);
+
+            var aesCtr = new aesjs.ModeOfOperation.ctr(aesKey);
+            var ctrBytes = aesCtr.encrypt(jsonBytes);
+
+            await configFileStream.write(ctrBytes)
+
+
+            await configFileStream.close()
+                                        
+            const newHandle = await userHomeHandle.getFileHandle(userName + ".storage.key")
                                     
-                                    getFileInfo(newHandle).then((fileInfo) => {
-
-                                        const newConfig = fileInfo;
-
-                                        newConfig.value = config
-
-                                        const engineKey = config.engineKey;
-
-                                        const newFile = {
-                                            mimeType: "config",
-                                            name: fileInfo.name,
-                                            hash: fileInfo.hash,
-                                            size: fileInfo.size,
-                                            type: fileInfo.type,
-                                            lastModified: fileInfo.lastModified,
-                                        }
-                                        if (firstRun) {
-                                            setSocketCmd({
-                                                cmd: "createStorage", params: { file: newFile, key: engineKey }, callback: (created) => {
-
-                                                    if (!("error" in created)) {
-                                                        if (created.success) {
-                                                            newConfig.fileID = created.fileID;
-                                                            newConfig.storageID = created.storageID;
-
-                                                            resolve({ success: true, config: newConfig })
-                                                        } else {
-                                                            resolve({ success: false })
-                                                        }
-                                                    } else {
-                                                        resolve({ error: created.error })
-                                                    }
-                                                }
-                                            })
-                                        } else {
-                                          
-                                            setSocketCmd({
-                                            
-                                                cmd: "updateStorageConfig", params: { fileID: configFile.fileID, file: newFile }, callback: (updated) => {
-
-                                                    if (!("error" in updated)) {
-                                                        if (updated.success) {
-                                                            newConfig.fileID = configFile.fileID;
-                                                            newConfig.storageID = configFile.storageID;
-                                                            resolve({ success: true, config: newConfig })
-                                                        } else {
+            const file = await newHandle.getFile()
+        
+            const fileInfo = await getFileInfo(file, newHandle, userHomeHandle)
+                                                               
+            return { success: true, storageKey: storageKey, localFile: fileInfo }
+                                                                
                                                            
-                                                            resolve({ success: false })
-                                                        }
-                                                    } else {
-                                                        resolve({ error: updated.error })
-                                                    }
-                                                }
-                                            })
-                                        }
 
+        } catch (err) {
+            console.log(err)
+            return { error: err }
+        }
 
-                                    }).catch((err) => {
-                                        console.log(err)
-                                        resolve({ error: err })
-                                    })
+        
+    }
 
-                                }).catch((err) => {
-                                    console.log(err)
-                                    resolve({ error: err })
-                                })
-                            });
+    async function checkDirectoryKey(user, dirHandle) {
+        try {
+            console.log("looking for directory key")
+            const homeHandle = await dirHandle.getDirectoryHandle("home")
+            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
+            const fileHandle = await userHomeHandle.getFileHandle(user.userName + ".storage.key")
+            const file = await fileHandle.getFile()
 
+            const fileInfo = await getFileInfo(file, fileHandle, dirHandle)
+            const fileHash = fileInfo.hash
+        
+            setSocketCmd({
+                cmd: "checkStorageHash", params: { storageHash: fileHash }, callback: (result) => {
+                  
+                    if ("success" in result) {
 
-                        })
-                    })
-                }).catch((err) => {
-                    console.error(err)
-                    resolve({ error: err })
-                })
+                        setSetupInfo({file: fileInfo, directory:dirHandle})
+                     
+                        
+                    }else{
+                        setSetupInfo({ file: null, directory: dirHandle })
+                    }
+                         
+                }
             })
-        })
 
-            })
+        } catch (err) {
+            setSetupInfo({ file: null, directory: dirHandle })
+            return false
+        }
+    }
 
-        })
+    async function useExisting(e){
+        if(valid){
+            setValid(false)
+        const { file, directory } = setupInfo
+        const dirName = directory.name
+        const localDir = { name: dirName, handle: directory }
+        await set(user.userID + "localDirectory", localDir)
+  
+        setLocalDirectory(localDir)
+        setConfigFile(file)
+        alert("Using current setup")
+        navigate("/home/localstorage")
+        }
     }
 
 
-    function handleSubmit(e = null) {
+    async function handleSubmit(e = null){
         if(e != null)e.preventDefault();
     
+  
         if(valid)
         {
-            console.log("submitting")
+  
             setValid(false)
-            setupConfigFile(user.userName).then(result=>{
-                    setValid(true);
-                   
-                    if(!("error" in result)){
-                        if(result.success)
-                        {
-                            const newConfig = result.config
-                            removeSystemMessage(0)
-                            removeSystemMessage(1)
-                            removeSystemMessage(2)
-                            setConfigFile(newConfig)
-                            navigate("/home/localstorage")
-                           // navigate("/loading", { state: { configFile: newConfig, navigate: "/home/localstorage" } })
-                        }
-                    }else{
-                        console.log(result.error)
-                        alert("Could not set the config file.")
+           
+            
+         
+                const result = await setupConfigFile(user.userName, user.userEmail)
+          
+                
+                if(!("error" in result)){
+                    if(result.success)
+                    {
+                        const localFile = result.localFile 
+                        const storageKey = result.storageKey
+                        const storageHash = localFile.hash
+
+                        const params = {storageKey: storageKey, storageHash: storageHash}
+
+                        setSocketCmd({cmd:"createStorage", params:params, callback: async (result)=>{
+                            setValid(true);
+                            console.log(result)
+                            if("success" in result)
+                            {    
+                                const storageID = result.storageID
+                                removeSystemMessage(0)
+                                removeSystemMessage(1)
+                                removeSystemMessage(2)
+                                const dirName = directoryHandle.name
+                                const localDir = {name:dirName, handle: directoryHandle}
+                                await set(user.userID + "localDirectory", localDir)
+                                setLocalDirectory(localDir)
+                                setConfigFile(localFile)
+                                alert("Setup complete.")
+                                navigate("/home/localstorage")
+                            }else{
+                                alert("Please try again.")
+                                navigate("/home/localstorage")
+                            }
+                        }})
                     }
-            })
+                }else{
+                    console.log(result.error)
+                    alert("Could not set the config file.")
+                }
+            
             
     
        }
@@ -316,131 +264,18 @@ export const InitStoragePage = (props = {}) => {
     
     function onCancelClick(e){
        
-        if (showIndex == 0) {
-            navigate("/home/localstorage")
-            
-        } else {
-            setShowIndex(prev => prev -= 1)
-        }
-    }
-
-    function onOKclick(e){
      
-        handleSubmit()
-    }
-
-    const generateEngineKey =() =>{
-        const userName = user.userName;
-        const userID = user.userID;
-        const userEmail = user.userEmail;
+        navigate("/home/localstorage")
+            
       
-        generateCode(userName + userID + userEmail).then((code)=>{
-            setEngineKey("ARC" + code)
-        })
-
-        
-    }
-
-    const onGenerateClick =(e) =>{
-        generateEngineKey()           
     }
 
 
-    const onFolder = (value) =>{
 
-    }
-
-    const [customFolders, setCustomFolders] = useState({images:null, models:null, media:null})
-
-    const onUseConfig = (e) =>{
-        if(stateConfig != null){
-            const fileID = stateConfig.fileID;
-            const storageKey = stateConfig.value.engineKey;
-            setSocketCmd({
-                cmd: "useConfig", params: { fileID: fileID, key: storageKey }, callback: (callback) => {
-           
-                if(!("error" in callback)){
-                    const storageID = callback.storageID;
-                    const config = stateConfig;
-                    config.value.storageID = storageID;
-                    setConfigFile(config)
-                  
-                  //  navigate("/loading", {state:{configFile:config}, navigate:"/home/localstorage"})
-                }else{
-                    console.log(callback.error)
-                    alert("This config file could not be loaded.")
-                    navigate("/localstorage")
-                }
-            }})
-        }else{
-            alert("This config file could not be loaded.")
-            navigate("/localstorage")
-        }
-    }
-    const onCancelConfig = (e) =>{
-        setConfigFile()
-        navigate("home/localstorage/init")
-    }
 
     return (
         <>
-        {stateConfig != null &&
-            <div style={{
-                position: "fixed",
-                backgroundColor: "rgba(0,3,4,.95)",
-
-                left: (pageSize.width / 2),
-                top: (pageSize.height / 2),
-                transform: "translate(-50%,-50%)",
-                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
-            }}>
-
-                <div style={{
-                    
-                    textAlign: "center",
-                    width: "100%",
-                    paddingTop: "10px",
-                    fontFamily: "WebRockwell",
-                    fontSize: "18px",
-                    fontWeight: "bolder",
-                    color: "#cdd4da",
-                    textShadow: "2px 2px 2px #101314",
-                    backgroundImage: "linear-gradient(#131514, #000304EE )",
-
-
-                }}>
-                    Config
-                </div>
-                    <div style={{fontFamily:"webrockwell", color:"white",padding:40, fontSize:16, textAlign:"center"}}>
-                        This configuration file is not associated with your account.
-                    </div>
-                    <div style={{ fontFamily: "webrockwell", color: "#BBBBBB", paddingBottom:30, fontSize: 13, textAlign: "center" }}>
-                        Would you like to use it anyway?
-                    </div>
-                    <div style={{
-                        justifyContent: "center",
-
-                        paddingTop: "10px",
-                        display: "flex",
-                        alignItems: "center",
-                        width: "100%"
-                    }}>
-                        <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={onCancelConfig}>No</div>
-
-                        <div style={{
-
-                            marginLeft: "10px", marginRight: "10px",
-                            height: "50px",
-                            width: "1px",
-                            backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                        }}>
-
-                        </div>
-                        <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={onUseConfig} >Yes</div>
-                    </div>
-            </div>
-        }
-        { stateConfig == null &&
+            {setupInfo != null ?
         <div  style={{
             position: "fixed",
             backgroundColor: "rgba(0,3,4,.95)",
@@ -465,11 +300,11 @@ export const InitStoragePage = (props = {}) => {
 
 
             }}>
-               {firstRun ? "Setup" : "Config"}
+                Setup Storage
             </div>
 
             <div style={{  width: "100%", height:"100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
-                        {showIndex == 0 &&
+                      
                             <div style={{
                        
                       
@@ -483,99 +318,15 @@ export const InitStoragePage = (props = {}) => {
                                 display: "flex", flexDirection: "column",
                                 alignItems: "center",
                             }}>
-
-
-                                <div style={{
-                                    fontSize: "13px"
-                                }}>
-
-                                    {user.userName}.storage.config
-
-                                </div>
-                                <div style={{
-
-                                    marginTop: "5px",
-                                    height: "1px",
-                                    width: "100%",
-                                    backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)",
-                                }} />
-
-                                <div style={{ height:"100%", paddingLeft: 15, paddingTop: 5, width: "100%", backgroundColor: "#33333330" }}>
-
-
-                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ marginRight: 0,  width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            Engine Key:
-                                        </div>
-                                        <div style={{ flex:1}}>  {engineKey} </div>
-                                        {firstRun &&
-                                            <div onClick={onGenerateClick} style={{paddingBottom:5, paddingTop: 5, height: 15, fontSize: 14, width: 100 }} className={styles.OKButton} > Generate </div>
-                                        }
-                                    </div>
-
-                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            Peer Network:
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-
-                                            <SelectBox
-                                                ref={P2PRef}
-                                                textStyle={{
-                                                    color: "#ffffff",
-                                                    fontFamily: "Webrockwell",
-                                                    border: 0,
-                                                    fontSize: 14,
-                                                }}
-                                                optionsStyle={{
-
-                                                    backgroundColor: "#333333C0",
-                                                    paddingTop: 5,
-                                                    fontSize: 14,
-                                                    fontFamily: "webrockwell"
-                                                }}
-
-                                                placeholder="" options={[
-                                                    { value: true, label: "Enabled" },
-                                                    { value: false, label: "Disabled" }
-                                                ]} />
-                                        </div>
-                                      
-                                    </div>
-
-                                    <div style={{ display: "flex", paddingTop: 15, width: "100%" }} >
-                                        <div style={{ marginRight: 0, alignItems: "flex-end", width: 160, fontSize: 14, display: "flex", color: "#ffffff80" }}>
-                                            Ergo Network:
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-
-                                            <SelectBox
-                                                ref={ergoRef}
-                                                textStyle={{
-                                                    color: "#ffffff",
-                                                    fontFamily: "Webrockwell",
-                                                    border: 0,
-                                                    fontSize: 14,
-                                                }}
-                                                optionsStyle={{
-
-                                                    backgroundColor: "#333333C0",
-                                                    paddingTop: 5,
-                                                    fontSize: 14,
-                                                    fontFamily: "webrockwell"
-                                                }}
-
-                                                 placeholder="" options={[
-                                                    { value: true, label: "Enabled" },
-                                                    { value: false, label: "Disabled" }
-                                                ]} />
-                                        </div>
-                                     
-                                    </div>
-
-                           
-                                    <div style={{ height: 15 }}></div>
-                                </div>
+                            <div style={{display:"flex", fontFamily: "webrockwell", color: "#ffffffaa", padding: 40, fontSize: 16, textAlign: "center" }}>
+                                {setupInfo.file == null ? <div>A new local storage engine will be setup on: '{setupInfo.directory.name}' </div>:
+                                <div>
+                                    <div>This local storage engine has been previously setup. Would you like to reboot it?.</div>
+                                        <div style={{ fontSize: 14, paddingTop: 30, color: "#777777" }}><b style={{color:"#888888"}}>Notice:</b> Rebooting the engine will destroy the encryption key.<br/>(Please back up your current '.key' file. If you do not want to lose it.)</div>
+                                </div>}
+                            </div>
+                        
+                            {setupInfo.file == null ?     
                         <div style={{
                             justifyContent: "center",
 
@@ -595,11 +346,91 @@ export const InitStoragePage = (props = {}) => {
                             }}>
 
                             </div>
-                            <div style={{  width:80, height:30}} className={styles.OKButton} onClick={onOKclick} >{firstRun ? "Ok" : "Update"}</div>
+                            <div style={{  width:80, height:30}} className={styles.OKButton} onClick={handleSubmit} > Ok</div>
                         </div>
-                            </div>
+                        :
+                                <div style={{
+                                    justifyContent: "center",
+
+                                    paddingTop: "10px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    width: "100%"
+                                }}>
+                                    <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={onCancelClick}>Back</div>
+                                    <div style={{
+
+                                        marginLeft: "10px", marginRight: "10px",
+                                        height: "50px",
+                                        width: "1px",
+                                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                                    }}>
+
+                                    </div>
+                                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={useExisting} > Existing</div>
+                                    <div style={{
+
+                                        marginLeft: "10px", marginRight: "10px",
+                                        height: "50px",
+                                        width: "1px",
+                                        backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                                    }}>
+
+                                    </div>
+                                    <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={handleSubmit} > New</div>
+                                </div>
                         }
+                            </div>
+                        
                
+                    </div>
+                    </div>
+                : <div style={{
+                    position: "fixed",
+                    backgroundColor: "rgba(0,3,4,.95)",
+
+                    left: (pageSize.width / 2),
+                    top: (pageSize.height / 2),
+                    transform: "translate(-50%,-50%)",
+                    boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
+                }}>
+
+                    <div style={{
+                        paddingBottom: 10,
+                        textAlign: "center",
+                        width: "100%",
+                        paddingTop: "10px",
+                        fontFamily: "WebRockwell",
+                        fontSize: "18px",
+                        fontWeight: "bolder",
+                        color: "#cdd4da",
+                        textShadow: "2px 2px 2px #101314",
+                        backgroundImage: "linear-gradient(#131514, #000304EE )",
+
+
+                    }}>
+                        Setup Storage
+                    </div>
+
+                    <div style={{ width: "100%", height: "100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
+
+                        <div style={{
+
+
+                            flex: 1,
+                            minWidth: 600,
+
+                            padding: "20px",
+                            fontFamily: "WebRockwell",
+                            color: "#cdd4da",
+                            fontSize: "18px",
+                            display: "flex", flexDirection: "column",
+                            alignItems: "center",
+                        }}>
+                            <div style={{ display: "flex", fontFamily: "webrockwell", color: "white", padding: 40, fontSize: 16, textAlign: "center" }}>
+                                <div>Getting setup information....</div>
+                            </div>
+                        </div>
                     </div>
                     </div>
                     }

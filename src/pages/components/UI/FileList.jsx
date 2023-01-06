@@ -8,6 +8,7 @@ import { ImageViewer } from "./ImageViewer";
 
 
 
+
 const FileList = (props = {}, ref) => {
     if (props == null) props = {};
     const onChange = "onChange" in props ? props.onChange : null;
@@ -78,20 +79,20 @@ const FileList = (props = {}, ref) => {
 
     const [selectedHash, setSelectedHash] = useState(null);
     const [files, setFiles] = useState([]);
+    const [propsFiles, setPropsFiles] = useState([])
     const [fileView, setFileView] = useState({type:"details",direction:"row", iconSize:{width:100,height:100, scale:1}})
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [pageLength, setPageLength] = useState(100)
 
-    useEffect(() => {
+  
 
-        if ("files" in props) {
-            setFiles(props.files);
-            lastHash.current.value =  null
-        }
-        
-    }, [props.files])
+
+
+
 
     useEffect(()=>{
         if ("fileView" in props) {
-            
+            setCurrentIndex(0)
             setFileView(produce((state)=>{
                 let optionsArray = Object.getOwnPropertyNames(props.fileView);
 
@@ -101,6 +102,51 @@ const FileList = (props = {}, ref) => {
             }))
         }
     },[props.fileView])
+
+    useEffect(() => {
+        if ("files" in props) {
+          
+            setFiles(props.files)
+        }
+    }, [props.files])
+
+    /*useEffect(()=>{
+        if(props.files.length > 0)
+        {
+            const propsFiles = props.files
+            let newItems = []
+            
+            for (let i = 0; i < pageLength ; i++)
+            {
+             
+                const offsetIndex = (currentIndex * pageLength) + i
+             
+                if (offsetIndex > propsFiles.length -1) break;
+
+                console.log(offsetIndex)
+
+                const item = propsFiles[offsetIndex]
+
+          
+               let newItem = {
+                    to: "to" in item ? item.to : undefined,
+                    application: "application" in item ? item.application : "",
+                    directory: "directory" in item ? item.directory : undefined,
+                    mimeType: "mimeType" in item ? item.mimeType : item.mimeType,
+                    name: item.name,
+                    hash: item.hash,
+                    size: item.size,
+                    type: item.type,
+                    lastModified: item.lastModified,
+                    handle: "mimeType" in item ? item.handle : item.handle,
+                
+                }
+                newItems.push(newItem)
+           
+            }
+            setFiles(newItems)
+        }
+    },[props.files ,currentIndex, pageLength])*/
 
     
 
@@ -112,7 +158,7 @@ const FileList = (props = {}, ref) => {
     
         if (files != null) {
           
-            const filter = "filter" in props ? props.filter : { name: "", directory: "", type: "", loaded: false }
+            const filter = "filter" in props ? props.filter : { name: "", directory: "", type: "" }
            // const bounds =  divRef.current.getBoundingClientRect() 
             const width = props.width != undefined ? props.width : 600
             const floor = Math.floor( width / (fileView.iconSize.width + 20))
@@ -139,16 +185,17 @@ const FileList = (props = {}, ref) => {
                 const file = files[i]
 
                 const iName = file.name + "";
-                const iDirectoryName = ("directory" in file) ? file.directory.name : null;
-                const mimeType = ("mimeType" in file) ? file.mimeType : "";
                 const iType = ("type" in file) ? file.type : "";
-                const iLoaded = ("loaded" in file) ? file.loaded : false 
+                const iDirectoryName = ("directory" in file) && file.directory != undefined ? file.directory.name : null;
+                const mimeType = ("mimeType" in file) ? file.mimeType : "";
+                
+             //   const iLoaded = ("loaded" in file) ? file.loaded : false 
              
                 const filterName = (filter.name != undefined && filter.name != null && filter.name != "" );
                 const filterDirectory = (filter.directory != undefined && filter.directory != null && filter.directory != "")
                 const filterMimeType = (filter.mimeType != undefined && filter.mimeType != null && filter.mimeType != "" )
                 const filterType = (filter.type != undefined && filter.type != null && filter.type != "" )
-                const filterLoaded = filter.loaded != undefined 
+              //  const filterLoaded = filter.loaded != undefined 
                 
                
             
@@ -185,11 +232,11 @@ const FileList = (props = {}, ref) => {
    
                 }
          
-                if (show && filterLoaded )
-                {
+             //   if (show && filterLoaded )
+              //  {
                     
-                    show = iLoaded == filter.loaded
-                }
+               //     show = iLoaded == filter.loaded
+            //    }
 
 
             
@@ -285,12 +332,16 @@ const FileList = (props = {}, ref) => {
                                                     if (iTo == null) {
                                                         setSelectedHash(iHash)
                                                     } else {
-                                                        navigate(iTo)
+                                                       if( "state" in file){
+                                                            navigate(iTo, { state: file.state } )
+                                                        }else{
+                                                           navigate(iTo)
+                                                        }
                                                     }
                                                 }}
                                             
                                             key={i} style={{ overflow: "clip", maxWidth: 120, overflowClipMargin: iHash == selectedHash ? 100 : 0,  zIndex: iHash == selectedHash ? 99:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}><ImageDiv key={i}
-                                            style={{ margin: 10, overflow: "hidden", opacity:iLoaded ? 1 : .7 }}
+                                            style={{ margin: 10, overflow: "hidden"}}
                                             
                                             className={iHash == selectedHash ? activeIconClassName  : iconClassName}
                                             height={fileView.iconSize.width}
@@ -380,8 +431,9 @@ const FileList = (props = {}, ref) => {
             }
             
         }
-        if (fileView.type == "icons" && fileView.direction == "row")
+        if (fileView.type == "icons" && fileView.direction == "row" && rows != null)
         {
+          
             array = []
             for(let i = 0; i < rows.length ; i ++)
             {
@@ -395,7 +447,7 @@ const FileList = (props = {}, ref) => {
      
         setList( array)
 
-    }, [files, selectedHash, props, fileView, props.filter])
+    }, [files, selectedHash, props, currentIndex, props.filter])
 
 
     useImperativeHandle(
@@ -409,12 +461,7 @@ const FileList = (props = {}, ref) => {
             },
 
           
-            setFiles: (value) => {
-
-                setFiles(value)
-            },
-            getFiles: files,
-        }), [selectedHash, files]);
+        }), [selectedHash]);
 
 
     const lastHash = useRef({ value: null })

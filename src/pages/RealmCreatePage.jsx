@@ -29,22 +29,15 @@ export const RealmCreatePage = (props = {}) =>{
     const [submitting, setSubmitting] = useState(false)
 
     useEffect(()=>{
-        if(localDirectory.handle != null){
-            const config = configFile.value;
-           
-            if(config == null)
-            {
+    
+        if (configFile.handle == null)
+        {
 
-                addSystemMessage(initStorage)
-                navigate("/realms")
-            }
-            
-        }else{
-         
-            addSystemMessage(initDirectory)
+            addSystemMessage(initStorage)
             navigate("/realms")
         }
-    },[configFile, localDirectory])
+  
+    },[configFile])
 
     useEffect(()=>{
         if(imagesDirectory.directories != null){

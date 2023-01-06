@@ -452,7 +452,7 @@ export const ContactsPage = () => {
                 padding: 0,  left:95, top: 0 ,
                 boxShadow: "0 0 10px #ffffff05, 0 0 20px #ffffff05", 
                 }}>
-                
+                 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center",  padding: "10px" }}>
                     <ImageDiv width={130} height={130} netImage={{
                         image: "/Images/logo.png",
@@ -471,8 +471,7 @@ export const ContactsPage = () => {
                             display:"flex",
                               justifyContent: "center",
                               alignItems:"center",
-                        }} >Arcturus</div>
-                            <div style={{ fontSize: 16, color: "#cdd4da", fontFamily:"Webrockwell" }}>RPG</div>
+                        }} >Arcturus Network</div>
                             <div style={{ fontSize: 12, color: "#cdd4da", fontFamily: "Webrockwell" }}>.io</div>
                         </div>
                         
