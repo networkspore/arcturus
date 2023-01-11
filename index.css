@@ -42,7 +42,6 @@ html, body{
 	z-index: 99;
 }
 
-
 @font-face {
   font-family: 'WebPapyrus';
   src: url('fonts/PAPYRUS.woff') format('woff'),

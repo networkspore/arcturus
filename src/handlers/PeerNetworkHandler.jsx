@@ -444,7 +444,7 @@ export const PeerNetworkHandler = (props ={}) => {
         if(index == -1)
         {
             
-            worker.generateCode(user.userEmail + request.file.hash).then((id)=>{
+            worker.generateCode(peerID).then((id)=>{
 
                 let newUpload = {
                     id: id,

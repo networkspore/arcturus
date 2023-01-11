@@ -7,6 +7,7 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 
 import styles from './css/home.module.css'
 import { generateCode } from "../constants/utility";
+import aesjs from "aes-js";
 
 
 export const CreateReferalCode = (props = {}) => {
@@ -92,7 +93,8 @@ export const CreateReferalCode = (props = {}) => {
        
        
 
-        codeRef.current.value = (await generateCode(user.userEmail)).slice(0,30);
+        const code = await generateCode(user.userEmail, 45, true);
+        codeRef.current.value = code
     }
 
     function formatedNow(now = new Date(), small = false) {

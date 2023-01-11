@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef  } from "react";
-
+import { flushSync } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 import useZust from "../hooks/useZust";
-
+import {NewUserPage} from "./NewUserPage"
 import styles from './css/home.module.css';
-import NewUserPage from './NewUserPage'
-import { io } from "socket.io-client";
-import { socketIOhttp, socketToken } from '../constants/httpVars';
+
 
 const WelcomePage = () => {
     
+    const emailRef = useRef()
+    const refRef = useRef()
  
     const defaultColor = "#77777750";
     const enableColor = "#FFFFFF";
@@ -20,109 +20,152 @@ const WelcomePage = () => {
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const setWelcomePage = useZust((state) => state.setWelcomePage);
-    const [newEmail, setEmail] = useState(""); 
 
 
-    const [current, setCurrent] = useState(0);
+    const [currentInfo, setCurrentInfo] = useState(null);
 
     
-    
-   const [refID, setRefID] = useState("");
-
+  
     const [valid, setValid] = useState(false);
 
 
     useEffect(() => {
         setWelcomePage();
 
-        setCurrent(1);
+    
         return () => {
-            setSocketCmd({
-                anonymous: true,
-                cmd: "logout", params: { }, callback: null
-            })
+            location.replace("/")
         }
     }, [])
 
-
+    const [emailValid, setEmailValid] = useState(false)
     function handleChange(e) {
-        const { name, value } = e.target;
         
+        const refCode = refRef.current.value
+        const email = emailRef.current.value
+        
+        let eValid = false
+        let refValid = false
    
-        if(name == "email") {
-           
-            if (/.+@.+\.[A-Za-z]+$/.test(value))
-           {
-                console.log("checkingEmail")
-                setSocketCmd({
-                    anonymous: true,
-                    cmd: "checkEmail", params: { text: value }, callback: (callback) => {
-                    
-                        if (callback) {
-                            setEmail(value);
-                        } else {
-                            setEmail("");
-                        }
-                    }
-                })
-            }else{
-                setEmail("");
-            }
+       
+     
+        if (/.+@.+\.[A-Za-z]+$/.test(email))
+        {
+            
+            eValid = true
+        }else{
+            eValid = false
+       
         }
+    
 
-        if(name == "ref"){
-            if (value.length > 7) {
-                setSocketCmd({
-                    anonymous: true,
-                    cmd: "checkRefCode", params: { refCode: value }, callback: (callback) => {
-                        
-                    if(callback > 0)
-                    {
-                        setValid(prev => true);
-                        setRefID(callback);
-                    }else{
-                        if (valid) setValid(prev => false);
-                    }
-                }});
-            }else{
-               
-                if(valid)setValid(prev => false);
-            }
+   
+        if (refCode.length > 7) {
+            refValid = true
+        }else{
+            refValid = false
+            
         }
+        setEmailValid(eValid)
+
+        setValid(eValid && refValid)
+  
     }
 
     function handleSubmit(e) {
         e.preventDefault();
         
-        if(valid)setCurrent(2)
+        if(valid){
+            setValid(false)
+            const refCode = refRef.current.value
+            const userEmail = emailRef.current.value
+            console.log(refCode)
+            console.log(userEmail)
+            startLogin() 
+            setSocketCmd({ anonymous:true, cmd: 'checkRefCodeEmail', params:{
+                refCode:refCode,
+                userEmail: userEmail,
+            }, callback:(result) =>{
+        
+                if("success" in result && result.success){
+                        cancelLoader()
+                        setValid(true)    
+                       setCurrentInfo({refCode: refCode, userEmail:userEmail})
+                }else{
+                    setValid(true)
+                    setCurrentInfo(null)
+                    alert("Could not validate your email address and referral code.")
+                    cancelLoader()
+                }
+            } })
+            
+        }
 
 
     }
-    
+    const loginStatusLength = 800
+    const interval = useRef({ value: null })
+    const [loginStatus, setLoginStatus] = useState(null)
 
+
+    function startLogin() {
+       
+            setLoginStatus(1)
  
 
-    const createUser = (newUser) =>{
-        newUser.userRefID = refID;
+        interval.current.value = { id: setInterval(incrementStatus, 50), index: 0 }
+        return true
+    }
+
+    function cancelLoader() {
+        clearInterval(interval.current.value.id)
+        interval.current.value = null
+        setLoginStatus(null)
+    }
+
+    const incrementStatus = () => {
+        if ( interval.current.value.index < loginStatusLength) {
+            interval.current.value.index += 50
+            setLoginStatus(interval.current.value.index)
+        } else {
+            clearInterval(interval.current.value.id)
+        }
+    }
+
+
+    const createUser = (userInfo) =>{
+        return new Promise(resolve =>{
+       
+        const { userName, userPassword } = userInfo
+        const { refCode, userEmail } = currentInfo
+        const newUser = {
+            refCode: refCode,
+            userEmail: userEmail,
+            userName: userName,
+            userPassword: userPassword
+        }
+        console.log(newUser)
+   
         setSocketCmd({
             anonymous: true,
-            cmd: 'createUser', params: {user: newUser }, callback: (response) => {
-
-            if (!response.create) {
-                alert(response.msg);
-                navigate("/welcome")
-            } else {
-                alert("User created, Please log in.")
-                window.location.replace("/")
+            cmd: 'createUser', params: newUser , callback: (response) => {
+           
+            if ("success" in response && response.success)
+            {
+                resolve(true)
+            }else{
+        
+                resolve(false)
             }
 
         }});
+        })
     }
    
 
     return (
         <>
-        { current == 1 &&
+        { currentInfo == null ?
         
             <div style={{ width: 850,
                     backgroundImage: "linear-gradient(to bottom, #10131450,#00030450,#10131450)", 
@@ -131,12 +174,31 @@ const WelcomePage = () => {
                 left: "50%", top: "50%", transform: "translate(-50%,-50%)", 
                     boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710", 
                 alignItems: "center",justifyContent: "center", flexDirection: "column",
-                paddingTop: "60px",
+                
             }}>
-                    <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom:5, marginBottom:5}}>&nbsp;</div>
+                    <div style={{
+                        width: "100%",
+                        display: "flex",
+                        color: "white",
+                        paddingBottom:60,
+                    }}>{loginStatus != null ?
+                        <div style={{
+                            flex: 1,
+                            height: 1,
+                            boxShadow: `0 0 10px #ffffff${((loginStatus / loginStatusLength) * 255).toString(16).slice(0, 2)}, 0 0 30px #ffffff${((loginStatus / loginStatusLength) * 160).toString(16).slice(0, 2)}`,
+                        }}>
+                            &nbsp;
+                        </div>
+                        : <div style={{
+                            flex: 1,
+                            height: 1,
+                        }}></div>
+                        }
+                    </div> 
+                    
                 <div  style={{
                     
-                    fontSize:"50px",
+                    fontSize:"48px",
                     textAlign: "center",
                     fontFamily: "Webpapyrus",
                         textShadow:"0 0 10px #ffffff40, 0 0 20px #ffffff60",
@@ -146,7 +208,7 @@ const WelcomePage = () => {
                
                 }} > Create Account</div>
                 
-                    <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingTop:5}}>&nbsp;</div>
+                    <div style={{ height: 2, width: "100%", backgroundImage: "linear-gradient(to right, #00030450, #77777730, #00030450)", paddingTop:3}}>&nbsp;</div>
                   
                    
 
@@ -165,7 +227,10 @@ const WelcomePage = () => {
                             paddingRight:20
                         }}>
 
-                            <input onKeyUp={(e) => {
+                            <input 
+
+                                ref={refRef}
+                            onKeyUp={(e) => {
                                 if (e.code == "Enter") {
                                     handleSubmit(e)
                                 }
@@ -181,7 +246,7 @@ const WelcomePage = () => {
                     </div>
 
                     <div style={{ paddingTop: "5px", color: "#77717180",textShadow:"1px 1px 1px black", fontSize: "12px", fontFamily:"Webrockwell" ,paddingBottom:"50px"}} >
-                        {valid ?  "Code valid." : "Enter a valid referral code."}
+                        Enter a referral code.
                     </div>
                             <div style={{paddingTop:"30px"}}>
                                 <div style={{
@@ -196,7 +261,9 @@ const WelcomePage = () => {
                                     paddingRight: 20
                                 }}>
 
-                            <input onKeyUp={(e) => {
+                            <input 
+                                ref={emailRef}
+                            onKeyUp={(e) => {
                                 if (e.code == "Enter") {
                                     handleSubmit(e)
                                 }
@@ -211,7 +278,7 @@ const WelcomePage = () => {
                                        </div>
                             </div>
                     <div style={{ paddingTop: "5px", textShadow: "1px 1px 1px black", color: "#77717180", fontFamily:"Webrockwell", fontSize:"12px", paddingBottom:"40px" }} >
-                                    {newEmail == "" ? "Enter an unused email." : "Email valid."}
+                        {emailValid ? "Email valid." : "Enter a valid email."}
                                 </div>
                     <div style={{ display: "flex", paddingTop: "20px", marginBottom:30, alignItems: "center", justifyContent: "center", }} >
                       
@@ -243,25 +310,23 @@ const WelcomePage = () => {
                         }}></div>
                                 <div onClick={handleSubmit}  style={{
                                         textAlign: "center",
-                                        cursor: ((newEmail.length > 4) && (valid)) ? "pointer" : "default", 
+                                        cursor: ( (valid)) ? "pointer" : "default", 
                                         fontFamily: "WebPapyrus",
                                         fontSize: "18px",
                                         fontWeight: "bolder",
                                         width:100,
-                                        color: ((newEmail.length > 4)&&(valid)) ? enableColor : defaultColor, 
+                                        color: ((valid)) ? enableColor : defaultColor, 
                                         paddingLeft: "0px",
                                         paddingTop: "10px",
                                         paddingBottom: "10px",
                                     }}
-                                    className={((newEmail.length > 4)&&(valid)) ? styles.OKButton: ""} 
+                                    className={(valid) ? styles.OKButton: ""} 
                                   
                                 > Confirm </div>
-                            </div>
-
-        </div>
-        }
-        {current ==2 &&
-            <NewUserPage newEmail={newEmail} refCode={refID} createUser={(newUser)=>createUser(newUser)}/>
+                        </div>
+                        
+                        </div>:
+                <NewUserPage createUser={createUser}/>
         }
         </>     
     )

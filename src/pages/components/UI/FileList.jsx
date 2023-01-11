@@ -340,7 +340,7 @@ const FileList = (props = {}, ref) => {
                                                     }
                                                 }}
                                             
-                                            key={i} style={{ overflow: "clip", maxWidth: 120, overflowClipMargin: iHash == selectedHash ? 100 : 0,  zIndex: iHash == selectedHash ? 99:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}><ImageDiv key={i}
+                                            key={i} style={{ overflow: "clip", maxWidth: 120, overflowClipMargin: iHash == selectedHash ? 500 : 0,  zIndex: iHash == selectedHash ? 99:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}><ImageDiv key={i}
                                             style={{ margin: 10, overflow: "hidden"}}
                                             
                                             className={iHash == selectedHash ? activeIconClassName  : iconClassName}
@@ -348,7 +348,7 @@ const FileList = (props = {}, ref) => {
                                             width={fileView.iconSize.height}
                                             netImage={iImage}
                                             
-                                            /><div style={{ textShadow: iHash == selectedHash ? "1px 1px 3px white" : "",  display: "flex", alignItems:"center", fontFamily:"webpapyrus", fontSize:"12", whiteSpace: "nowrap", padding: 10, background: "black", color:"white"  }}>
+                                                /><div style={{ fontWeight: iHash == selectedHash ? "bolder" : "", background: iHash == selectedHash ? "#333333EE" : "#00000090", borderRadius: 10, boxShadow: iHash == selectedHash ? "0 0 10px #ffffff70, 0 0 20px #ffffff70, inset 0 0 30px #77777740" : "", textShadow: iHash == selectedHash ? "1px 1px 3px black" : "", display: "flex", alignItems: "center", fontFamily: "webpapyrus", fontSize: "12", whiteSpace: "nowrap", padding: 10, color: "white"  }}>
                                                 {iHash == selectedHash ? iName : iName.length > 11 ? iName.slice(0,11) + ".." : iName }
                                             </div>
                                            
@@ -525,7 +525,7 @@ const FileList = (props = {}, ref) => {
 
     return (
         <>
-        <div onClick={(e)=>{setSelectedHash(null)}} ref={divRef} style={{display:"flex", flexDirection:"column",  flex:1, alignItems: fileView.direction == "list" ? "center" :""}} >
+            <div onClick={(e) => { setSelectedHash(null) }} ref={divRef} style={{overflow:"clip", overflowClipMargin: 500, display:"flex", flexDirection:"column",  flex:1, alignItems: fileView.direction == "list" ? "center" :""}} >
             {fileView.type == "details" &&
                 <div style={{ display: "flex", flex: 1, flexDirection:"column", }}>
                     <div style={{ display: "flex", flex:1 }}>

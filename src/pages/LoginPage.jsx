@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import styles from './css/login.module.css';
 import { useNavigate} from 'react-router-dom';
-
-import sha256 from 'crypto-js/sha256';
+import { flushSync } from 'react-dom';
 import useZust from "../hooks/useZust";
 
 import { useRef } from "react";
-import { getFileInfo, getStringHash, getPermissionAsync } from "../constants/utility";
+import { getApplicationContext, getStringHash, getPermissionAsync, getFileInfo } from "../constants/utility";
 import { get, set } from "idb-keyval";
 
 
@@ -25,6 +24,9 @@ import { get, set } from "idb-keyval";
     
     const [disable, setDisable] = useState(false)
     const [userList, setUserList] = useState(null)
+    const loginStatusLength = 3000
+     const interval = useRef({ value: null })
+     const [loginStatus, setLoginStatus] = useState(null)
   
     const setLoginPage = useZust((state) => state.setLoginPage);
     const setUserFiles = useZust((state) => state.setUserFiles)
@@ -48,43 +50,35 @@ import { get, set } from "idb-keyval";
 
     }
  
+    const [users, setUsers] = useState([])
+
     useEffect(()=>{
         setLoginPage()
     
-     
+        getApplicationContext().then((contextFiles) =>{
+            if(Array.isArray(contextFiles)){
+                let ctxs = []
+                contextFiles.forEach(context => {
+                    if(context.type == "user") ctxs.push(context)
+                });
+                setUsers(ctxs)
+            }else{
+                setUsers([])
+            }
+        })
+        
+    },[]);
 
-    }
-    ,[]);
+   
 
-    async function getUserList()
-    {
-        const uL = await  get("arc.users")
-
-        if(Array.isArray(uL) && uL.length > 0){
-            setUserList(uL)
-        }
-    }
-     async function updateUserList(user) {
-         const userList = await get("arc.users")
-
-         if (!isArray(userList)) {
-             await set("arc.users", [user])
-         } else {
-             const index = userList.findIndex(u => u.userID == user.userID)
-
-             if (index == -1) {
-                 userList.push(user)
-                 await set("arc.users", userList)
-             } else {
-                 userList.splice(index, 1, user)
-                 await set("arc.users", userList)
-             }
-         }
-     }
 
     function onLostPassword(event){
         if (!disable) {
-            setDisable(true);
+           
+            if (!disable) flushSync(() => { setDisable(true) })
+
+            startLogin()
+
             setSocketCmd({
                 anonymous: true,
                 cmd: "login", params: { nameEmail: "anonymous" }, callback: (response) => {
@@ -103,10 +97,13 @@ import { get, set } from "idb-keyval";
     function handleCreate(event) {
 
         if (!disable) {
-            setDisable(true);
+            if (!disable) flushSync(() => { setDisable(true) })
+
+            startLogin()
+
             setSocketCmd({anonymous:true,
                 cmd: "login", params: { nameEmail: "anonymous" }, callback: (response) => {
-                  
+                  console.log(response)
                 if(!("error" in response)){
                     if(response.success)
                     {
@@ -122,11 +119,45 @@ import { get, set } from "idb-keyval";
         
         
     }
-
+   
     async function handleSubmit(e) {
         e.preventDefault();
-        let pass = await getStringHash(data.loginPass);
-        login(data.loginName, pass);
+        if (!disable) flushSync(() => { setDisable(true) })
+  
+        startLogin()
+       
+        
+
+        if(!disable) login().then((isLogin) => {
+            cancelLoader()
+            if (!disable && !isLogin) alert("Check your password and try again.")
+        })
+ 
+    }
+
+    function startLogin(){
+       
+        setLoginStatus(1)
+       
+       
+        interval.current.value = { id: setInterval(incrementStatus, 50), index: 0 } 
+        return true
+    }
+
+    function cancelLoader(){
+        clearInterval(interval.current.value.id)
+        interval.current.value = null
+        setLoginStatus(null)
+    }
+
+    const incrementStatus = () =>{
+        if (interval.current.value.index < loginStatusLength)
+        {
+            interval.current.value.index += 50
+            setLoginStatus(interval.current.value.index)
+        }else{
+            clearInterval(interval.current.value.id)
+        }
     }
     
     const setSocketCmd = useZust((state) => state.setSocketCmd)
@@ -137,9 +168,9 @@ import { get, set } from "idb-keyval";
 
              const homeHandle = await value.handle.getDirectoryHandle("home")
              const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
+             const engineHandle = await userHomeHandle.getDirectoryHandle("engine")
+             const handle = await engineHandle.getFileHandle(user.userName + ".core")
 
-
-             const handle = await userHomeHandle.getFileHandle(user.userName + ".storage.key")
              const file = await handle.getFile()
              const fileInfo = await getFileInfo(file, handle, userHomeHandle)
           
@@ -156,64 +187,74 @@ import { get, set } from "idb-keyval";
      }
 
 
-    async function login(name_email = "", pass ="")
+    function login()
     {
-        if(!disable){
-            setDisable(true)
-            
-           
-            setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback: async (response)=>{
-              
-                setDisable(false)
-            if(response.success){
+        return new Promise(resolve =>{
+            const clearPass = txtPass.current.value
+            const name_email = txtName.current.value
 
-                const user = response.user
-                const contacts = response.contacts
-                const userFiles = response.userFiles
-
-                await set(user.userID + "userFiles", userFiles)
-                setContacts(contacts)
-                setUser(user)
-                
-                const value = await get(user.userID + "localDirectory")
-                
-
-                if(value != undefined ){
-                    const verified = await getPermissionAsync(value.handle)
-                   
-                    const configFile = verified ? await loadConfig(value, user) : undefined
+            getStringHash(clearPass,64).then((pass)=>{
+                if(!disable){
+                    setDisable(true)
                     
-                 
-                    if (configFile != undefined) {
-                        const storageHash = configFile.hash
-              
+                
+                    setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback: async (response)=>{
+                    
+                        setDisable(false)
+                    if(response.success){
 
-                        setSocketCmd({cmd:"checkStorageHash", params:{storageHash:storageHash}, callback:async (result)=>{
+                        const user = response.user
+                        const contacts = response.contacts
+                        const userFiles = response.userFiles
+
+                        await set(user.userID + "userFiles", userFiles)
+                        setContacts(contacts)
+                        setUser(user)
+                        
+                            const value = await get(user.userID + "localDirectory")
                             
-                            if("success" in result && result.success){
 
-                              
-                                navigate("/",{state:{configFile:configFile, localDirectory: value}})
+                            if(value != undefined ){
+                                const verified = await getPermissionAsync(value.handle)
+                            
+                                const configFile = verified ? await loadConfig(value, user) : undefined
                                 
-                            }else{
-                                navigate("/", { state: { error: "config" } })
-                            }
-                        }})    
+                            
+                                if (configFile != undefined) {
+                                    const storageHash = configFile.hash
+                        
 
-                    } else {
-                        await get(user.userID + "localDirectory", undefined)
-                        navigate("/", { state: { configFile: null } })
-                    }
-                }else{
-                    
-                    navigate("/", { state: { configFile: null } })
+                                    setSocketCmd({cmd:"checkStorageHash", params:{storageHash:storageHash}, callback:async (result)=>{
+                                        
+                                        if("success" in result && result.success){
+                                            
+                                            resolve(true)
+                                            navigate("/",{state:{configFile:configFile, localDirectory: value}})
+                                            
+                                        }else{
+                                            resolve(true)
+                                            navigate("/", { state: { error: "config" } })
+                                        }
+                                    }})    
+
+                                } else {
+                                    resolve(true)
+                                    await set(user.userID + "localDirectory", undefined)
+                                    navigate("/", { state: { configFile: null } })
+                                }
+                            }else{
+                                resolve(true)
+                                navigate("/", { state: { configFile: null } })
+                            }
+                        
+                        }else{
+
+                            resolve(false)
+                        }
+                    }})    
                 }
-                
-                }else{
-                    alert("Check your password and try again.")
-                }
-            }})    
-        }
+            })
+        })
     }
 
 
@@ -236,9 +277,30 @@ return (
         flexDirection:"column",
         alignItems:"center",
     
-        paddingBottom: 30,
+        
     }}
     >
+                
+
+                    <div style={{
+                        width: "100%",
+                        display: "flex",
+                        color: "white",
+                    }}>{loginStatus != null ?
+                        <div style={{
+                            flex: 1,
+                            height: 1,
+                            boxShadow: `0 0 10px #ffffff${((loginStatus / loginStatusLength) * 255).toString(16).slice(0, 2)}, 0 0 30px #ffffff${((loginStatus / loginStatusLength) * 160).toString(16).slice(0, 2)}`,
+                        }}>
+                            &nbsp;
+                        </div>
+                        :<div style={{
+                            flex: 1,
+                            height: 1,
+                        }}></div>
+                        }
+                    </div> 
+                
         <div style={{
             paddingBottom: 10,
             textAlign: "center",
@@ -313,21 +375,22 @@ return (
                 </div>
                 
                 
-                <div style={{ width:"100%", display:"flex", justifyContent:"right"}}>
+                <div style={{ width:"100%", display:"flex", }}>
+                    <div style={{flex:1}}>&nbsp;</div>
                     <div onClick={handleSubmit} style={{
                         textAlign: "center",
-                        cursor: (data.loginName.length > 2 && data.loginPass.length > 7) || (disable) ? "pointer" : "default",
+                        cursor: !disable && (data.loginName.length > 2 && data.loginPass.length > 7) ? "pointer" : "default",
                         fontFamily: "WebPapyrus",
                         fontSize: "25px",
                         fontWeight: "bolder",
                         width: 100,
-                        color: (data.loginName.length > 2 && data.loginPass.length > 7) || (disable) ? "white" : "#77777750",
+                            color: !disable &&(data.loginName.length > 2 && data.loginPass.length > 7)  ? "white" : "#77777750",
                         
                         paddingTop: "10px",
                         paddingBottom: "10px",
                         transform:"translate(5px, 20px)"
                     }}
-                        className={(data.loginName.length > 2 && data.loginPass.length > 7) || (disable) ? styles.OKButton : ""}
+                            className={!disable && (data.loginName.length > 2 && data.loginPass.length > 7)  ? styles.OKButton : ""}
 
                     > Enter </div>
                     <div style={{width:20}}></div>
@@ -339,7 +402,32 @@ return (
         <div style={{ paddingTop: 20 }}>
             <a onClick={handleCreate} style={{ fontFamily: "WebPapyrus", fontSize: 15 }} className={styles.glowText}>Create Account</a>
         </div>
+          
+                <div style={{
+                    width:"100%",
+                    display:"flex",
+                    paddingTop:5,
+                    opacity:.5
+                    }}>
+                          {loginStatus != null ?
 
+                    <div style={{
+                            flex: loginStatus / loginStatusLength,
+                            height: 2,
+                            backgroundImage: `linear-gradient(to bottom, #cdd4da${((loginStatus / loginStatusLength) * 255).toString(16).slice(0, 2)} ${(loginStatus / loginStatusLength * 100) + "%"}, #000000${((loginStatusLength / loginStatus) * 255).toString(16).slice(0, 2) } ${(loginStatus / loginStatusLength * 100) + "%"})`,
+                            boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff20",
+                    }}>
+                        &nbsp;
+                         
+                        </div> : <div style={{
+                            flex: loginStatus / loginStatusLength,
+                            height: 2,
+                        }} > &nbsp;
+
+                        </div>
+}
+                </div>
+          
          </div>
       
         }

@@ -7,7 +7,8 @@ import { io } from "socket.io-client";
 import { ImageDiv } from "../pages/components/UI/ImageDiv";
 import sha256 from 'crypto-js/sha256';
 import styles from '../pages/css/login.module.css';
-import { getStringHash } from "../constants/utility";
+import { getStringHash, generateCode, browserID } from "../constants/utility";
+import { decrypt, generateKey, encrypt, createMessage, readKey, decryptKey, readPrivateKey,readMessage } from 'openpgp';
 
 export const SocketHandler = (props = {}) => {
     
@@ -25,7 +26,14 @@ export const SocketHandler = (props = {}) => {
 
     
     const sock = useRef({value:null})
-    const tryCount = useRef({value:0})
+
+    const contextRef = useRef({ value: null })
+
+
+    useEffect(() => {
+        createNewContext()
+    }, [])
+
 
     useEffect(()=>{ 
         if(!(user.userID > 0))
@@ -37,14 +45,101 @@ export const SocketHandler = (props = {}) => {
         }
     }, [user])
 
-
  
 
+
+    async function createNewContext(){
     
+        const randomCode = await generateCode("ctx", 128)
+        
+        //const instanceCode = await getStringHash(randomCode, 64)
+
+        const { privateKey, publicKey, revocationCertificate } = await generateKey({
+            type: 'ecc',
+            curve: 'curve25519',
+            userIDs: [{ name: 'Arcturus', email: 'arcturus@arcturusnetwork.com' }],
+            passphrase: randomCode,
+            format: 'armored'
+        });
+
+        contextRef.current.value ={
+            contextID: await getStringHash(browserID,64),
+            code: randomCode,
+            key: {
+                privateKey: privateKey,
+                publicKey: publicKey,
+                revocationCertificate: revocationCertificate
+            }
+        }
+    }
+
+
+
+    async function encryptStringToServer(string){
+        
+        const publicKeyArmored = serverKeyRef.current.value
+
+
+        const publicKey = await readKey({ armoredKey: publicKeyArmored });
+       // await Promise.all(publicKeysArmored.map(armoredKey => openpgp.readKey({ armoredKey })));
+ 
+
+        /*const readableStream = new ReadableStream({
+            start(controller) {
+                controller.enqueue(string);
+                controller.close();
+            }
+        });*/
+     //   console.log(readableStream)await createMessage({ text: readableStream })
+
+        const encrypted = await encrypt({
+            message: await createMessage({ text: string }), // input as Message object
+            encryptionKeys: publicKey
+        });
+    
+
+        return encrypted
+    }
+
+    async function decryptFromServer(encryptedString) {
+
+        const contextCode = contextRef.current.value.code
+        const armoredPrivateKey = contextRef.current.value.key.privateKey
+
+        const decryptedKey = await decryptKey({
+            privateKey: await readPrivateKey({ armoredKey: armoredPrivateKey }),
+            passphrase: contextCode
+        });
+
+        const decryptedMessage = await readMessage({
+            armoredMessage: encryptedString
+        });
+
+
+        const decrypted = await decrypt({
+            message: decryptedMessage,
+            decryptionKeys: decryptedKey
+
+        });
+
+        const chunks = [];
+        for await (const chunk of decrypted.data) {
+            chunks.push(chunk);
+        }
+
+        const decryptedString = chunks.join('');
+
+        return decryptedString
+
+    }
+ 
 
     useEffect(()=>{
        
         if (sock.current.value == null && user.userID > 0){
+
+            
+            
             setSocketConnected(false)
           
             setShowLogin(true)
@@ -53,6 +148,7 @@ export const SocketHandler = (props = {}) => {
         } else {
             if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected) {
 
+                contextRef.current.value = null
                 sock.current.value = null
                 setSocketConnected(false)
 
@@ -67,46 +163,71 @@ export const SocketHandler = (props = {}) => {
      
     }, [sock.current, user])
 
-    const socketConnect = () =>{
-       
-        sock.current.value = io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
+    const userCode = useRef({value:null})
 
-        sock.current.value.on("connect", () => {
-         
-         
+    const serverKeyRef = useRef({value:null})
+
+    const socketConnect = (connectCmd) =>{
       
-            sock.current.value.emit("login", socketCmd.params, (response) => {
-            
-                if ("success" in response && response.success) {
-                   
-                    // setSocket(sock.current.value)
-                    loggedIn.current.value = true
-                    setSocketConnected(true)
-                    socketCmd.callback(response)
-                    setShowLogin(false)
-                    tryCount.current.value = 1
-                    addDefaultListeners()
-                    sock.current.value.on("disconnect", (res) => {
-                        switch (res) {
-                            case "io server disconnect":
-                                sock.current.value = null
-                                break;
+            sock.current.value = io(socketIOhttp, { auth: { token: loginToken }, transports: ['websocket'] });
 
-                        }
-                    })
-                } else {
-           
-                    sock.current.value.disconnect()
-                    sock.current.value = null;
-                    loggedIn.current.value = false
-                    tryCount.current.value += 1
-                    socketCmd.callback({ success: false })
+            sock.current.value.on("serverInit", (serverKey)=>{
 
+                serverKeyRef.current.value = serverKey
+                const {nameEmail, password } = connectCmd.params
+                const clientContext = {
+                    contextID: contextRef.current.value.contextID,
+                    contextKey: contextRef.current.value.key.publicKey,
+                    nameEmail: nameEmail,
+                    password: password
                 }
+                
+                const jsonString = JSON.stringify(clientContext)
 
+                encryptStringToServer(jsonString).then((encryptedJson) =>{
+
+                    sock.current.value.emit("login", encryptedJson, (encryptedResponse) => {
+
+                        decryptFromServer(encryptedResponse).then((decryptedString)=>{
+                            const response = JSON.parse(decryptedString)
+
+                            if ("success" in response && response.success) {
+                            
+                                // setSocket(sock.current.value)
+                                loggedIn.current.value = true
+                                setSocketConnected(true)
+
+                                
+                                userCode.current.value = response.userCode
+
+                                const loginResponse = {
+                                    success: true,
+                                    user: response.user,
+                                    contacts: response.contacts,
+                                    userFiles: response.userFiles,
+                                
+                                }
+
+                                
+                                setShowLogin(false)
+                                
+                                addDefaultListeners()
+                                
+                                connectCmd.callback(loginResponse)
+                            } else {
+                    
+                                sock.current.value.disconnect()
+                                sock.current.value = null;
+                                loggedIn.current.value = false
+                                
+                                connectCmd.callback({ success: false})
+
+                            }
+                        })
+                    })
+                })
             })
-         
-        })
+     
     }
 
     useEffect(() =>{
@@ -116,9 +237,9 @@ export const SocketHandler = (props = {}) => {
           
             if (socketCmd.cmd == "login" && !(("anonymous") in socketCmd)) {
                 
-                if (sock.current.value == null && tryCount.current.value < 5)
+                if (sock.current.value == null )
                 {
-                    socketConnect()
+                    socketConnect(socketCmd)
                 }else{
                
                     socketCmd.callback({ error: new Error("Too many tries."), maxRetry:true})
@@ -128,17 +249,29 @@ export const SocketHandler = (props = {}) => {
 
                     sock.current.value = io(socketIOhttp, { auth: { token: socketToken }, transports: ['websocket'] });
      
-                    sock.current.value.on("connect", () => {
-            
-                        socketCmd.callback({ success: true })
-                        sock.current.value.on("disconnect", (res) => {
-                   
-                            switch (res) {
-                                case "io server disconnect":
-                                    window.location.replace("/")
-                                    break;
+                    sock.current.value.on("serverInit", (serverKey) => {
+                        serverKeyRef.current.value = serverKey
+                        const clientContext = {
+                            contextID: contextRef.current.value.contextID,
+                            contextKey: contextRef.current.value.key.publicKey
+                        } 
+                        const ctxString = JSON.stringify(clientContext)
+                        encryptStringToServer(ctxString).then((encryptedCtx) =>{
 
-                            }
+                            sock.current.value.emit("getAnonContext", encryptedCtx, (isContext)=>{
+                                if(isContext){
+                                    socketCmd.callback({ success: true })
+                                }else{
+                                    socketCmd.callback({success: false })
+
+                                }
+                            })
+
+                        })
+                        sock.current.value.on("disconnect", (res) => {
+
+                            window.location.replace("/") 
+
                         })
                     })
                 } else {
@@ -157,22 +290,12 @@ export const SocketHandler = (props = {}) => {
             if (("anonymous") in socketCmd) {
 
                 switch (socketCmd.cmd) {
-                    case "checkRefCode":
-                        sock.current.value.emit("checkRefCode", socketCmd.params.refCode, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
                     case "checkUserName":
                         sock.current.value.emit("checkUserName", socketCmd.params.text, (response) => {
                             socketCmd.callback(response)
                         })
                         break;
 
-                    case "checkEmail":
-                        sock.current.value.emit("checkEmail", socketCmd.params.text, (response) => {
-                            socketCmd.callback(response)
-                        })
-                        break;
                     case "updateUserPassword":
                         sock.current.value.emit("updateUserPassword", socketCmd.params, (response) => {
                             socketCmd.callback(response)
@@ -184,8 +307,35 @@ export const SocketHandler = (props = {}) => {
                         })
                         break;
                     case 'createUser':
-                        sock.current.value.emit("createUser", socketCmd.params.user, (response) => {
-                            socketCmd.callback(response)
+                       
+                        const userString = JSON.stringify(socketCmd.params)
+                        console.log(userString)
+                        encryptStringToServer(userString).then((encryptedUserString) =>{
+                            console.log(encryptedUserString)
+                            sock.current.value.emit("createUser", encryptedUserString, (response) => {
+                                console.log(response)
+                               
+                                    socketCmd.callback(response)
+                              
+
+                            })
+                        })
+
+                        break;
+                    case 'checkRefCodeEmail':
+                        const jsonString = JSON.stringify(socketCmd.params)
+                        const codeCallback = socketCmd.callback
+                        encryptStringToServer(jsonString).then((encryptedParams) => {
+                            sock.current.value.emit('checkRefCodeEmail', encryptedParams, (encryptedResponse) => {
+                                decryptFromServer(encryptedResponse).then((resultJson) => {
+                                    const response = JSON.parse(resultJson)
+                                    console.log(response)
+                                    
+                                    codeCallback(response)
+                                })
+
+
+                            })
                         })
                         break;
 
@@ -195,6 +345,13 @@ export const SocketHandler = (props = {}) => {
 
                 
                 switch (socketCmd.cmd) {
+                    
+                   
+                    case "checkPassword":
+                        sock.current.value.emit("checkPassword", socketCmd.params.hash, (response) => {
+                            socketCmd.callback(response)
+                        })
+                        break;
                     case "getAppList":
                         sock.current.value.emit("getAppList", socketCmd.params, (response) => {
                             socketCmd.callback(response)
@@ -211,7 +368,7 @@ export const SocketHandler = (props = {}) => {
                         })
                         break;
                     case "checkStorageHash":
-                        console.log("socket checking hash")
+                      
                         sock.current.value.emit("checkStorageHash", socketCmd.params, (response) =>{
                             socketCmd.callback(response)
                         })
@@ -321,6 +478,9 @@ export const SocketHandler = (props = {}) => {
                             socketCmd.callback(response)
                         })
                         break;
+                    case "getUserCode":
+                        socketCmd.callback(userCode.current.value)
+                        break;
                     default:
                         if (socketCmd.cmd != null && socketCmd.callback != null){
                         
@@ -337,6 +497,15 @@ export const SocketHandler = (props = {}) => {
     
         if(sock.current.value != null)
         {
+            sock.current.value.on("disconnect", (res) => {
+                switch (res) {
+                    case "io server disconnect":
+                        sock.current.value = null
+                        break;
+
+                }
+            })
+
             sock.current.value.on("peerFileRequest", (uploadRequest, response) =>{
              
                 setUploadRequest({upload: uploadRequest, callback:(uploadResponse)=>{
@@ -374,16 +543,53 @@ export const SocketHandler = (props = {}) => {
         setShowLogin(false)
             setSocketCmd({
           
-                cmd: "login", params: { nameEmail: name_email, password: pass }, callback: (response) => {
+                cmd: "login", params: { nameEmail: name_email, password: pass }, callback: async (response) => {
              
                     if("success" in response && response.success)
                     {
-                        tryCount.current.value = 0;
-                        setSocketConnected(true)
+                        const user = response.user
                         const contacts = response.contacts
                         const userFiles = response.userFiles
-                        setUserFiles(userFiles)
+
+                        await set(user.userID + "userFiles", userFiles)
                         setContacts(contacts)
+                        setUser(user)
+
+                        const value = await get(user.userID + "localDirectory")
+
+
+                        if (value != undefined) {
+                            const verified = await getPermissionAsync(value.handle)
+
+                            const configFile = verified ? await loadConfig(value, user) : undefined
+
+
+                            if (configFile != undefined) {
+                                const storageHash = configFile.hash
+
+
+                                setSocketCmd({
+                                    cmd: "checkStorageHash", params: { storageHash: storageHash }, callback: async (result) => {
+
+                                        if ("success" in result && result.success) {
+
+
+                                            navigate("/", { state: { configFile: configFile, localDirectory: value } })
+
+                                        } else {
+                                            navigate("/", { state: { error: "config" } })
+                                        }
+                                    }
+                                })
+
+                            } else {
+                                await set(user.userID + "localDirectory", undefined)
+                                navigate("/", { state: { configFile: null } })
+                            }
+                        } else {
+
+                            navigate("/", { state: { configFile: null } })
+                        }
                     }else{
                        
                         if ("success" in response && !response.success){

@@ -21,6 +21,7 @@
     "crc": "^4.1.1",
     "crypto-js": "^4.1.1",
     "ergo-dapp-connector": "^0.1.1",
+    "get-browser-fingerprint": "^2.1.1",
     "idb-keyval": "^6.2.0",
     "immer": "^9.0.12",
     "lodash": "^4.17.21",

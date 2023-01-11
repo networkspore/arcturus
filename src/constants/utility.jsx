@@ -1,15 +1,14 @@
-import CryptoJS from "crypto-js";
-import  SHA512  from "crypto-js/sha512";
-import MD5 from "crypto-js/md5";
+
 import WordArray from "crypto-js/lib-typedarrays";
 import blake2b from 'blake2b'
 import SparkMD5 from 'spark-md5'
 import { get, set, update } from "idb-keyval";
-
-
-
+import aesjs from 'aes-js';
 import { randInt } from "three/src/math/MathUtils";
 import {  fileTypes, MB, tableChunkSize } from "./constants";
+import getBrowserFingerprint from 'get-browser-fingerprint';
+
+export const browserID = getBrowserFingerprint({hardwareOnly:false, enableWebgl:true}).toString(16);
 
 function xmur3(str){
     for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {
@@ -47,7 +46,9 @@ export function getRandomIntSync(min, max, seedStr) {
 
 export function rand(seedStr) {
 
-    var seed = xmur3(seedStr + '')
+    
+   
+    var seed = xmur3( seedStr + '')
 
     const mix = sfc32(seed(), seed(), seed(), seed());
 
@@ -69,8 +70,10 @@ export async function getRandomInt(min, max, seedStr) {
   
     min = Math.ceil(min);
     max = Math.floor(max);
+
+    const word = await createWord()
    
-    const randResult = rand(seedStr)
+    const randResult = rand(seedStr + word)
 
     //mix up the results a lot
   
@@ -91,15 +94,20 @@ function getRandomIntSFC(min, max, sfc) {
     return Math.floor(randResult * (max - min + 1)) + min;
 }
 
-export async function generateCode(word = "", length = 45) {
+async function createWord(){
     const dateString = formatedNow(new Date(), false)
+    
+    const wordString = WordArray.random(32).toString()
 
-    word = word.concat(dateString)
+    const fingerHash = await getStringHash(browserID + "", 32)
+    
+    return dateString + wordString + fingerHash
+}
 
-    const wordArrString = WordArray.random(getRandomIntSync(20, 30,word)).toString()
-    word =  word.concat( wordArrString)
- 
-    var seed = xmur3(word + '')
+export async function generateCode(str = "", length = 45, readable = false) {
+
+    const word = await createWord()
+    var seed = xmur3(word + '' + str)
 
     const SFC = sfc32(seed(), seed(), seed(), seed());
 
@@ -112,7 +120,8 @@ export async function generateCode(word = "", length = 45) {
     
     for (let i = 0; i <  length; i ++)
     {
-        const char = String.fromCharCode(getRandomIntSFC( 0, 126, SFC))
+        const char = readable ? String.fromCharCode(getRandomIntSFC(33, 126, SFC)) : String.fromCharCode(getRandomIntSFC( 0, 126, SFC))
+    
         code = code.concat(char)
     }
 
@@ -399,6 +408,23 @@ export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
 
 }
 
+export async function decryptKeyFile(file, uintCode){
+
+    const aB = await file.arrayBuffer()
+
+    const uintBytes = new Uint8Array(aB)
+
+    const key = await getUintHash(uintCode, 32)
+
+    const aesCtr = new aesjs.ModeOfOperation.ctr(key);
+
+    const decryptedBytes = aesCtr.decrypt(uintBytes)
+
+    const contents = aesjs.utils.utf8.fromBytes(decryptedBytes)
+
+    return contents
+}
+
 
 
 export const getChunkHash = (data) =>{
@@ -410,6 +436,7 @@ export const getChunkHash = (data) =>{
         resolve(hex)
     })
 }
+
 
 export const getStringHash = (string, size = 64) =>{
     return new Promise(resolve => {
@@ -481,7 +508,7 @@ export const getDataHash = (data) => {
 }
 export async function getFileHash(file, size = 64){
 
-    const hashLength = new Uint8Array(32).length
+    const hashLength = new Uint8Array(size).length
 
     const arrayBuffer = await file.arrayBuffer()
 
@@ -490,6 +517,57 @@ export async function getFileHash(file, size = 64){
     return hash
 
 }
+export async function getApplicationContext() {
+    const root = await navigator.storage.getDirectory();
+
+    const contextHandle = await root.getDirectoryHandle("context", { "create": true });
+
+    try {
+        let all = []
+        for await (const handle of contextHandle.values()) {
+            if (handle.kind == "file") {
+                const ofInfo = await getOriginFileInfo(handle, contextHandle)
+                all.push(ofInfo);
+            }
+        }
+
+        return accounts
+
+
+    } catch (err) {
+
+        return undefined
+
+    }
+
+}
+
+export async function getOriginFileInfo(entry, directory){
+   
+    const accessHandle = await entry.createSyncAccessHandle();
+
+    const fileSize = await accessHandle.getSize()
+    const buffer = new ArrayBuffer(fileSize);
+    const readBuffer = accessHandle.read(buffer, { at: 0 });
+    const uint = new Uint8Array(readBuffer)
+
+    
+
+    
+    const lastIndex = entry.name.lastIndexOf(".");
+
+    const ext = lastIndex != -1 ? lastIndex + 1 == entry.name.length ? "" : entry.name.slice(lastIndex + 1) : ""
+
+    const fileType = ext
+
+    const name = ext =="" ? entry.name : entry.name.slice(0, entry.name.length - ext.length)
+
+    const hash = await getUintHash(uint)
+
+    return { application: fileType, bytes:uint,  directory: directory, mimeType: "OFS", name: name, hash: hash, size: fileSize, type: fileType, handle: entry }
+
+}
+
 
 export const getFileHashTable = (file) =>{
     
@@ -650,7 +728,7 @@ export async function getFileInfo(file, entry, dirHandle) {
 
     
 
-    const hash = fileHash + strHash
+    const hash = hashTable.slice(0,32) + hashTable.slice(96, 128) + fileHash + strHash
 
     await set(hash + ".hashTable", hashTable)
     await set(hash + ".crcTable", crcTable)
@@ -683,7 +761,7 @@ export async function getFileInfo(file, entry, dirHandle) {
         }
     }
   
-    const fileInfo = { application: baseType, loaded: true, directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
+    const fileInfo = { application: baseType,  directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
     
    
     return fileInfo     

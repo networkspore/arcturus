@@ -91,7 +91,9 @@ export const AccountSettingsPage = (props = {}) => {
                     boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                 }}>
                     <div style={{
-                        paddingBottom: 10,
+
+                        paddingLeft: 5,
+                        paddingRight:5,
                         textAlign: "center",
                         width: "100%",
                         paddingTop: "20px",

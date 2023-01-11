@@ -511,41 +511,18 @@ const HomeMenu = (props = {}) => {
                 const appsHandle = await configFile.directory.getDirectoryHandle("apps", { create: true })
 
                 const imageHandle =  await localDirectory.handle.getDirectoryHandle("images", { create: true }) 
-                const modelsHandle = await localDirectory.handle.getDirectoryHandle("models", { create: true }) 
                 const mediaHandle = await localDirectory.handle.getDirectoryHandle("media", { create: true }) 
-                const audioHandle = await mediaHandle.getDirectoryHandle("audio", {create:true})   
-                const videoHandle = await mediaHandle.getDirectoryHandle("video", { create: true })
                 const assetsHandle = await localDirectory.handle.getDirectoryHandle("assets", {create: true})
-                const typesHandle = await assetsHandle.getDirectoryHandle("types", { create: true })
-                const pcsHandle = await assetsHandle.getDirectoryHandle("pcs", { create: true })
-                const npcsHandle = await assetsHandle.getDirectoryHandle("npcs", { create: true })
-                const placeablesHandle = await assetsHandle.getDirectoryHandle("placeables", { create: true })
-                const texturesHandle = await assetsHandle.getDirectoryHandle("textures", { create: true })
-                const terrainHandle = await assetsHandle.getDirectoryHandle("terrain", { create: true })
+
 
            
                 const apps = await getFirstDirectoryAllFiles(appsHandle)
                 
                 const images = await getFirstDirectoryAllFiles(imageHandle);
-           
-                const models = await getFirstDirectoryAllFiles(modelsHandle);
-              
-                const audio = await getFirstDirectoryAllFiles(audioHandle);
-          
-                const video = await getFirstDirectoryAllFiles(videoHandle);
+ 
+                const media = await getFirstDirectoryAllFiles(mediaHandle); 
              
-               
-                const types = await getFirstDirectoryAllFiles(typesHandle)
-              
-                const pcs = await getFirstDirectoryAllFiles(pcsHandle)
-           
-                const npcs = await getFirstDirectoryAllFiles(npcsHandle)
-             
-                const placeables = await getFirstDirectoryAllFiles(placeablesHandle)
-           
-                const textures = await getFirstDirectoryAllFiles(texturesHandle)
-                
-                const terrain = await getFirstDirectoryAllFiles(terrainHandle)
+                const assets = await getFirstDirectoryAllFiles(assetsHandle);
            
                 let allFiles = []
 
@@ -557,63 +534,24 @@ const HomeMenu = (props = {}) => {
                    allFiles.push(entry)
                 });
 
-                models.files.forEach(entry => {
-                    allFiles.push(entry)
-                });
-                audio.files.forEach(entry => {
-                    allFiles.push(entry)
-                });
-                video.files.forEach(entry => {
+                media.files.forEach(entry => {
                 
                     allFiles.push(entry)
                 });
-                pcs.files.forEach(entry => {
-                    allFiles.push(entry)
-                });
-                placeables.files.forEach(entry => {
-                    allFiles.push(entry)
-                });
-                textures.files.forEach(entry => {
-                    allFiles.push(entry)
-                });
-                terrain.files.forEach(entry => {
+                
+                assets.files.forEach(entry => {
+
                     allFiles.push(entry)
                 });
 
                 setAppsDirectory({name: "apps", handle: appsHandle, directories: apps.directories})
               
-                setAssetsDirectory({ name: "assets", handle: assetsHandle })
+                setAssetsDirectory({ name: "assets", handle: assetsHandle, directories: assets.directories})
 
-                setTypesDirectory({ name: "types", handle: typesHandle, directories: types.directories })
-              
-
-                setPcsDirectory({ name: "pcs", handle: pcsHandle, directories: pcs.directories })
-               
-                setNpcsDirectory({ name: "npcs", handle: npcsHandle, directories: npcs.directories })
-              
-
-                setTexturesDirectory({ name: "textures", handle: texturesHandle, directories: textures.directories })
-               
-
-                setPlaceablesDirectory({ name: "placeables", handle: placeablesHandle, directories: placeables.directories })
-              
-
-                setTerrainDirectory({ name: "terrain", handle: terrainHandle, directories: terrain.directories })
-        
-            
                 setImagesDirectory({ name: imageHandle.name, handle: imageHandle, directories: images.directories })
               
+                setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle, directories: media.directories})
 
-                setModelsDirectory({ name: modelsHandle.name, handle: modelsHandle, directories: models.directories })
-             
-
-            
-                setMediaDirectory({ name: mediaHandle.name, handle: mediaHandle})
-
-                setAudioDirectory({ name: audioHandle.name, handle: audioHandle, directories:audio.directories })
-            
-
-                setVideoDirectory({ name: videoHandle.name, handle: videoHandle, directories: video.directories })
                
                 checkAllFiles(allFiles)
 

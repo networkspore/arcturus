@@ -79,19 +79,10 @@ export const LocalStoragePage = () => {
     const configFile = useZust((state) => state.configFile)
 
     const setConfigFile = useZust((state) => state.setConfigFile)
-
-    const [currentFolder, setCurrentFolder] = useState("")
-    const [currentFiles, setCurrentFiles] = useState()
+   const [currentFiles, setCurrentFiles] = useState()
 
     const [showIndex, setShowIndex] = useState(-1); 
 
-    const [directoryIndex, setDirectoryIndex] = useState(-1)
-
-    const [fileList, setFileList] = useState([])
-
-    const [showInitPage, setShowInitPage] = useState(false)
-    
-    const loadingStatus = useZust((state) => state.loadingStatus)
 
     const [subDirectory, setSubDirectory] = useState("")
 
@@ -444,7 +435,7 @@ export const LocalStoragePage = () => {
             
            
             await turnOffLocalStorage()
-            const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+            const dirHandle = await window.showDirectoryPicker({ id:"localStorage", mode: "readwrite" });
           
                 navigate("/home/localstorage/init", { state: { localDirectory: dirHandle } })
         
@@ -611,7 +602,7 @@ export const LocalStoragePage = () => {
                                  
                                                             
                                 }}>
-                                    {localDirectory.handle != null && "fsa:" } {localDirectory.name == "" ? "Select a local directory..." : subDirectory == "/init" || subDirectory == "/settings" ? "/" : "//" + localDirectory.name}{localDirectory.handle != null && location.pathname.slice(directory.length)}
+                                    {localDirectory.handle != null && "fsa:" } {localDirectory.name == "" ? "Select local directory..." : subDirectory == "/init" || subDirectory == "/settings" ? "/" : "//" + localDirectory.name}{localDirectory.handle != null && location.pathname.slice(directory.length)}
                                 </div>
                                 
                             </div>
@@ -663,7 +654,7 @@ export const LocalStoragePage = () => {
 
                      
                 </div>
-            <div style={{  display: "flex", flex:1, height:(pageSize.height-100), width: "100%", overflowX:"hidden",  }}>
+            <div style={{  display: "flex", flex:1, height:(pageSize.height-100), width: "100%", overflowX:"clip", overflowClipMargin:200  }}>
 
              
                
@@ -680,16 +671,17 @@ export const LocalStoragePage = () => {
                             
                         }}
                     />  
-                            <div onClick={(e) => { pickAssetDirectory() }} style={{ cursor:"pointer", color: "white"}} > Select a local directory </div>
+                            <div onClick={(e) => { pickAssetDirectory() }} style={{ cursor:"pointer", color: "white"}} > Select a local directory... </div>
                             
                     </div>         
                 }
                     {configFile.handle != null && showIndex == 0 &&
 
-                        <div style={{ alignItems: "center", display: "flex", flexDirection: "column", width: "100%", flex: 1, marginRight: 10, marginLeft: 10 }}>
+                        <div style={{overflow:"clip", overflowClipMargin:500, alignItems: "center", display: "flex", flexDirection: "column", width: "100%", flex: 1, marginRight: 10, marginLeft: 10 }}>
                             <div style={{ height: 50 }}>&nbsp;</div>
                             <div ref={fileListDivRef} style={{
-                                overflowX: fileListWidth > 480 ? 'hidden' : "scroll",
+                                overflowClipMargin: 500,
+                                overflowX: fileListWidth > 480 ? 'clip' : "scroll",
                                 minWidth: "600",
                                 overflowY: "scroll",
                                 maxHeight: "95%",

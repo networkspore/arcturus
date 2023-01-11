@@ -20,77 +20,23 @@ export const RecoverPasswordPage = (props = {}) => {
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [emailCode, setEmailCode] = useState("");
+   
     
 
-    const [pass, setPass] = useState("");
-    const [confirm, setConfirm] = useState("")
-
-
+    const [emailSent, setEmailSent] = useState(false) 
 
     const [attempts, setAttempts] = useState(0)
 
     const refEmailCodeInput = useRef()
-
-
-
-    function handleChange(e) {
-        const { name, value } = e.target;
-
-        if (name == "name") {
-            if (value.length > 2) {
-                setSocketCmd({anonymous: true,
-                    cmd: "checkUserName", params: { text:value }, callback: (callback) => {
-               
-                    if (!callback) {
-                        setName(value)
-                 
-                    } else {
-                        setName("")
-            
-                    }
-                }})
-            } else {
-                setName("")
-            }
-
-        }
-        if (name == "email") {
-
-            if (/.+@.+\.[A-Za-z]+$/.test(value)) {
-                setSocketCmd({
-                    anonymous: true,
-                    cmd: "checkEmail", params: { text: value }, callback: (callback) => {
-                    if (!callback) {
-                        setEmail(value);
-                    } else {
-                        setEmail("");
-                    }
-                }})
-            } else {
-                setEmail("");
-            }
-        }
-
-        if (name == "emailCode") {
-            if (value.length > 5) {
-                setEmailCode(value)
-            } else {
-                setEmailCode("")
-            } 
-        }
-        
-        if (name == "pass") setPass(value);
-        if (name == "confirm") setConfirm(value);
-        
-       
-    }
-
+    const confirmRef = useRef()
+    const passRef = useRef()
+    const emailRef = useRef()
 
     function handleSubmit(e) {
        
+        const pass = passRef.current.value
+        const confirm = confirmRef.current.value
+        const emailCode = refEmailCodeInput.current.value
      
         if(attempts > 4)
         {
@@ -131,14 +77,13 @@ export const RecoverPasswordPage = (props = {}) => {
 
     }
 
-    const [emailSent, setEmailSent] = useState(false) 
    
     function onSendEmailCode(event) {
         event.preventDefault();
 
         if(!emailSent)
         {
-          
+            const email = emailRef.current.value
             if(email.length > 6){
                 setEmailSent(true)
                 setSocketCmd({
@@ -216,7 +161,9 @@ export const RecoverPasswordPage = (props = {}) => {
                         paddingRight: 20
                     }}>
 
-                        <input onKeyUp={(e) => {
+                        <input 
+                            ref={emailRef}
+                            onKeyUp={(e) => {
                             if (e.code == "Enter") {
                                 handleSubmit(e)
                             }
@@ -278,7 +225,10 @@ export const RecoverPasswordPage = (props = {}) => {
                                 paddingRight: 20
                             }}>
 
-                                <input style={{
+                                <input
+                                
+                                    ref={passRef}
+                                    style={{
                                     outline: 0,
                                     border: 0,
                                     color: "white",
@@ -299,7 +249,10 @@ export const RecoverPasswordPage = (props = {}) => {
                                 paddingLeft: 20,
                                 paddingRight: 20
                             }}>
-                                <input name="confirm" style={{
+                                <input
+                                
+                                    ref={confirmRef}
+                                    name="confirm" style={{
                                     outline: 0,
                                     border: 0,
                                     color: "white",
