@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { status, tableChunkSize } from "../constants/constants";
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { get, set } from "idb-keyval";
+import styles from "../pages/css/home.module.css"
 
 const createWorker = createWorkerFactory(() => import('../constants/utility'));
 
@@ -1390,7 +1391,7 @@ export const PeerNetworkHandler = (props ={}) => {
         <>
           {
                 userPeerID == "" && 
-                <ImageDiv onClick={(e)=>{
+                <ImageDiv className={styles.glow} onClick={(e)=>{
                     navigate("/home/peernetwork")
                 }} width={25} height={30} netImage={{ image: "/Images/icons/cloud-offline-outline.svg", scale:.7, filter:"invert(100%)" }} /> 
           }

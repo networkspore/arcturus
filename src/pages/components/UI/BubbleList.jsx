@@ -23,7 +23,6 @@ const BubbleList = (props = {}, ref) => {
 
     const rowStyle = {display: "flex", flex: 1, height: "20%", width:"100%", alignItems:"center", justifyContent:"center" }
     const itemStyle = {
-        fill:true, 
         borderRadius: 40,
         overflow:"hidden",
         textShadow: "2px 2px 2px black",
@@ -83,7 +82,7 @@ const BubbleList = (props = {}, ref) => {
                             newElement.netImage.backgroundImage = ("backgroundImage" in element.netImage) ? element.netImage.backgroundImage : imageStyle.backgroundImage;
                             newElement.netImage.backgroundColor = ("backgroundColor" in element.netImage) ? element.netImage.backgroundColor : imageStyle.backgroundColor;
                             newElement.netImage.scale = ("scale" in element.netImage) ? element.netImage.scale : imageStyle.scale;
-                            newElement.netImage.fill = true
+                        
                         }else{
                             newElement.netImage = defaultItemNetImage;
                         }
@@ -157,7 +156,7 @@ const BubbleList = (props = {}, ref) => {
                 <div style={rowStyle}>
                 <div style={{ width: "5%" }}>&nbsp;</div>
          
-                        <ImageDiv about={displayItem[0].name} className={currentItem != null && currentItem.index == 0 ? activeClassName : className} onClick={(e) => { onClick(e, 0) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[0].netImage} />
+                <ImageDiv about={displayItem[0].name} className={currentItem != null && currentItem.index == 0 ? activeClassName : className} onClick={(e) => { onClick(e, 0) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[0].netImage} />
                 <div style={{width:"5%"}}>&nbsp;</div>
                 <ImageDiv about={displayItem[1].name} className={currentItem != null && currentItem.index == 1 ? activeClassName : className} onClick={(e) => { onClick(e, 1) }} style={itemStyle} width={"19%"} height={"80%"} netImage={displayItem[ 1].netImage} />
                 <div style={{ width: "5%" }}>&nbsp;</div>

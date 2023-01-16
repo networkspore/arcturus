@@ -35,11 +35,56 @@ function sfc32(a, b, c, d) {
     }
 }
 
-export function getRandomIntSync(min, max, seedStr) {
-    var seed = xmur3(seedStr + '')
+
+export function getRandomIntSync(min, max) {
+    
+    const now = formatedNow(new Date(),true)
+
+    const nowSliced = now.slice(now.length - randInt(0,6) + 4, now.length)
+
+
+    const hashLength = new Uint8Array(64).length
+
+    const input = Uint8Array.from(Array.from(nowSliced).map(letter => letter.charCodeAt(0)));
+
+    const nowHash = blake2b(hashLength).update(input).digest('hex')
+
+
+    const array = new Uint8Array(randInt(0, 64) + 64);
+
+    crypto.getRandomValues(array)
+
+    const arrayHash = blake2b(hashLength).update(array).digest('hex')
+
+    const array1 = new Uint8Array(randInt(0, 64) + 64);
+
+    crypto.getRandomValues(array)
+
+    const array1Hash = blake2b(hashLength).update(array1).digest('hex')
+
+    const array2 = new Uint8Array(randInt(0, 64) + 64);
+
+    crypto.getRandomValues(array2)
+
+    const array2Hash = blake2b(hashLength).update(array2).digest('hex')
+    
+
+    var seed = xmur3(nowHash)
+
+    var seed1 = xmur3(arrayHash)
+
+    var seed2 = xmur3(array1Hash)
+
+    var seed3 = xmur3(array2Hash)
+
     min = Math.ceil(min);
     max = Math.floor(max);
-    const rand = sfc32(seed(), seed(), seed(), seed())();
+    const sfc = sfc32(seed(), seed1(), seed2(), seed3());
+
+    for (let i = 0; i < 20; i++) {
+        sfc()
+    }
+    const rand = sfc()
 
     return Math.floor(rand * (max - min + 1)) + min;
 }
@@ -71,7 +116,7 @@ export async function getRandomInt(min, max, seedStr) {
     min = Math.ceil(min);
     max = Math.floor(max);
 
-    const word = await createWord()
+    const word = WordArray.random(32)
    
     const randResult = rand(seedStr + word)
 
@@ -94,41 +139,66 @@ function getRandomIntSFC(min, max, sfc) {
     return Math.floor(randResult * (max - min + 1)) + min;
 }
 
-async function createWord(){
-    const dateString = formatedNow(new Date(), false)
-    
-    const wordString = WordArray.random(32).toString()
+export function getCryptoWord(size = 32){
+    const array = new Uint8Array(size);
+    window.crypto.getRandomValues(array);
 
-    const fingerHash = await getStringHash(browserID + "", 32)
-    
-    return dateString + wordString + fingerHash
+    return array
 }
 
-export async function generateCode(str = "", length = 45, readable = false) {
+export function getCryptoWordHex(size = 32){
+    return aesjs.utils.hex.fromBytes(getCryptoWord(size))
+}
 
-    const word = await createWord()
-    var seed = xmur3(word + '' + str)
+export async function generateCode(length = 45, readable = false) {
 
-    const SFC = sfc32(seed(), seed(), seed(), seed());
+    const randInt1 = getRandomIntSync(0, 6)
+    const randInt2 = getRandomIntSync(0, 32) + 32
+
+    const dateString = formatedNow(new Date(), false)
+    const dateSlice = dateString.slice(dateString.length - (4+ randInt1), dateString.length)
+
+    const fingerHash = await getStringHash(browserID + "", 64)
+
+    const dateHash = await getStringHash((dateSlice + WordArray.random(randInt2).toString()), 64)
+
+    let arrSeed = []
+    let arrSeed2 = []
+    for(let i = 0; i < 128 ; i++)
+    {
+        arrSeed.push(getRandomIntSync(0, 127))
+        arrSeed2.push(getRandomIntSync(0, 127))
+    }
+    const uintSeed = Uint8Array.from(arrSeed)
+    const uintSeed2 = Uint8Array.from(arrSeed2)
+
+    const strSeed = aesjs.utils.hex.fromBytes(uintSeed)
+    const strSeed2 = aesjs.utils.hex.fromBytes(uintSeed2)
+
+    var seed = xmur3(dateHash)
+    var seed1 = xmur3(fingerHash)
+    var seed2 = xmur3(strSeed2)
+    var seed3 = xmur3(strSeed)
+
+    const SFC = sfc32(seed(), seed1(), seed2(), seed3());
 
   
     
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 20; i++) {
        SFC()
     }
-    let code = ""
+    let code = []
     
     for (let i = 0; i <  length; i ++)
     {
-        const char = readable ? String.fromCharCode(getRandomIntSFC(33, 126, SFC)) : String.fromCharCode(getRandomIntSFC( 0, 126, SFC))
+        const byte = getRandomIntSFC( 0, 127, SFC)
     
-        code = code.concat(char)
+        code.push(byte)
     }
 
    //0
-
-
-    return code
+     const strUintCode = aesjs.utils.utf8.fromBytes( Uint8Array.from(code))
+     return strUintCode
 
 }
 
@@ -408,7 +478,7 @@ export async function getDirectoryAllFiles(dirHandle, pushFile, pushDirectory) {
 
 }
 
-export async function decryptKeyFile(file, uintCode){
+export async function decryptAesFileBytes(file, uintCode){
 
     const aB = await file.arrayBuffer()
 
@@ -459,6 +529,7 @@ export const getUintHash = (input, size = 64) => {
         resolve(hash)
     })
 }
+/*
 export const getDataHash = (data) => {
     return new Promise(resolve => {
 
@@ -505,7 +576,7 @@ export const getDataHash = (data) => {
 
         getHashRecursive()
     })
-}
+}*/
 export async function getFileHash(file, size = 64){
 
     const hashLength = new Uint8Array(size).length
@@ -517,56 +588,9 @@ export async function getFileHash(file, size = 64){
     return hash
 
 }
-export async function getApplicationContext() {
-    const root = await navigator.storage.getDirectory();
-
-    const contextHandle = await root.getDirectoryHandle("context", { "create": true });
-
-    try {
-        let all = []
-        for await (const handle of contextHandle.values()) {
-            if (handle.kind == "file") {
-                const ofInfo = await getOriginFileInfo(handle, contextHandle)
-                all.push(ofInfo);
-            }
-        }
-
-        return accounts
 
 
-    } catch (err) {
 
-        return undefined
-
-    }
-
-}
-
-export async function getOriginFileInfo(entry, directory){
-   
-    const accessHandle = await entry.createSyncAccessHandle();
-
-    const fileSize = await accessHandle.getSize()
-    const buffer = new ArrayBuffer(fileSize);
-    const readBuffer = accessHandle.read(buffer, { at: 0 });
-    const uint = new Uint8Array(readBuffer)
-
-    
-
-    
-    const lastIndex = entry.name.lastIndexOf(".");
-
-    const ext = lastIndex != -1 ? lastIndex + 1 == entry.name.length ? "" : entry.name.slice(lastIndex + 1) : ""
-
-    const fileType = ext
-
-    const name = ext =="" ? entry.name : entry.name.slice(0, entry.name.length - ext.length)
-
-    const hash = await getUintHash(uint)
-
-    return { application: fileType, bytes:uint,  directory: directory, mimeType: "OFS", name: name, hash: hash, size: fileSize, type: fileType, handle: entry }
-
-}
 
 
 export const getFileHashTable = (file) =>{
@@ -593,7 +617,7 @@ export const getFileHashTable = (file) =>{
            
             const input = new Uint8Array(arrayBuffer);
             const hash = blake2b(hashLength).update(input).digest('hex')
-            hashTable  =+ hash
+            hashTable = hashTable.concat(hash)
          
         
             i = i + 1
@@ -718,7 +742,7 @@ export async function getFileInfo(file, entry, dirHandle) {
     const slashIndex = fileType.indexOf("/")
     const baseType = slashIndex == -1 ? fileType : fileType.slice(0, slashIndex) 
 
-    const hashTable = await getFileHashTable(file)
+    const hashTable = await getFileHashTable(file) +""
   
     const fileHash = await getStringHash(hashTable)
 
@@ -726,13 +750,16 @@ export async function getFileInfo(file, entry, dirHandle) {
   
     const strHash = await getStringHash(crcTable)
 
-    
+    const startHash = hashTable.slice(0, 32)
+    const endHash = hashTable.slice(96, 128)
 
-    const hash = hashTable.slice(0,32) + hashTable.slice(96, 128) + fileHash + strHash
+    const hash = startHash + endHash + fileHash + strHash
 
     await set(hash + ".hashTable", hashTable)
     await set(hash + ".crcTable", crcTable)
     
+    let width = undefined
+    let height = undefined
 
     if (fileMimeType == "image") {
         const exists = await get(hash + ".arcicon")
@@ -742,26 +769,31 @@ export async function getFileInfo(file, entry, dirHandle) {
             const svgMime = "image/svg+xml"
             if (file.type.slice(0, svgMime.length) != svgMime) {
 
-                const dataUrl = await getFileThumnailDataUrl(file,{width:100, height:100}) 
+                const dataUrl = await getFileThumnailDataUrl(file,{width:100, height:100}, (size)=>{
+                    width = size.width
+                    height = size.height
+                }) 
 
                 if(dataUrl != undefined) await set(hash + ".arcicon", dataUrl)
 
             } else {
                 const text = await file.text()
+                const doc = new DOMParser().parseFromString(text, "image/svg+xml")
 
-                const encoded = encodeURIComponent(text)
-                    .replace(/'/g, '%27')
-                    .replace(/"/g, '%22')
+               const svg = document.adoptNode(doc.documentElement)
 
-                const header = 'data:image/svg+xml'
-                const dataUrl = header + encoded
+              //  const bounds =  svg.getBoundingClientRect()
+                width = svg.clientWidth
+                height = svg.clientHeight
 
-                if(dataUrl != undefined ) await set(hash + ".arcicon", dataUrl)
+                
+
+              
             }
         }
     }
   
-    const fileInfo = { application: baseType,  directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
+    const fileInfo = {width: width, height:height, application: baseType,  directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
     
    
     return fileInfo     

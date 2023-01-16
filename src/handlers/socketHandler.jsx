@@ -6,8 +6,8 @@ import useZust from "../hooks/useZust";
 import { io } from "socket.io-client";
 import { ImageDiv } from "../pages/components/UI/ImageDiv";
 import sha256 from 'crypto-js/sha256';
-import styles from '../pages/css/login.module.css';
-import { getStringHash, generateCode, browserID } from "../constants/utility";
+import styles from '../pages/css/home.module.css';
+import { getStringHash, generateCode, browserID, getUintHash } from "../constants/utility";
 import { decrypt, generateKey, encrypt, createMessage, readKey, decryptKey, readPrivateKey,readMessage } from 'openpgp';
 
 export const SocketHandler = (props = {}) => {
@@ -50,21 +50,22 @@ export const SocketHandler = (props = {}) => {
 
     async function createNewContext(){
     
-        const randomCode = await generateCode("ctx", 128)
+        const code = await generateCode(1024)
         
-        //const instanceCode = await getStringHash(randomCode, 64)
+
 
         const { privateKey, publicKey, revocationCertificate } = await generateKey({
             type: 'ecc',
             curve: 'curve25519',
             userIDs: [{ name: 'Arcturus', email: 'arcturus@arcturusnetwork.com' }],
-            passphrase: randomCode,
+            passphrase: code,
             format: 'armored'
         });
+        
 
         contextRef.current.value ={
             contextID: await getStringHash(browserID,64),
-            code: randomCode,
+            code: code,
             key: {
                 privateKey: privateKey,
                 publicKey: publicKey,
@@ -187,7 +188,7 @@ export const SocketHandler = (props = {}) => {
                 encryptStringToServer(jsonString).then((encryptedJson) =>{
 
                     sock.current.value.emit("login", encryptedJson, (encryptedResponse) => {
-
+                       
                         decryptFromServer(encryptedResponse).then((decryptedString)=>{
                             const response = JSON.parse(decryptedString)
 
@@ -275,7 +276,7 @@ export const SocketHandler = (props = {}) => {
                         })
                     })
                 } else {
-                    
+                    setShowLogin(true)
                     
                     if (socketCmd != null && typeof socketCmd.callback == "function"){
                         
@@ -345,7 +346,9 @@ export const SocketHandler = (props = {}) => {
 
                 
                 switch (socketCmd.cmd) {
-                    
+                    case "checkOnline":
+                        socketCmd.callback({success:true})
+                        break;
                    
                     case "checkPassword":
                         sock.current.value.emit("checkPassword", socketCmd.params.hash, (response) => {
@@ -537,7 +540,7 @@ export const SocketHandler = (props = {}) => {
         }
     }
     const setContacts = useZust((state) => state.setContacts)
-    const setUserFiles = useZust((state) => state.setUserFiles)
+  //  const setUserFiles = useZust((state) => state.setUserFiles)
 
     function login(name_email = "", pass = "") {
         setShowLogin(false)
@@ -612,11 +615,11 @@ export const SocketHandler = (props = {}) => {
         <>
         {
             !socketConnected && user.userID > 0 &&
-            <ImageDiv onClick={(e) => {
+                <ImageDiv className={styles.glow} onClick={(e) => {
                 setShowLogin(true)
             }} width={25} height={30} netImage={{ image: "/Images/icons/key-outline.svg", scale: .7, filter: "invert(100%)" }} />
         }
-        {showLogin &&
+        {showLogin && user.userID > 0 &&
             <div style={{
                 display: "flex",
                 left: "50%",
@@ -627,7 +630,7 @@ export const SocketHandler = (props = {}) => {
                 width: 600,
                 cursor:"default",
                 boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
-                backgroundImage: "linear-gradient(to bottom,  #00030490,#13161780)",
+                backgroundColor: "rgba(0,3,4,.98)",
                 textShadow: "2px 2px 2px black",
                 flexDirection: "column",
                 alignItems: "center",

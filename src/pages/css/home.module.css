@@ -123,13 +123,14 @@
 }
 
 .glow {
+	cursor: pointer;
 	display:"flex"
 }
 
 .glow:hover {
-	filter:drop-shadow(0 0 5px #ffffff50)
+	
+	filter:drop-shadow(0 0 6px #ffffff80)
 }
-
 .glowText {
 	color: #888888;
 	cursor: pointer;
@@ -141,18 +142,21 @@
  
 .result{
 	display: flex;
-	flex-direction: row;
-	padding-left: 10px;
-	padding-top:5px;
-	padding-bottom: 5px;
+	align-items: center;
+	
+	
 	color: #777171;
 	transition: background 0.3s;
 	cursor: pointer;
-	justify-items: center;
+	
 	justify-content:left;
 	
 	text-decoration: none;
-	color: #777171;
+	margin:5px;
+	padding-left:5px;
+	padding-right:5px;
+	padding-top:3px;
+	padding-bottom: 3px;
 }
 .result:hover {
 	color: white;

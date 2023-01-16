@@ -19,7 +19,7 @@ export const FileHandler = ( props = {}) =>{
     const [active, setActive] = useState()
  
     const localDirectory = useZust((state) => state.localDirectory)
-    const loadingStatus = useZust((state) => state.loadingStatus)
+
  
     
 
@@ -113,42 +113,15 @@ export const FileHandler = ( props = {}) =>{
 
             switch (request.command) {
                 case "getIcon":
-
-                    get(request.file.hash + ".arcicon").then((dataUrl) => {
-
-                        if (dataUrl != undefined) {
-
-
-                            resolve({success:"true", dataUrl:dataUrl, request: request})
-                        } else {
-
-                            if (request.p2p) {
-
-                                makeDownloadRequest(request).then((peersResult) => {
-
-                                    resolve(peersResult)
-
-                                })
-                            } else {
-                                resolve({ error: "not connected" })
-                            }
-
-                        }
-
-                    })
-
-                    break;
-                case "getImage":
-                 
                     const svgMime = "image/svg+xml"
-                    if (request.file.type.slice(0, svgMime.length) == svgMime) {
+                    if (request.file.type.slice(0, svgMime.length) != svgMime) {
 
-                        get(fileHash + ".arcicon").then((dataUrl) => {
+                        get(request.file.hash + ".arcicon").then((dataUrl) => {
 
                             if (dataUrl != undefined) {
 
 
-                                resolve({ success: "true", dataUrl: dataUrl, request: request })
+                                resolve({success:"true", dataUrl:dataUrl, request: request})
                             } else {
 
                                 if (request.p2p) {
@@ -165,27 +138,10 @@ export const FileHandler = ( props = {}) =>{
                             }
 
                         })
-                    }else{
-                        searchLocalFiles(request).then((result) => {
-                            if (result == undefined) {
-                                if (request.p2p) {
 
-                                    makeDownloadRequest(request).then((peersResult) => {
-
-                                        resolve(peersResult)
-
-                                    })
-                                } else {
-                                    resolve({ error: "not connected" })
-                                }
-                            } else {
-                                resolve({ success: true, file: result, request: request })
-
-                            }
-
-                        })
+                        break;
                     }
-                    break;
+                case "getImage":
                 case "getFile":
                     searchLocalFiles(request).then((result) => {
                         if(result == undefined)

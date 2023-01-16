@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import useZust from "../hooks/useZust"
 import { ImageDiv } from "../pages/components/UI/ImageDiv"
+import styles from "../pages/css/home.module.css"
 
 export const StorageHandler = (props = {}) =>{
     const configFile = useZust((state) => state.configFile)
@@ -8,7 +9,7 @@ export const StorageHandler = (props = {}) =>{
     return (
         <>
         {configFile.handle == null &&
-            <ImageDiv 
+                <ImageDiv className={styles.glow} 
                 onClick={(e)=>{
                     navigate("/home/localstorage")
                 }}

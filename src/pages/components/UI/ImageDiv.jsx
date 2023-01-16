@@ -11,7 +11,7 @@ export const ImageDiv = (props = {}) => {
     const divRef = useRef()
     const canvasRef = useRef(); 
     const clipRef = useRef()
-
+    const imgRef = useRef()
     const prevHash = useRef({ value: null })
 
     const [imgURL, setImgURL] = useState(null);
@@ -46,6 +46,13 @@ export const ImageDiv = (props = {}) => {
 
 
 
+    const [updateCanvas, setUpdateCanvas] = useState(null)
+
+    useEffect(() => {
+        if (updateCanvas != null && canvasRef.current != null) {
+            updateLocalFileCanvas(updateCanvas.file)
+        }
+    }, [updateCanvas, canvasRef.current])
 
 
     useEffect(() => {
@@ -75,12 +82,36 @@ export const ImageDiv = (props = {}) => {
         if ("success" in response) {
 
             if (response.success) {
-
-                // waiting.current.value = null;
-
-                if("dataUrl" in response){
                 
+               
+                if ("dataUrl" in response) {
+
+                    setUpdateCanvas(null)
                     setUpdated({ success: true, dataUrl: response.dataUrl })
+
+                } else if("file" in response) {
+
+                    const svgMime = "image/svg+xml"
+
+                    if (response.file.type.slice(0, svgMime.length) == svgMime) {
+                        
+                        response.file.handle.getFile().then((file)=>{
+                            file.text().then((text)=>{
+                                
+                                const encoded = window.btoa(window.decodeURI(text))
+
+                                const header = 'data:image/svg+xml;base64,'
+                                const dataUrl = header + encoded
+                              setUpdateCanvas(null)
+                                setUpdated({ success: true, dataUrl: dataUrl })
+                                
+                            })
+                        })
+                    } else {
+                  
+                        setUpdated({ success: true })
+                        setUpdateCanvas({file: response.file})
+                    }
                 }
                    
             } else if ("downloading" in response) {
@@ -194,6 +225,7 @@ export const ImageDiv = (props = {}) => {
 
         const update = "update" in tmp ? tmp.update : null
 
+        let updateFilter = false
 
         if (updated != null && update != null) {
             if (updated != null && "error" in updated) {
@@ -208,10 +240,12 @@ export const ImageDiv = (props = {}) => {
                 }
 
             } else {
-                tmp.filter = props.netImage.filter
+                
                 if("dataUrl" in updated){
                     tmp.image = updated.dataUrl
+                    
                 }
+                tmp.filter = ""
             }
         } else if (update != null && update.file != null && updated == null && isLocal) {
 
@@ -250,11 +284,11 @@ export const ImageDiv = (props = {}) => {
 
 
         let info = {
-            fill: ("fill" in tmp) ? tmp.fill : false,
+      
             opacity: ("opacity" in tmp) ? tmp.opacity : 1,
             scale: ("scale" in tmp) ? tmp.scale : 1,
             image: ("image" in tmp) ? tmp.image : "",
-            filter: ("filter" in tmp) ? tmp.filter : "",
+            filter: ("filter" in tmp)? tmp.filter : "",
             backgroundImage: ("backgroundImage" in tmp) ? tmp.backgroundImage : null,
             backgroundColor: ("backgroundColor" in tmp) ? tmp.backgroundColor : "#000000"
         };
@@ -266,35 +300,61 @@ export const ImageDiv = (props = {}) => {
         const propsHeight = ("height" in props) ? props.height : null;
 
         let scale = info.scale;
+    
         const bounds = propsWidth != null && propsHeight != null ? { width: propsWidth, height: propsHeight } : divRef.current ? divRef.current.getBoundingClientRect() : { width: 30, height: 30 }
-
+        
         let percent = 1;
 
         let tmpHeight = 0, tmpWidth = 0;
         let imgPercent = { width: 1, height: 1 }
-        if (bounds.width > bounds.height) {
-            if (bounds.width != 0) {
-                percent = bounds.height / bounds.width
+        let clipWidth = "100%"
+        let clipHeight = "100%"
 
+        if(typeof bounds.width != "string"){
+            if (bounds.width > bounds.height) {
+                if (bounds.width != 0) {
+                    percent = bounds.height / bounds.width
+
+                }
+            
+                tmpWidth = (scale * 100 * percent) + "%"
+                tmpHeight = (scale * 100) + "%"
+                imgPercent = { width: scale * percent, height: scale }
+
+            } else {
+            
+                if (bounds.height != 0) {
+
+                    percent = bounds.width / bounds.height
+                }
+                tmpWidth = (scale * 100) + "%"
+                tmpHeight = (scale * 100 * percent) + "%"
+
+                imgPercent = { width: scale, height: scale * percent }
             }
+            clipWidth = bounds.width * imgPercent.width
+            clipHeight = bounds.height * imgPercent.height
+        }else{
+          
+            if(updated != null && "file" in updated )
+            {
+                const fileWidth = updated.file.width != undefined ? updated.file.width : null
+                const fileHeight = updated.file.height != undefined ? updated.file.width : null
 
-            tmpWidth = (scale * 100 * percent) + "%"
-            tmpHeight = (scale * 100) + "%"
-            imgPercent = { width: scale * percent, height: scale }
-
-        } else {
-
-            if (bounds.width != 0) {
-
-                percent = bounds.width / bounds.height
+                clipWidth = (scale * 100) + "%"
+                clipHeight = (scale * 100) + "%"
+            }else{
+                clipWidth =  (scale * 100) + "%"
+                clipHeight = (scale * 100) + "%"
             }
-            tmpWidth = (scale * 100) + "%"
-            tmpHeight = (scale * 100 * percent) + "%"
+        
+                
 
-            imgPercent = { width: scale, height: scale * percent }
+               
+            
+            
         }
-
-
+        
         let tmpStyle = {
             display: "flex",
             alignItems: "center",
@@ -320,10 +380,10 @@ export const ImageDiv = (props = {}) => {
             filter: info.filter,
             opacity: info.opacity
         }
-
+        
         let clip = {
-            width: info.fill ? "100%" : bounds.width * imgPercent.width,
-            height: info.fill ? "100%" : bounds.height * imgPercent.height,
+            width: clipWidth,
+            height: clipHeight,
             borderRadius: tmpStyle.borderRadius,
             display: "flex",
             overflow: "clip",
@@ -336,7 +396,7 @@ export const ImageDiv = (props = {}) => {
 
         setImgURL(info.image)
 
-
+       
         setStyle(tmpStyle)
 
 
@@ -346,37 +406,34 @@ export const ImageDiv = (props = {}) => {
 
 
 
-    async function updateLocalFileCanvas(localFile, netImage) {
 
-        const svgMime = "image/svg+xml"
-        const fileName = localFile.type.slice(0, svgMime.length)
 
-        if (fileName != svgMime){
+
+    async function updateLocalFileCanvas(localFile) {
        
-            if (divRef.current && canvasRef.current && clipRef.current)
+         
+            if (divRef.current && canvasRef.current != null && clipRef.current)
             {
                 const file = await localFile.handle.getFile()
                 const bmp = await createImageBitmap(file)
 
-                const fullSize = "fullSize" in netImage ? netImage.fullSize : false
+        
                 //const bounds = divRef.current.getBoundingClientRect()
-                const bounds2 = fullSize ? {width:bmp.width, height:bmp.height} : clipRef.current.getBoundingClientRect()
-               
-
+                const bounds2 = clipRef.current.getBoundingClientRect()
+                
+            
                 canvasRef.current.width = bounds2.width
                 canvasRef.current.height = bounds2.height
 
-             
+                
 
                 const ctx = canvasRef.current.getContext("2d");
             
                 ctx.drawImage(bmp, 0, 0, bounds2.width, bounds2.height )
                 
             }
-        }else{
-            console.log("svg file some how")
-        }
-    
+
+      
         /*
         canvas.width = image.width;
         canvas.height = image.height;
@@ -391,7 +448,7 @@ export const ImageDiv = (props = {}) => {
     return (
         <div about={props.about} className={props.className} ref={divRef} onClick={props.onClick} style={style}>
             <div ref={clipRef} style={clipStyle}>
-            { imgURL != null && <img src={imgURL} style={imgStyle} /> }
+                {updateCanvas ? <canvas ref={canvasRef} /> : imgURL != null && imgURL != "" && <img ref={imgRef} src={imgURL} style={imgStyle} /> }
             </div>
         </div>
     )

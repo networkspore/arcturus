@@ -62,7 +62,7 @@ export const LocalStoragePage = () => {
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const [fileViewType, setFileViewType] = useState("icons")
-    const [fileViewLoaded, setFileViewLoaded] = useState(true)
+    //const [fileViewLoaded, setFileViewLoaded] = useState(true)
 
     const location = useLocation();
 
@@ -93,9 +93,19 @@ export const LocalStoragePage = () => {
     const [typeOptions, setTypeOptions] = useState()
     const [fileListWidth, setFileListWidth] = useState(600)
     
+    const loadingStatus = useZust((state) => state.loadingStatus)
 
-
-
+    const refreshing = useRef({value:false})
+    useEffect(()=>{
+        if(!refreshing.current.value){
+            refreshing.current.value = true;
+                
+                setTimeout(() => {
+                    onRefresh()
+                    refreshing.current.value = false
+                }, 500);
+        }
+    },[loadingStatus])
 
     useEffect(() => { 
         if(fileListDivRef.current)
@@ -390,7 +400,7 @@ export const LocalStoragePage = () => {
                     setShowIndex(-1)
             }
         }
-    }, [location, localDirectory])
+    }, [location, localDirectory, allFiles.current.value])
 
     const fileSelected = (selectedFile) => {
 
@@ -420,6 +430,7 @@ export const LocalStoragePage = () => {
             get("arc.cacheFile").then((files) => {
              
                 if (files != undefined) {
+                    
                     allFiles.current.value = files
                 } else {
                     allFiles.current.value = []
@@ -431,19 +442,24 @@ export const LocalStoragePage = () => {
     }
 
     async function pickAssetDirectory() {
-        try{
-            
-           
-            await turnOffLocalStorage()
-            const dirHandle = await window.showDirectoryPicker({ id:"localStorage", mode: "readwrite" });
-          
-                navigate("/home/localstorage/init", { state: { localDirectory: dirHandle } })
-        
-        }catch (error) {
-            if(error == DOMException.ABORT_ERR) {
+        setSocketCmd({
+            cmd: "checkOnline", params: {}, callback: async (onlineResult) => {
+                if("success" in onlineResult){
+            try{
                 
+            
+                const dirHandle = await window.showDirectoryPicker({ id:"localStorage", mode: "readwrite" });
+                await turnOffLocalStorage()
+                    navigate("/home/localstorage/init", { state: { localDirectory: dirHandle } })
+            
+            }catch (error) {
+                if(error == DOMException.ABORT_ERR) {
+                    
+                }
             }
         }
+        }})
+        
     }
  
 
@@ -696,7 +712,7 @@ export const LocalStoragePage = () => {
                                     
                                     fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
                                     onChange={fileSelected}
-                                    filter={{ name: searchText, mimeType: currentMimeType, type: currentType, loaded: true }}
+                                    filter={{ name: searchText, mimeType: currentMimeType, type: currentType }}
                                     files={currentFiles}
                                 />
                             </div>

@@ -167,12 +167,20 @@ export const HomePage = (props ={}) => {
 
                    
                    
-                    <div onClick={(e) => { navigate("/home/localstorage") }} className={styles.result} style={{ color: subDirectory == "/localstorage" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                    <div onClick={(e) => { navigate("/home/localstorage") }} className={styles.result} 
+                    style={{ 
+                       
+                        color: subDirectory == "/localstorage" ? "white" : "", 
+                       
+                        fontSize: "15px", 
+                        fontFamily: "WebPapyrus", 
+                       
+                         }}>
 
                             <div>
-                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/server-outline.svg" width={20} height={20} />
+                            <ImageDiv netImage={{ filter: subDirectory == "/localstorage" ? "invert(100%)" : "invert(70%)", image:"/Images/icons/server-outline.svg"}} width={20} height={20} />
                             </div>
-                            <div style={{ paddingLeft: "10px" }} >
+                            <div style={{display:"flex", paddingLeft: "10px" }} >
                                 Local Storage
                             </div>
                         </div>
@@ -181,15 +189,20 @@ export const HomePage = (props ={}) => {
                     <div style={{marginLeft:30}}>
                           
                                 <>
-                                <div onClick={(e) => { navigate("/home/localstorage/all") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                <div onClick={(e) => { navigate("/home/localstorage/all") }} 
+                                style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
-                                        <img style={{ filter: subSubDirectory == "/all" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/all" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                        <img 
+                                        style={{ filter: subSubDirectory == "/all" ? "invert(100%)" : "invert(80%)", }} 
+                                        src={subSubDirectory == "/all" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} 
+                                        width={20} height={20} 
+                                        />
                                     </div>
                                     <div style={{ paddingLeft: "10px", color: subSubDirectory == "/all" ? "white" : "" }} >
                                         All
                                     </div>
                                 </div>
-                                <div onClick={(e) => { navigate("/home/localstorage/apps") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                <div onClick={(e) => { navigate("/home/localstorage/apps") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
                                         <img style={{ filter: subSubDirectory == "/apps" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/apps" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                     </div>
@@ -198,7 +211,7 @@ export const HomePage = (props ={}) => {
                                     </div>
                                 </div>
 
-                                <div onClick={(e) => { navigate("/home/localstorage/assets") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                <div onClick={(e) => { navigate("/home/localstorage/assets") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
                                         <img style={{ filter: subSubDirectory == "/assets" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/assets" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                     </div>
@@ -275,7 +288,7 @@ export const HomePage = (props ={}) => {
                             
                 
                      
-                        <div onClick={(e) => { navigate("/home/localstorage/images") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                        <div onClick={(e) => { navigate("/home/localstorage/images") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                             <div>
                                 <img style={{ filter: subSubDirectory == "/images" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/images" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                             </div>
@@ -286,7 +299,7 @@ export const HomePage = (props ={}) => {
                      
                
                      
-                        <div onClick={(e) => { navigate("/home/localstorage/models") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                        <div onClick={(e) => { navigate("/home/localstorage/models") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                             <div>
                                 <img style={{ filter: subSubDirectory == "/models" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/models" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                             </div>
@@ -300,9 +313,9 @@ export const HomePage = (props ={}) => {
              
                
                  
-                                <div onClick={(e) => { navigate("/home/localstorage/media") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                <div onClick={(e) => { navigate("/home/localstorage/media") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
-                                        <img style={{ filter: subSubDirectory == "/media" ? "invert(100%)" : "invert(80%)", }} src={subSubDirectory == "/media" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                    <ImageDiv  netImage={{ borderRadius:"",  backgroundColor: "", scale: 1, image: subSubDirectory == "/media" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg", filter: subSubDirectory == "/media" ? "invert(100%)" : "invert(80%)" }} width={20} height={20} />
                                     </div>
                                     <div style={{ paddingLeft: "10px", color: subSubDirectory == "/media" ? "white" : "" }} >
                                         Media
@@ -311,30 +324,30 @@ export const HomePage = (props ={}) => {
                             {subSubDirectory == "/media" &&
                                 <div style={{ marginLeft: 20 }} >
                                     <div onClick={(e) => { navigate("/home/localstorage/media/audio-video") }} 
-                                    style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} 
+                                    style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} 
                                     className={styles.result} >
                                         <div>
-                                            <img style={{ filter: subSubSubDirectory == "/audio-video" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/audio-video" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                            <ImageDiv  netImage={{ borderRadius:"",  backgroundColor: "", scale: 1, image: subSubSubDirectory == "/audio-video" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg", filter: subSubSubDirectory == "/audio-video" ? "invert(100%)" : "invert(80%)" }} width={20} height={20} />
                                         </div>
                                         <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/audio-video" ? "white" : "" }} >
                                             Audio-Video
                                         </div>
                                     </div>
                                     <div onClick={(e) => { navigate("/home/localstorage/media/audio") }}
-                                        style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}
+                                        style={{  fontSize: "15px", fontFamily: "WebPapyrus" }}
                                         className={styles.result} >
                                         <div>
-                                            <img style={{ filter: subSubSubDirectory == "/audio" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/audio" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                            <ImageDiv  netImage={{ borderRadius:"",  backgroundColor: "", scale: 1, image: subSubSubDirectory == "/audio" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg", filter: subSubSubDirectory == "/audio" ? "invert(100%)" : "invert(80%)" }} width={20} height={20} />
                                         </div>
                                         <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/audio" ? "white" : "" }} >
                                             Audio
                                         </div>
                                     </div>
                                     <div onClick={(e) => { navigate("/home/localstorage/media/video") }}
-                                        style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}
+                                        style={{  fontSize: "15px", fontFamily: "WebPapyrus" }}
                                         className={styles.result} >
                                         <div>
-                                            <img style={{ filter: subSubSubDirectory == "/video" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/video" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
+                                            <ImageDiv  netImage={{ borderRadius:"", backgroundColor:"", scale: 1, image: subSubSubDirectory == "/video" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg", filter: subSubSubDirectory == "/video" ? "invert(100%)" : "invert(80%)" }} width={20} height={20} />
                                         </div>
                                         <div style={{ paddingLeft: "10px", color: subSubSubDirectory == "/video" ? "white" : "" }} >
                                             Video
@@ -350,17 +363,17 @@ export const HomePage = (props ={}) => {
                     }
                     
                     
-                    <NavLink className={styles.result}  to={"/home/peernetwork"}>
-                        <div  style={{ color: subDirectory == "/peernetwork" ? "white" : "", display: "flex", fontSize: "15px", fontFamily: "WebPapyrus" }}>
+                  
+                    <div onClick={(e) => { navigate("/home/peernetwork")}} className={styles.result}  style={{ color: subDirectory == "/peernetwork" ? "white" : "", fontSize: "15px", fontFamily: "WebPapyrus" }}>
 
-                            <div>
-                                <img style={{ filter: "invert(100%)" }} src="/Images/icons/cloud-outline.svg" width={20} height={20} />
-                            </div>
-                            <div style={{ paddingLeft: "10px" }} >
-                                Peer Network
-                            </div>
+                        <div>
+                            <ImageDiv  netImage={{  scale:.7, image: "/Images/icons/cloud-outline.svg", filter:subDirectory == "/peernetwork" ?"invert(100%)" :"invert(70%)" }} width={25} height={25} />
                         </div>
-                    </NavLink>
+                        <div style={{ paddingLeft: "10px" }} >
+                            Peer Network
+                        </div>
+                    </div>
+                  
                     {subDirectory == "/peernetwork" && localDirectory.handle != null &&
                     <div style={{marginLeft: 20}}>
                             <NavLink className={styles.result} to={"/home/peernetwork/library"}>
@@ -380,7 +393,7 @@ export const HomePage = (props ={}) => {
                             {assetsDirectory.handle != null &&
                                 <>
 
-                                        <div onClick={(e) => { navigate("/home/peernetwork/library/all") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                        <div onClick={(e) => { navigate("/home/peernetwork/library/all") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                             <div >
                                                 <img style={{ filter: subSubSubDirectory == "/all" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/all" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                             </div>
@@ -388,7 +401,7 @@ export const HomePage = (props ={}) => {
                                                 All
                                             </div>
                                         </div>
-                                    <div onClick={(e) => { navigate("/home/peernetwork/library/assets") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                    <div onClick={(e) => { navigate("/home/peernetwork/library/assets") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                         <div >
                                                 <img style={{ filter: subSubSubDirectory == "/assets" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/assets" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                         </div>
@@ -401,7 +414,7 @@ export const HomePage = (props ={}) => {
 
                                             <div onClick={(e) => { navigate("/home/peernetwork/library/assets/pcs") }} className={styles.result}
                                                 style={{ padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }}>
-                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/pcs" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/pcs" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+                                                <ImageDiv  netImage={{ borderRadius:"",  filter: location.pathname == "/home/peernetwork/library/assets/pcs" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/pcs" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
 
                                                 <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/pcs" ? "white" : "" }} >
                                                     PCs
@@ -413,7 +426,7 @@ export const HomePage = (props ={}) => {
                                                     padding: 5,
                                                     display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
                                                 }}>
-                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/npcs" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/npcs" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+                                                <ImageDiv  netImage={{ borderRadius:"",  filter: location.pathname == "/home/peernetwork/library/assets/npcs" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/npcs" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
 
                                                 <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/npcs" ? "white" : "" }} >
                                                     NPCs
@@ -423,7 +436,7 @@ export const HomePage = (props ={}) => {
                                             <div onClick={(e) => { navigate("/home/peernetwork/library/assets/placeables") }} className={styles.result} style={{
                                                 padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
                                             }}>
-                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/placeables" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/placeables" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+                                                <ImageDiv  netImage={{ borderRadius:"",  filter: location.pathname == "/home/peernetwork/library/assets/placeables" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/placeables" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
 
                                                 <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/placeables" ? "white" : "" }} >
                                                     Placeable Models
@@ -433,7 +446,7 @@ export const HomePage = (props ={}) => {
                                             <div onClick={(e) => { navigate("/home/peernetwork/library/assets/textures") }} className={styles.result} style={{
                                                 padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
                                             }}>
-                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/textures" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/textures" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+                                                <ImageDiv  netImage={{ borderRadius:"",  filter: location.pathname == "/home/peernetwork/library/assets/textures" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/textures" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
 
                                                 <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/textures" ? "white" : "" }} >
                                                     Textures
@@ -443,7 +456,7 @@ export const HomePage = (props ={}) => {
                                             <div onClick={(e) => { navigate("/home/peernetwork/library/assets/terrain") }} className={styles.result} style={{
                                                 padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
                                             }}>
-                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/terrain" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/terrain" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+                                                <ImageDiv  netImage={{ borderRadius:"",  filter: location.pathname == "/home/peernetwork/library/assets/terrain" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/terrain" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
 
                                                 <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/terrain" ? "white" : "" }} >
                                                     Terrain
@@ -453,7 +466,7 @@ export const HomePage = (props ={}) => {
                                             <div onClick={(e) => { navigate("/home/peernetwork/library/assets/types") }} className={styles.result} style={{
                                                 padding: 5, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus"
                                             }}>
-                                                <ImageDiv netImage={{ filter: location.pathname == "/home/peernetwork/library/assets/types" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/types" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
+                                                <ImageDiv  netImage={{ borderRadius:"",  filter: location.pathname == "/home/peernetwork/library/assets/types" ? "invert(100%)" : "invert(80%)", backgroundColor: "", image: location.pathname == "/home/peernetwork/library/assets/types" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg" }} width={20} height={20} />
 
                                                 <div style={{ paddingLeft: "10px", color: location.pathname == "/home/peernetwork/library/assets/types" ? "white" : "" }} >
                                                     Types
@@ -470,7 +483,7 @@ export const HomePage = (props ={}) => {
 
                             {imagesDirectory.handle != null &&
 
-                                <div onClick={(e) => { navigate("/home/peernetwork/library/images") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                <div onClick={(e) => { navigate("/home/peernetwork/library/images") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
                                         <img style={{ filter: subSubSubDirectory == "/images" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/images" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                     </div>
@@ -482,7 +495,7 @@ export const HomePage = (props ={}) => {
                             }
                             {modelsDirectory.handle != null &&
 
-                                <div onClick={(e) => { navigate("/home/peernetwork/library/models") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                <div onClick={(e) => { navigate("/home/peernetwork/library/models") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
                                         <img style={{ filter: subSubSubDirectory == "/models" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/models" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                     </div>
@@ -496,7 +509,7 @@ export const HomePage = (props ={}) => {
 
                             {mediaDirectory.handle != null &&
                                 <>
-                                <div onClick={(e) => { navigate("/home/peernetwork/library/media") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                <div onClick={(e) => { navigate("/home/peernetwork/library/media") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                     <div>
                                         <img style={{ filter: subSubSubDirectory == "/media" ? "invert(100%)" : "invert(80%)", }} src={subSubSubDirectory == "/media" ? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                     </div>
@@ -506,7 +519,7 @@ export const HomePage = (props ={}) => {
                                 </div>
                                 {subSubSubDirectory == "/media" &&
                                         <div style={{ marginLeft: 20 }} >
-                                                <div onClick={(e) => { navigate("/home/peernetwork/library/media/audio") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                                <div onClick={(e) => { navigate("/home/peernetwork/library/media/audio") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                                     <div>
                                                         <img style={{ filter: location.pathname == "/home/peernetwork/library/media/audio"? "invert(100%)" : "invert(80%)", }} src={location.pathname == "/home/peernetwork/library/media/audio"? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                                     </div>
@@ -514,7 +527,7 @@ export const HomePage = (props ={}) => {
                                                         Audio
                                                     </div>
                                                 </div>
-                                                <div onClick={(e) => { navigate("/home/peernetwork/library/media/video") }} style={{ paddingLeft: 10, display: "flex", alignItems: "center", fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
+                                                <div onClick={(e) => { navigate("/home/peernetwork/library/media/video") }} style={{  fontSize: "15px", fontFamily: "WebPapyrus" }} className={styles.result} >
                                                     <div>
                                                         <img style={{ filter: location.pathname == "/home/peernetwork/library/media/video"? "invert(100%)" : "invert(80%)", }} src={location.pathname == "/home/peernetwork/library/media/video"? "/Images/icons/folder-open-outline.svg" : "/Images/icons/folder-outline.svg"} width={20} height={20} />
                                                     </div>

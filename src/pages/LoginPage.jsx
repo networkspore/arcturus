@@ -5,11 +5,12 @@ import { flushSync } from 'react-dom';
 import useZust from "../hooks/useZust";
 
 import { useRef } from "react";
-import { getApplicationContext, getStringHash, getPermissionAsync, getFileInfo } from "../constants/utility";
+import { getStringHash, getPermissionAsync, getFileInfo } from "../constants/utility";
 import { get, set } from "idb-keyval";
 
-
  const LoginPage = (props = {}) =>  {
+
+
 
     const txtName = useRef();
     const txtPass = useRef();
@@ -24,7 +25,7 @@ import { get, set } from "idb-keyval";
     
     const [disable, setDisable] = useState(false)
     const [userList, setUserList] = useState(null)
-    const loginStatusLength = 3000
+    const loginStatusLength = 3200
      const interval = useRef({ value: null })
      const [loginStatus, setLoginStatus] = useState(null)
   
@@ -40,6 +41,15 @@ import { get, set } from "idb-keyval";
         }));
 
     }
+
+    useEffect(()=>{
+        setLoginPage()
+      
+    },[])
+
+    const contexts = useRef({value: []})
+
+
     
     const handleChange = e => {
         const { name, value } = e.target;
@@ -49,26 +59,6 @@ import { get, set } from "idb-keyval";
         }));
 
     }
- 
-    const [users, setUsers] = useState([])
-
-    useEffect(()=>{
-        setLoginPage()
-    
-        getApplicationContext().then((contextFiles) =>{
-            if(Array.isArray(contextFiles)){
-                let ctxs = []
-                contextFiles.forEach(context => {
-                    if(context.type == "user") ctxs.push(context)
-                });
-                setUsers(ctxs)
-            }else{
-                setUsers([])
-            }
-        })
-        
-    },[]);
-
    
 
 
@@ -162,7 +152,7 @@ import { get, set } from "idb-keyval";
     
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-     async function loadConfig(value, user) {
+    async function loadConfig(value, user) {
 
          try {
 
@@ -174,7 +164,7 @@ import { get, set } from "idb-keyval";
              const file = await handle.getFile()
              const fileInfo = await getFileInfo(file, handle, userHomeHandle)
           
-           
+            console.log(fileInfo)
             return fileInfo
            
 
@@ -208,6 +198,8 @@ import { get, set } from "idb-keyval";
                         const userFiles = response.userFiles
 
                         await set(user.userID + "userFiles", userFiles)
+
+
                         setContacts(contacts)
                         setUser(user)
                         
@@ -227,10 +219,13 @@ import { get, set } from "idb-keyval";
                                     setSocketCmd({cmd:"checkStorageHash", params:{storageHash:storageHash}, callback:async (result)=>{
                                         
                                         if("success" in result && result.success){
-                                            
-                                            resolve(true)
-                                            navigate("/",{state:{configFile:configFile, localDirectory: value}})
-                                            
+                                          
+                                                resolve(true)
+
+                                                navigate("/", { state: { configFile: configFile, localDirectory: value } })
+                                           
+
+                                               
                                         }else{
                                             resolve(true)
                                             navigate("/", { state: { error: "config" } })
@@ -290,7 +285,7 @@ return (
                         <div style={{
                             flex: 1,
                             height: 1,
-                            boxShadow: `0 0 10px #ffffff${((loginStatus / loginStatusLength) * 255).toString(16).slice(0, 2)}, 0 0 30px #ffffff${((loginStatus / loginStatusLength) * 160).toString(16).slice(0, 2)}`,
+                            boxShadow: `0 0 10px #ffffff${((loginStatus / loginStatusLength) * 255).toString(16).slice(0, 2)}, 0 0 30px #ffffff${((loginStatus / loginStatusLength) * 200).toString(16).slice(0, 2)}`,
                         }}>
                             &nbsp;
                         </div>
@@ -332,14 +327,18 @@ return (
                         paddingRight:5,
                         width:400,
                     }}>
-                        <input onKeyUp={(e) => {
+                        <input 
+                        
+                            disabled={disable}
+                            onKeyUp={(e) => {
                             if (e.code == "Enter") {
                                 handleSubmit(e)
                             }
                         }}  style={{ 
+                            color: disable ? "#777777" : "white", 
                             outline:0,
                             border:0, 
-                            width: 400, textAlign: "center", color:"white", fontSize: "25px", backgroundColor: "black", fontFamily:"WebPapyrus" }} ref={txtName} name="loginName"  placeholder="Name or Email" type="text" onChange={handleChange} />
+                            width: 400, textAlign: "center",  fontSize: "25px", backgroundColor: "black", fontFamily:"WebPapyrus" }} ref={txtName} name="loginName"  placeholder="Name or Email" type="text" onChange={handleChange} />
                     </div>
                 </div>
 
@@ -355,12 +354,14 @@ return (
                         paddingLeft: 5,
                         paddingRight: 5
                     }}>
-                        <input onKeyUp={(e) => { if(e.code == "Enter"){
+                        <input 
+                             disabled={disable}
+                        onKeyUp={(e) => { if(e.code == "Enter"){
                             handleSubmit(e)
                         } }} ref={txtPass} style={{
                             outline:0, 
                             border: 0, 
-                            color: "white", 
+                            color: disable ? "#777777" : "white", 
                             width: 500, textAlign: "center", fontSize: "25px", backgroundColor: "black", fontFamily: "WebPapyrus" }} name="loginPass" placeholder="Password" type="password" onChange={handleChange} />
                     </div>
                 </div>
@@ -414,8 +415,8 @@ return (
                     <div style={{
                             flex: loginStatus / loginStatusLength,
                             height: 2,
-                            backgroundImage: `linear-gradient(to bottom, #cdd4da${((loginStatus / loginStatusLength) * 255).toString(16).slice(0, 2)} ${(loginStatus / loginStatusLength * 100) + "%"}, #000000${((loginStatusLength / loginStatus) * 255).toString(16).slice(0, 2) } ${(loginStatus / loginStatusLength * 100) + "%"})`,
-                            boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff20",
+                            backgroundImage: `linear-gradient(to bottom, #cdd4da${(((loginStatus / loginStatusLength) * 200)+55).toString(16).slice(0, 2)} ${(loginStatus / loginStatusLength * 100) + "%"}, #000000${((loginStatusLength / loginStatus) * 255).toString(16).slice(0, 2) } ${(loginStatus / loginStatusLength * 100) + "%"})`,
+                            boxShadow: `0 0 5px #ffffff40, 0 0 10px #ffffff${(((loginStatus / loginStatusLength) * 255)).toString(16).slice(0, 2)}`,
                     }}>
                         &nbsp;
                          

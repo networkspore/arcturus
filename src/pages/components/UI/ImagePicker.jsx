@@ -57,8 +57,17 @@ export const ImagePicker = (props ={}) =>{
 
     }, [localDirectory])
 
+    const refreshing = useRef({ value: false })
+
     useEffect(() => {
-        onRefresh()
+        if (!refreshing.current.value) {
+            refreshing.current.value = true;
+
+            setTimeout(() => {
+                onRefresh()
+                refreshing.current.value = false
+            }, 500);
+        }
     }, [loadingStatus])
 
 
@@ -80,7 +89,9 @@ export const ImagePicker = (props ={}) =>{
             setDirectoryOptions(options)
         }
     }, [imagesDirectory])
+
     const navigate = useNavigate()
+
     useEffect(() => {
         if (configFile.handle == null) {
             
@@ -163,7 +174,7 @@ export const ImagePicker = (props ={}) =>{
 
     const onHashSelected = (hash) => {
         
-      
+        
 
         const userFileindex = userFiles.findIndex(file => file.hash == hash)
 
@@ -172,7 +183,7 @@ export const ImagePicker = (props ={}) =>{
 
         const index = userFileindex == -1 ? allFiles.findIndex(files => files.hash == hash) : null
 
-        console.log(userFileindex + " " + index)
+        
 
         const userImage = userFileindex != -1 ? userFiles[userFileindex] : index != -1 ? allFiles[index] : null
         if ("accessID" in userImage) {
@@ -194,7 +205,7 @@ export const ImagePicker = (props ={}) =>{
         }
    
         setImageSelected(userImage)
-
+       
     }
 
     const onCancelClick = (e) =>{
@@ -369,7 +380,7 @@ export const ImagePicker = (props ={}) =>{
                                                     update: {
                                                         command: "getImage",
                                                         file: imageSelected,
-                                                        waiting: { url: "/Images/spinning.gif" },
+                                                        waiting: { url: "/Images/spinning.gif",  },
                                                         error: { url: "" },
 
                                                     }
@@ -463,7 +474,7 @@ export const ImagePicker = (props ={}) =>{
                                     className={styles.bubble__item}
                                     activeClassName={styles.bubbleActive__item}
                                     onChange={onHashSelected}
-                                    filter={{ name: imageSearch,mimeType:"image", directory: currentDirectory, loaded:true }}
+                                    filter={{ name: imageSearch, mimeType:"image", directory: currentDirectory }}
                                     fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100, scale:1.2 } }}
                                     files={allFiles}
                                 />

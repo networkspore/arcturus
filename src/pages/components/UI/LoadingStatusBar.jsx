@@ -37,17 +37,16 @@ export const LoadingStatusBar = (props = {}) =>{
                 backgroundImage: `linear-gradient(to right, #ffffffEE ${(loadingStatus.index / loadingStatus.length * 100) + "%"}, #00000030 ${(loadingStatus.index / loadingStatus.length * 100) + "%"})`,
              
                 boxShadow: "inset 0 0 15px #cccccc50",
-                height:10
+                height:12
             }}>
 
                         <div style={{
                             color: "#eeeeee",
                             fontFamily: "webpapyrus",
-                            fontSize: 13, paddingTop: 3,
+                            fontSize: 14, paddingTop: 3,
                             paddingBottom: 3,
                             mixBlendMode: "difference",
-                            fontWeight: "bold",
-                            textShadow: "1px 1px 3px #ffffff90",
+                            textShadow: "1px 1px 3px #ffffffAA",
                             whiteSpace:"nowrap"
                         }}>
 

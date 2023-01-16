@@ -211,8 +211,9 @@ return (
 
                         }}
                     />
-                    <div style={{display:nameAvailable ? "none" : "block"}} className={styles.disclaimer}>Name not available</div>
+                    
                 </div>
+            <div style={{ width:"100%", alignItems:"center", justifyContent:"center", display: nameAvailable ? "none" : "flex", color:"#77777780", fontSize:12 }} className={styles.disclaimer} >Name not available</div>
                 <div style={{height:60}}></div>
                 <div style={{
 

@@ -9,25 +9,34 @@ import { ImageDiv } from "./components/UI/ImageDiv";
 import produce from "immer";
 import SelectBox from "./components/UI/SelectBox"
 import { set } from "idb-keyval";
-import { decryptKeyFile, formatedNow, generateCode, getDataHash, getEntryInfo, getFileHash, getFileInfo, getRandomInt, getStringHash, getUintHash } from "../constants/utility";
+
+import { generateCode, getFileInfo, getRandomInt, getRandomIntSync, getStringHash, getUintHash } from "../constants/utility";
 import { access, constants } from "../constants/constants";
 import { decrypt, generateKey } from 'openpgp';
 import aesjs from 'aes-js';
+import { termsOfService } from "../constants/termsOfService";
+import WorkerBuilder from "../constants/WorkerBuilder";
+import Worker from "../constants/coreWorker";
+import { randInt } from "three/src/math/MathUtils";
+
+
 
 export const InitStoragePage = (props = {}) => {
 
+    const coreWorker = new WorkerBuilder(Worker)
+
     const location = useLocation()
 
-    const passwordRef = useRef()
-    const password2Ref = useRef()
+
     const phraseRef = useRef()
 
     const setSocketCmd = useZust((state) => state.setSocketCmd)
     //const [promptMe, setPromptMe] = useState(true)
     //const [keyDirectory, setKeyDirectory] = useState(null)
-    const [keyContents, setKeyContents] = useState(null)
+    const [keyFile, setKeyFile] = useState(null)
     //const [showMore, setShowMore] = useState(false)
-    const [createKey, setCreateKey] = useState(false)
+    const [setupExisting, setSetupExising] = useState(true)
+    const [rememberKey, setRememberKey] = useState(false)
 
     const setLocalDirectory = useZust((state) => state.setLocalDirectory)
     const setConfigFile = useZust((state) => state.setConfigFile)
@@ -36,7 +45,6 @@ export const InitStoragePage = (props = {}) => {
     const navigate = useNavigate();
 
     const user = useZust((state) => state.user);
-    const [isUserCustody, setIsUserCustody] = useState(false)
 
     const pageSize = useZust((state) => state.pageSize)
 
@@ -47,14 +55,23 @@ export const InitStoragePage = (props = {}) => {
 
     const [setupInfo, setSetupInfo] = useState(null)
     const [saveName, setSaveName] = useState(null)
+
+
    
     useEffect(()=>{
-        console.log(location.state)
+
         if (location.state != undefined && location.state.localDirectory != undefined )
         {
-            
+            setSocketCmd({
+                cmd: "getUserCode", params: {}, callback: async (userCodeHex) => {
+
+                    if(typeof userCodeHex == "string"){
            
-            checkDirectoryKey(user, location.state.localDirectory)
+                        checkDirectoryKey(user, location.state.localDirectory)
+                    }else{
+                        navigate("/home/localstorate")
+                    }
+            }})
 
         }else{
             navigate("/home/localstorage")
@@ -63,8 +80,12 @@ export const InitStoragePage = (props = {}) => {
 
 
 
-  
+    async function onRememberKey(e){
 
+        setRememberKey(prev => !prev)
+    }
+
+   
 
     const removeSystemMessage = (id) => useZust.setState(produce((state) => {
         const length = state.systemMessages.length;
@@ -104,63 +125,134 @@ export const InitStoragePage = (props = {}) => {
         
     }
 
-    const [regularPassword, setRegularPassword] = useState(null)
+    const updateKey = (userName, key) =>{
+        return new Promise(resolve =>{
+            if (rememberKey) {
 
-    async function setupConfigFile(userName, userEmail){
-       
-        const verified = await getLocalPermissions()
-        if(!verified) return ({error: new Error("not verified")})
-        if (keyContents == null) ({ error: new Error("no key") })
-        try{ 
-            const homeHandle = await setupInfo.directory.getDirectoryHandle("home", { create: true })
-            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName, { create: true })
-            const engineHandle = await userHomeHandle.getDirectoryHandle("engine", { create: true })
-            const fileHandle = await engineHandle.getFileHandle(userName + ".core", { create: true })
+                const coreBytes = Uint8Array.from(Array.from(keyFile).map(letter => letter.charCodeAt(0)));
+                const aesCtr = new aesjs.ModeOfOperation.ctr(key);
+                const encryptedCore = aesCtr.encrypt(coreBytes);
 
-            const configFileStream = await fileHandle.createWritable()
+
+                const msg = { cmd: "setFile", name: userName, bytes: encryptedCore, type: "context" }
+                coreWorker.onmessage = (e) => {
+
+                    const result = e.data
+                    console.log(result)
+                    switch (result.cmd) {
+                        case "setFile":
+                            resolve(msg.success)
+                            break;
+                    }
+                }
+
+                coreWorker.postMessage(msg)
+
+            } else {
+                const msg = { cmd: "removeFile", name: userName, type: "context" }
+                coreWorker.onmessage = (e) => {
+
+                    const result = e.data
+
+                    switch (result.cmd) {
+                        case "removeFile":
                             
-            
-            
+                            resolve(true)
+                           
+                            break;
+                    }
+                }
+                coreWorker.postMessage(msg)
+            }
 
-       
-            const { privateKey, publicKey, revocationCertificate } = await generateKey({
-                type: 'ecc', 
-                curve: 'curve25519', 
-                userIDs: [{ name: userName, email: userEmail }], 
-                passphrase: keyContents, 
-                format: 'armored' 
-            });
+        })
+    }
 
+   // const [regularPassword, setRegularPassword] = useState(null)
 
-            const keyJson = JSON.stringify({privateKey:privateKey, publicKey:publicKey, revocationCertificate: revocationCertificate})
-     
-         
-            await configFileStream.write(keyJson)
-
-
-            await configFileStream.close()
-                                        
-            const newHandle = await engineHandle.getFileHandle(userName + ".core")
-                                    
-            const file = await newHandle.getFile()
+    function setupConfigFile(userName, userEmail){
+        return new Promise(resolve =>{ 
+      
+            if (keyFile == null){ 
+                resolve({ error: new Error("no key") })
+            }else{
         
-            const fileInfo = await getFileInfo(file, newHandle, engineHandle)
-                                                               
-            return { success: true, localFile: fileInfo }
-                                                                
-                                                           
+                try{ 
 
-        } catch (err) {
-            console.log(err)
-            return { error: err }
-        }
+                    setSocketCmd({
+                        cmd: "getUserCode", params: {}, callback: async (userCodeHex) => {
 
-        
+
+                        
+                            const uintCode = new Uint8Array(aesjs.utils.hex.toBytes(userCodeHex))
+
+                            const key = await getUintHash(uintCode, 32)
+
+                         
+
+                            await updateKey(userName, key)
+
+                            const homeHandle = await setupInfo.directory.getDirectoryHandle("home", { create: true })
+                            const userHomeHandle = await homeHandle.getDirectoryHandle(userName, { create: true })
+                            const engineHandle = await userHomeHandle.getDirectoryHandle("engine", { create: true })
+                            const fileHandle = await engineHandle.getFileHandle(userName + ".core", { create: true })
+
+                            const configFileStream = await fileHandle.createWritable()
+                                                
+                            const core = await generateKey({
+                                type: 'ecc', 
+                                curve: 'curve25519', 
+                                userIDs: [{ name: userName, email: userEmail }], 
+                                passphrase: keyFile, 
+                                format: 'armored' 
+                            });
+
+                            
+                            const coreJson = JSON.stringify(core)
+                    
+                            const coreBytes = aesjs.utils.utf8.toBytes(coreJson)
+
+                            const aesCtr = new aesjs.ModeOfOperation.ctr(key);
+
+                            const encryptedCore = aesCtr.encrypt(coreBytes);
+
+                        
+                            await configFileStream.write(encryptedCore)
+
+
+                            
+
+
+                            await configFileStream.close()
+
+
+                                                        
+                            const newHandle = await engineHandle.getFileHandle(userName + ".core")
+                                                    
+                            const file = await newHandle.getFile()
+
+                        
+                        
+                            const info = await getFileInfo(file, newHandle, engineHandle)
+
+                            console.log(info)
+                                                                            
+                            resolve({ success: true, localFile: info })
+                                                                        
+                    }})                                 
+
+                } catch (err) {
+                    console.log(err)
+                    resolve({ error: err })
+                }
+
+            }
+        })
     }
 
     async function checkDirectoryKey(user, dirHandle) {
         try {
-            console.log("looking for directory key")
+         
             const homeHandle = await dirHandle.getDirectoryHandle("home")
             const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
             const engineHandle = await userHomeHandle.getDirectoryHandle("engine")
@@ -191,9 +283,9 @@ export const InitStoragePage = (props = {}) => {
         }
     }
 
-    async function useExisting(e){
+    async function onUseExisting(e){
         if(valid){
-            setValid(false)
+           
         const { file, directory } = setupInfo
         const dirName = directory.name
         const localDir = { name: dirName, handle: directory }
@@ -201,7 +293,7 @@ export const InitStoragePage = (props = {}) => {
   
         setLocalDirectory(localDir)
         setConfigFile(file)
-        alert("Using current setup")
+        
         navigate("/home/localstorage")
         }
     }
@@ -217,45 +309,44 @@ export const InitStoragePage = (props = {}) => {
             setValid(false)
            
             
-         
-                const result = await setupConfigFile(user.userName, user.userEmail)
-          
                 
-                if(!("error" in result)){
-                    if(result.success)
-                    {
-                        const localFile = result.localFile 
-    
-                        const storageHash = localFile.hash
+            const result = await setupConfigFile(user.userName, user.userEmail)
+        
+            
+            if ("success" in result && result.success){
+                
+                    const {localFile} = result
+                    
+                        setSocketCmd({
+                            cmd: "createStorage", params: { storageHash: localFile.hash }, callback: async (result)=>{
+                        
+                        console.log(result)
+                        if("success" in result)
+                        {    
+                            
+                            const setupDir = setupInfo.directory
+                            const localDir = { name: setupDir.name, handle: setupDir}
+                            await set(user.userID + "localDirectory", localDir)
+                            
 
-                        const params = {storageHash: storageHash}
+                            setLocalDirectory(localDir)
+                            setConfigFile(localFile)
 
-                        setSocketCmd({cmd:"createStorage", params:params, callback: async (result)=>{
-                            setValid(true);
-                            console.log(result)
-                            if("success" in result)
-                            {    
-                               
-                                removeSystemMessage(0)
-                                removeSystemMessage(1)
-                                removeSystemMessage(2)
-                                const setupDir = setupInfo.directory
-                                const localDir = { name: setupDir.name, handle: setupDir}
-                                await set(user.userID + "localDirectory", localDir)
-                                setLocalDirectory(localDir)
-                                setConfigFile(localFile)
-                                alert("Setup complete.")
-                                navigate("/home/localstorage")
-                            }else{
-                                alert("Please try again.")
-                                navigate("/home/localstorage")
-                            }
-                        }})
-                    }
-                }else{
-                    console.log(result.error)
-                    alert("Could not set the config file.")
-                }
+                            alert("Setup complete.")
+                            navigate("/home/localstorage")
+                            
+                            
+                        }else{
+                            alert("Please try again.")
+                            navigate("/home/localstorage")
+                        }
+                    }})
+
+            }else{
+                setValid(true)
+                console.log(result.error)
+                alert("Could not set the config file.")
+            }
             
             
     
@@ -279,7 +370,7 @@ export const InitStoragePage = (props = {}) => {
     const [phraseValid, setPhraseValid] = useState(false)
   
     const onPhraseChanged = (e) =>{
-        console.log(phraseRef.current.value.length)
+        
         if (phraseRef.current.value.length > 30) {
             setPhraseValid(true)
         } else {
@@ -288,20 +379,28 @@ export const InitStoragePage = (props = {}) => {
     }
     async function onGenerate(e){
     
-    
-        const length = await getRandomInt(400, 600, user.userEmail)
-        const text = await generateCode(user.userEmail, length)
-        
-        
-        phraseRef.current.value = text
-        onPhraseChanged(e)
+        setSocketCmd({
+            cmd: "getUserCode", params: {}, callback: async (userCodeHex) => {
+           
+
+                const str = userCodeHex.slice(getRandomIntSync(0, 32), getRandomIntSync(64,128))
+           
+
+                const length = await getRandomInt(400, 600, str)
+                const code = await generateCode(length)
+                
+                
+                
+                phraseRef.current.value = code
+                onPhraseChanged(e)
+        }})
     }
 
 
-    async function onSave(e){
+    async function onCreate(e){
         
-        const fileContents = phraseRef.current.value + ""
-        if (fileContents != "" && fileContents.length > 10)
+        const phraseString = phraseRef.current.value
+        if (phraseString != "" && phraseString.length > 10)
         {
             try {
             
@@ -312,16 +411,19 @@ export const InitStoragePage = (props = {}) => {
 
                 
 
-                setSocketCmd({cmd:"getUserCode",params:{},callback:async(uintCode)=>{
-
+                setSocketCmd({cmd:"getUserCode",params:{},callback:async(userCodeHex)=>{
+                    
                    
-                    const contentBytes = aesjs.utils.utf8.toBytes("keycode:" + fileContents)
+                    const phraseBytes = aesjs.utils.utf8.toBytes(phraseString)
+               
 
+                    const uintCode = new Uint8Array(aesjs.utils.hex.toBytes(userCodeHex))
+                    
                     const key = await getUintHash(uintCode, 32)
 
                     const aesCtr = new aesjs.ModeOfOperation.ctr(key);
 
-                    const encryptedContent = aesCtr.encrypt(contentBytes);
+                    const encryptedContent = aesCtr.encrypt(phraseBytes);
  
 
                     const fileStream = await handle.createWritable()
@@ -330,6 +432,11 @@ export const InitStoragePage = (props = {}) => {
 
 
                     await fileStream.close()
+
+                    
+                    setKeyFile(phraseString)
+
+                    
 
                 }})
 
@@ -345,6 +452,7 @@ export const InitStoragePage = (props = {}) => {
            
         }
     }
+    /*
     async function onSelectKeyFile(e) {
         try {
             const files = await window.showOpenFilePicker({ id: "keyfile", multiple: false });
@@ -357,14 +465,14 @@ export const InitStoragePage = (props = {}) => {
             setSocketCmd({
                 cmd: "getUserCode", params: {}, callback: async (uintCode) => {
 
-                    const contents = await decryptKeyFile(file, uintCode)
+                    const contents = await decryptAesFileBytes(file, uintCode)
                 
                     const header = "keycode:"
 
                     if(contents.slice(0,header.length) == header){
-                        setKeyContents(contents)
+                        setKeyFile(contents)
                     }else{
-                        setKeyContents(null)
+                        setKeyFile(null)
                         alert("This is not a valid key file")
                     }
                 }
@@ -374,21 +482,31 @@ export const InitStoragePage = (props = {}) => {
 
             }
         }
-    }
+    }*/
 
 
     useEffect(()=>{
-        if (phraseRef.current && setupInfo.file == null){
-            onGenerate(null)
+        if(setupInfo != null){
+            if (phraseRef.current && setupInfo.file == null){
+                onGenerate(null)
+            }else{
+                if (setupInfo.file != null){
+                    onUseExisting(null)
+
+                
+
+                }
+            }
         }
     },[phraseRef.current, setupInfo])
 
     return (
         <>
+
             {setupInfo != null ?
         <div  style={{
              position: "fixed",
-                    backgroundColor: "#00000090",
+                    backgroundImage: "linear-gradient(#000000, #000304CC)",
                     width:780,
                     left: "50vw",
                     top: "50vh",
@@ -397,16 +515,17 @@ export const InitStoragePage = (props = {}) => {
                 }}>
                     <div style={{
                         paddingBottom: 10,
-                        textAlign: "center",
-                    
-                        paddingTop: "20px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        width: "100%",
+                        paddingTop: 10,
                         fontFamily: "WebRockwell",
                         fontSize: "18px",
                         fontWeight: "bolder",
                         color: "#cdd4da",
                         textShadow: "2px 2px 2px #101314",
-                        backgroundImage: "linear-gradient(#13151480, #0003020 )",
-
+                        backgroundImage: "linear-gradient(#131514CC, #000304CC )",
 
                     }}>
                 Setup
@@ -428,11 +547,10 @@ export const InitStoragePage = (props = {}) => {
                                 alignItems: "center",
                             }}>
                             <div style={{ fontFamily: "webrockwell", color: "#ffffffaa", padding: 30, fontSize: 16, display:"flex", alignItems:"center", flexDirection:"column" }}>
-                                {setupInfo.file == null ? <div>
-                                    <div style={{width:"100%", }}>
+                                {setupInfo.file == null  && keyFile == null ? <div>
+                                    <div style={{ width: "100%", color: "#cdd4da", display: "flex", alignItems: "center", flexDirection: "column" }}>
                         
-                                        <div style={{paddingBottom:20}}>Create / Select a key file: </div>
-                                     
+                                        Storage Key
                                       
                                     </div>
                                    
@@ -466,13 +584,18 @@ export const InitStoragePage = (props = {}) => {
                                                 fontFamily: "WebRockwell"
                                             }} ref={phraseRef} />
                                                 <div style={{display:"flex", width: "100%",  }}>
-                                                <div style={{display:"flex", fontSize: 13, paddingTop: 30, color: "#777777" }}><b style={{ color: "#888888" }}>Notice:</b><div style={{ width: 6 }}>&nbsp;</div> 1. Keep in a secure location.</div>
+                                                <div style={{ fontSize: 13, paddingTop: 30, color: "#777777" }}>
+
+                                                    <div style={{ display: "flex", }}> <b style={{ color: "#888888" }}>Notice:</b><div style={{ width: 6 }}>&nbsp;</div> 1. Keep in a secure location.</div>
+                                                    <div style={{ display: "flex", paddingTop:5, }}> <div style={{ width: 50 }}>&nbsp;</div>  2. Do not store in the '{setupInfo.directory.name}' directory. </div></div>
                                                 <div style={{flex:1}}>&nbsp;</div>
-                                                <div style={{ color: saveName == null && phraseValid ? "white" : "", backgroundColor: saveName == null && phraseValid ? "#33333350" : "", marginTop: 20,  whiteSpace:"nowrap" }} onClick={onSave} className={styles.bubbleButton}>Save</div>
-                                                    <div style={{ color: saveName ? "white" : "", backgroundColor: saveName ? "#33333350" : "",marginLeft:20, marginTop: 20, whiteSpace: "nowrap" }} onClick={onSelectKeyFile} className={styles.bubbleButton}>Select </div>
+                                                <div style={{ marginTop:25, fontSize: 14, width:80, color: saveName == null && phraseValid ? "white" : "", backgroundColor: saveName == null && phraseValid ? "#33333350" : "",   whiteSpace:"nowrap" }} onClick={onCreate} className={styles.bubbleButton}>
+                                                    Create
                                                 </div>
-                                            <div style={{transform:"translateY(-5px)", width: "199%", display: "flex", alignItems: "start", justifyContent: "start", fontSize: 13, color:"#777777" }}><div style={{width:50}}>&nbsp;</div>  2. Do not store in the '{setupInfo.directory.name}' directory. </div>
-                                            <div style={{ transform: "translateY(-5px)", width: "199%", display: "flex", alignItems: "start", justifyContent: "start", fontSize: 13, color: "#777777", paddingTop:6 }}><div style={{ width: 50 }}>&nbsp;</div>  3. This file may be used to log in to your account. </div>
+                                                
+                                                </div>
+                                           
+                                           
                                     </div>
                                            
                                            
@@ -481,11 +604,54 @@ export const InitStoragePage = (props = {}) => {
                                     
                 
                                     
-                                </div>:
-                                <div>
-                                    <div>This local storage engine has been previously setup. Would you like to re-initialize it?.</div>
-                                        <div style={{ fontSize: 14, paddingTop: 30, color: "#777777" }}><b style={{ color: "#888888" }}>Notice:</b> Re-initializing the engine will destroy '{setupInfo.directory.name}/home/{user.userName}/'.<br />(Please back up this directory if you wish to maintain access to any files which may be stored there.)</div>
-                                </div>}
+                                </div> : <div style={{ paddingTop: 15,  display: "flex", flexDirection: "column", width: "100%",  justifyContent: "center" }}>
+                                        <div style={{paddingBottom:10, fontSize: 18, width: "100%", color: "#CCCCCC", display: "flex", alignItems: "center", flexDirection: "column" }}>
+                                            Engine Key
+                                        </div>
+
+                                            <div style={{ width:600, height: 2, backgroundImage: "linear-gradient(to right, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
+
+                                        <div style={{  width: "100%", flex: 1,   display: "flex",  alignItems:"center", justifyContent:"center"  }}>
+                              
+                                        <div>
+                                                <div style={{ marginTop: 50, width: 130, fontSize: 14, color: rememberKey ? "white" : "", backgroundColor: rememberKey ? "#33333350" : "", whiteSpace: "nowrap" }} onClick={(e) => {
+                                                    if (!rememberKey) onRememberKey(e)
+                                                }} className={styles.bubbleButton}>
+                                             Remember key
+                                        </div>
+                                            <div style={{ paddingTop: 10, paddingBottom:10, display: "flex", whiteSpace: "nowrap",  alignItems: "center", justifyContent: "center", color: "#777777", fontFamily: "webrockwell", fontSize: 13, }}>
+                                             (Increased convenience)
+                                        </div>
+                                        </div>
+                                            <div style={{
+
+                                                marginLeft: "40px", marginRight: "40px",
+                                                height: "80px",
+                                                width: "1px",
+                                                backgroundImage: "linear-gradient(to bottom, #00030440, #77777725, #00030440)",
+                                            }}>
+
+                                            </div>
+                                            <div>
+                                                <div style={{ backgroundColor: rememberKey ? "" : "#33333350", color: rememberKey ? "" : "white", marginTop: 50, width: 130, fontSize: 14, whiteSpace: "nowrap" }} onClick={(e)=>{
+                                                    if(rememberKey)onRememberKey(e)
+                                                }} className={styles.bubbleButton}>
+                                                    Prompt
+                                                </div>
+                                                <div style={{  paddingTop: 10, paddingBottom: 10, display: "flex", whiteSpace: "nowrap", alignItems: "center", justifyContent: "center", color: "#777777", fontFamily: "webrockwell", fontSize: 14, }}>
+                                                    (Increased security)
+                                                </div>
+                                            </div>
+                                    
+                                </div>
+                            </div>
+                         
+
+
+                                  
+
+
+                            }
                             </div>
                             {keyFile != null ? <>
                             {setupInfo.file == null ?     
@@ -498,17 +664,17 @@ export const InitStoragePage = (props = {}) => {
                             width: "100%"
                         }}>
                             <div style={{ width: 80, height: 30 }} className={styles.CancelButton} onClick={onCancelClick}>Back</div>
+                                        <div style={{
 
-                            <div style={{
+                                            marginLeft: "10px", marginRight: "10px",
+                                            height: "50px",
+                                            width: "1px",
+                                            backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                                        }}>
 
-                                marginLeft: "10px", marginRight: "10px",
-                                height: "50px",
-                                width: "1px",
-                                backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                            }}>
-
-                            </div>
-                            <div style={{  width:80, height:30}} className={styles.OKButton} onClick={handleSubmit} > Ok</div>
+                                        </div>
+                                        <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={handleSubmit} > Ok</div>
+                         
                         </div>
                         :
                                 <div style={{
@@ -529,7 +695,7 @@ export const InitStoragePage = (props = {}) => {
                                     }}>
 
                                     </div>
-                                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={useExisting} > Existing</div>
+                                    <div style={{ width: 80, height: 30 }} className={styles.OKButton} onClick={onUseExisting} > Existing</div>
                                     <div style={{
 
                                         marginLeft: "10px", marginRight: "10px",
@@ -608,76 +774,48 @@ export const InitStoragePage = (props = {}) => {
                     </div>
                     </div>
                     }
+
                     </>
 
     )
 }
 
-/* 
-  <div className={styles.glow} onClick={(e) => { setShowMore(prev => !prev) }} style={{ fontSize: 14, cursor: "pointer", paddingTop: 20, color: showMore ? "#888888" : "#777777" }}>Show {showMore ? "less" : "more"}  <b style={{fontSize:10}}>▼</b></div>
-                                    {showMore &&
-                                    <div style={{ fontSize: 14, paddingTop: 20, color: "#777777" }}><b style={{ color: "#888888" }}>Info:</b><br/> 
-                                        The following directories will be created if they don't exist: <br/>
-                                        {setupInfo.directory.name}/home/ <br /> 
-                                        {setupInfo.directory.name}/home/{user.userName} <br />
-                                        {setupInfo.directory.name}/home/{user.userName}/engine <br />
-                                        {setupInfo.directory.name}/home/{user.userName}/apps <br />
-                                        {setupInfo.directory.name}/images <br />
-                                        {setupInfo.directory.name}/media  <br />
-                                        {setupInfo.directory.name}/assets <br />
-                        
-                                    </div>
-                                    }</>
-<textArea 
-                                                placeholder="(*.glb *.png *.jpg)"
-                                                type={"text"}
-                                                style={{
-                                                    resize: "none",
-                                                    width: 270,
-                                                    fontSize: 14,
-                                                    marginTop: 5,
-                                                    textAlign: "left",
-                                                    border: "0px",
-                                                    outline: 0,
-                                                    color: "white",
-                                                    backgroundColor: "#00000000",
-                                                    fontFamily: "webrockwell"
-                                                }} />*/
+/*    <div style={{
 
-/*
- <div onClick={onCancelClick} style={{ cursor: "pointer", display: "flex",}}>
-                                <div  >
-                                    <ImageDiv netImage={{
-                                        image: "/Images/icons/person.svg",
-                                        width: 130,
-                                        backgroundColor:"#33333350",
-                                        height: 130,
-                                        filter: "invert(100%)"
-                                    }} />
-                                    <div style={{
-                                        position: "relative",
-                                        transform: "translate(17px,-15px)",
-                                        fontSize: "13px",
-                                        color: "#cdd4da",
-                                        textShadow: "1px 1px 2px #101314, -1px -1px 1px #101314",
-                                        fontFamily: "Webrockwell",
-                                        cursor: "pointer"
-                                    }} >Select Image</div>
-                                </div>
-                                    <div>
-                                        <div style={{display:"flex"}}>
-                                            <div style={{
+                                marginLeft: "10px", marginRight: "10px",
+                                height: "50px",
+                                width: "1px",
+                                backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
+                            }}>
 
-                                                marginLeft: "20px", marginRight: "20px",
-                                                height: "50px",
-                                                width: "1px",
-                                                backgroundImage: "linear-gradient(to bottom, #000304DD, #77777755, #000304DD)",
-                                            }}>
-
+                            </div>
+                            <div style={{  width:80, height:30}} className={styles.OKButton} onClick={handleSubmit} > Ok</div>  <div style={{ flex: 1, color: "#ffffffA0", fontSize: 13 }}>
+                                        <div style={{ paddingBottom: 10, width: "100%", alignItems: "end", justifyContent: "end",  marginRight: 0, fontSize: 14, display: "flex", color: "#ffffff80", whiteSpace: "nowrap", }}>
+                                            <div style={{ display: "flex", }}>
+                                            
                                             </div>
-                                            <div style={{width:150, height:50, display:"flex", alignItems:"center"}}  onClick={onOKclick} >Profile Image</div>
+
+                                            <div style={{ flex: 1 }}>&nbsp;</div>
+                                            
                                         </div>
-                                        <div style={{ fontFamily: "WebPapyrus", paddingLeft: 45, fontSize: 14, color:"#ffffff50" }}>Select a profile image from your images.</div>
+                                        <textarea
+                                            readOnly
+                                            cols={45}
+                                            rows={20}
+                                            value={termsOfService}
+                                            style={{
+                                                cursor: "auto",
+                                                resize: "none",
+                                                outline: 0,
+                                                width: 500,
+                                                border: 0,
+                                                backgroundColor: "#00000060",
+                                                color: "white",
+                                                fontFamily: "WebRockwell"
+                                            }} >
+                                                
+                                            </textarea>
+                                       
+
                                     </div>
-                                </div>
                                 */

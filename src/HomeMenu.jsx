@@ -36,6 +36,8 @@ import { ImageViewer } from "./pages/components/UI/ImageViewer";
 import MediaViewer from "./pages/components/UI/MediaViewer";
 import { AppMenu } from "./pages/components/UI/AppMenu";
 import { LoadingStatusBar } from "./pages/components/UI/LoadingStatusBar";
+import { BackUp } from "./pages/components/UI/BackUp";
+import { ProfileButton } from "./pages/components/UI/ProfileButton";
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -128,6 +130,7 @@ const HomeMenu = (props = {}) => {
 
             if (currentLocation == '/') {
                 if (location.state != undefined){
+                    
                     if (location.state.configFile != undefined && location.state.configFile != null && location.state.localDirectory != undefined){
                         setConfigFile(location.state.configFile)
                         setLocalDirectory(location.state.localDirectory)
@@ -245,7 +248,9 @@ const HomeMenu = (props = {}) => {
 
    
     useEffect(()=>{
+        console.log(localDirectory.handle, configFile.handle)
         if (  localDirectory.handle != null && configFile.handle != null){
+
             setFolderDefaults(localDirectory, configFile)
         }
     }, [localDirectory, configFile])
@@ -418,7 +423,7 @@ const HomeMenu = (props = {}) => {
         }else{
             setAppList([])
         }
-        console.log(currentApps)
+
     },[currentHash,currentApps])
 
 
@@ -506,7 +511,7 @@ const HomeMenu = (props = {}) => {
 
 
     async function setFolderDefaults(localDirectory, configFile) {
-            console.log('getting folders')
+           
             try {
                 const appsHandle = await configFile.directory.getDirectoryHandle("apps", { create: true })
 
@@ -569,7 +574,7 @@ const HomeMenu = (props = {}) => {
        
         return new Promise(resolve => {
             let i = 0;
-            console.log("checking files")
+          
             get("arc.cacheFile").then((idbCacheArray)=>{
                 
                 const isArray = Array.isArray(idbCacheArray)
@@ -577,7 +582,7 @@ const HomeMenu = (props = {}) => {
                 let newCache = []
                 setLoadingComplete(false)
 
-                console.log(idbCacheArray)
+              
 
                 async function checkFilesRecursive(){
                  
@@ -907,14 +912,15 @@ const HomeMenu = (props = {}) => {
 
             }
             {openApp}
-            <div style={{
-                position: "fixed", top: 0, right: 0, display: "flex", alignItems: "center", height: 35, boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff40, inset 0 0 30px #77777740",
+            <div style={{ 
+                position: "fixed", right: 0, display: "flex", alignItems: "center", boxShadow: "0 0 10px #ffffff10, 0 0 10px #ffffff40, inset 0 0 2px #77777740",
              
-                backgroundImage: "linear-gradient(to top, black, #cccccc60)",
+                backgroundImage: "linear-gradient(to top, black, #cccccc30)",
             }}>
               
 
-                    <div style={{ display: "flex", alignItems: "center", cursor: "pointer", backgroundColor: "black", flex:1, }} >
+                 
+                    <div style={{ display: "flex", alignItems: "center", marginLeft:5  }}>
                         {!loadingComplete && user.userID > 0 &&
                             < div style={{ paddingLeft: 5, paddingRight: 5 }} >
                         <ImageDiv width={20} height={20} netImage={{ backgroundImage: "radial-gradient(#000000 30%, #ffffff 98%)", image: "/Images/icons/hourglass-outline.svg", filter: "invert(100%)" }} />
@@ -923,14 +929,7 @@ const HomeMenu = (props = {}) => {
                         }
                         <LoadingStatusBar />
                         {location.pathname != "/" && location.pathname != "/login" &&
-                        <div onClick={(e)=>{
-                            navigate("/")
-                        }} >
-                            <ImageDiv width={30} height={30} netImage={{
-                                image: "/Images/icons/return-up-back-outline.svg", filter:"invert(100%)", scale: .6,
-                            }} />
-                                  
-                        </div>
+                            <BackUp />
                         }
                         {user.userID > 0 &&
                            <>
@@ -945,32 +944,12 @@ const HomeMenu = (props = {}) => {
                         <SocketHandler /> 
                    
                         {user.userID &&
-                        <div onClick={onProfileClick} style={{
-                            fontFamily: "WebPapyrus",
-                            color: "#c7cfda",
-                            fontSize: "16px",
-                            paddingTop: "5px",
-                            paddingLeft: "10px",
-                            paddingRight: "15px",
-                            whiteSpace: "nowrap",
-                            flex:1, 
-                            display:"flex",
-                            alignItems:"center",
-                            justifyContent:"end",
-                            
-                        }}>   <ImageDiv width={30} height={30} netImage={{
-                            image: "", filter: "", scale: .8, update: {
-                                command: "getIcon",
-                                file: user.image,
-                                waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
-                                error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
-
-                            },
-                        }} /><div style={{paddingLeft:2}}>{ user.userName}</div> </div>
-                     
+                        
+                            <ProfileButton onProfileClick={onProfileClick} user={user}/>
                         }
                     </div>
-                
+                    <div style={{ height: 1 }}>&nbsp;</div>
+              
         
              
                 { user.userID > 0 &&
