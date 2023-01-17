@@ -91,27 +91,9 @@ export const ImageDiv = (props = {}) => {
 
                 } else if("file" in response) {
 
-                    const svgMime = "image/svg+xml"
-
-                    if (response.file.type.slice(0, svgMime.length) == svgMime) {
-                        
-                        response.file.handle.getFile().then((file)=>{
-                            file.text().then((text)=>{
-                                
-                                const encoded = window.btoa(window.decodeURI(text))
-
-                                const header = 'data:image/svg+xml;base64,'
-                                const dataUrl = header + encoded
-                              setUpdateCanvas(null)
-                                setUpdated({ success: true, dataUrl: dataUrl })
-                                
-                            })
-                        })
-                    } else {
-                  
-                        setUpdated({ success: true })
-                        setUpdateCanvas({file: response.file})
-                    }
+                    setUpdated({ success: true })
+                    setUpdateCanvas({file: response.file})
+                   
                 }
                    
             } else if ("downloading" in response) {

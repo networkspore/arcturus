@@ -7,21 +7,19 @@ import useZust from "../../../hooks/useZust";
 import { ImageViewer } from "./ImageViewer";
 import IconFile from "./IconFile";
 import useDynamicRefs from "use-dynamic-refs";
-import { get } from "idb-keyval";
 
 
-const FileList = (props = {}, ref) => {
+const LinksList = (props = {}, ref) => {
     if (props == null) props = {};
     const onChange = "onChange" in props ? props.onChange : null;
 
-    //const [getRef, setRef] = useDynamicRefs()
+    const [getRef, setRef] = useDynamicRefs()
 
     //const fileListID = useId()
 
     const divRef = useRef()
     const navigate = useNavigate()
     const [list, setList] = useState(null);
-    const localDirectory = useZust((state)=> state.localDirectory)
 
     const pageSize = useZust((state) => state.pageSize)
 
@@ -50,10 +48,6 @@ const FileList = (props = {}, ref) => {
         color: "#cdd4da"
     }
 
-    const [selectedHash, setSelectedHash] = useState(null);
-    //const [files, setFiles] = useState([]);
-   
-    const loadingStatus = useZust((state) => state.loadingStatus)
 
 
     if ("tableStyle" in props) {
@@ -83,337 +77,51 @@ const FileList = (props = {}, ref) => {
             textStyle[element] = props.textStyle[element];
         });
     }
-    const fileView = useRef({ value: { type: "details", direction: "row", iconSize: { width: 100, height: 100, scale: 1 } } })
+
+    const [selectedHash, setSelectedHash] = useState(null);
+    const [files, setFiles] = useState([]);
+    const [fileView, setFileView] = useState({ type: "details", direction: "row", iconSize: { width: 100, height: 100, scale: 1 } })
+
+    useEffect(() => {
+
+        if ("files" in props) {
+            setFiles(props.files);
+            lastHash.current.value = null
+        }
+
+    }, [props.files])
 
     useEffect(() => {
         if ("fileView" in props) {
 
-            
+            setFileView(produce((state) => {
                 let optionsArray = Object.getOwnPropertyNames(props.fileView);
-                let op = {}
+
                 optionsArray.forEach(element => {
-                    op[element] = props.fileView[element]
+                    state[element] = props.fileView[element]
                 })
-                fileView.current.value = op
-            onRefresh()
-           
+            }))
         }
     }, [props.fileView])
 
 
+
     useEffect(() => {
-        if(divRef.current){
-            onRefresh()
-        }
-    },[localDirectory, divRef.current])
-  
-    const refreshing = useRef({ value: false })
-    useEffect(() => {
-        if (!refreshing.current.value) {
-            refreshing.current.value = true;
 
-            setTimeout(() => {
-                onRefresh()
-                refreshing.current.value = false
-            }, 500);
-        }
-    }, [loadingStatus])
-/*
-    const addFile = (file) =>{
-        const iName = file.name + "";
-        const iDirectoryName = ("directory" in file) ? file.directory.name : null;
-        const mimeType = ("mimeType" in file) ? file.mimeType : "";
-        const iType = ("type" in file) ? file.type : "";
-        const iLoaded = ("loaded" in file) ? file.loaded : false
+       setAllFiles()
 
-        const filterName = (filter.name != undefined && filter.name != null && filter.name != "");
-        const filterDirectory = (filter.directory != undefined && filter.directory != null && filter.directory != "")
-        const filterMimeType = (filter.mimeType != undefined && filter.mimeType != null && filter.mimeType != "")
-        const filterType = (filter.type != undefined && filter.type != null && filter.type != "")
-        const filterLoaded = (filter.loaded != undefined && filter.loaded != null && file.loaded != "")
+    }, [files, selectedHash, props.filter, fileView, props.width])
 
-
-
-        let show = false;
-
-        if (filterDirectory) {
-            show = iDirectoryName == filter.directory
-
-        }
-        show = filterDirectory == show;
-
-        if (show && filterMimeType) {
-            show = mimeType == filter.mimeType
-        }
-        if (show && filterType) {
-            const ftLen = filter.type.length
-            const iLen = iType.length
-
-            if (iLen > ftLen) {
-                show = iType.slice(0, ftLen) == filter.type
-            } else {
-                show = iType == filter.type
-            }
-
-        }
-
-        if (show && filterName) {
-            const lowerName = iName.toLowerCase();
-            const lowerFilterName = filter.name.toLowerCase();
-            show = lowerName.includes(lowerFilterName)
-
-        }
-
-        if (show && filterLoaded) {
-            show == iLoaded == filter.loaded
-        }
-
-
-
-
-        if (show) {
-            const iSize = formatBytes(file.size)
-            const iModified = formatedNow(new Date(file.lastModified));
-
-            const iType = ("type" in file) ? file.type : "";
-
-            const iTo = "to" in file ? file.to : null
-            const iHandle = file.handle;
-            const iIcon = ("icon" in file) ? file.icon : "/Images/icons/document-outline.svg";
-            const iHash = ("hash" in file) ? file.hash : null
-
-            const update = iTo == null ? {
-                command: "getIcon",
-                file: file,
-                waiting: { url: "/Images/spinning.gif", style: { filter: "" } },
-                error: { url: "/Images/icons/document-outline.svg", style: { filter: "invert(100%)" } },
-
-            } : null
-
-            const iImage = iTo == null ? {
-                filter: "",
-                scale: scale,
-                backgroundColor: backgroundColor,
-                backgroundImage: backgroundImage,
-                image: iIcon,
-                borderRadius: 15,
-                update: update,
-            } : file.netImage
-            // if(update != null) iImage.update = update
-
-
-            switch (fileView.type) {
-                case "icons":
-                    switch (fileView.direction) {
-                        case "row":
-
-
-                            if (rows != null && numColumns != 0) {
-                                const rowIndex = currentRow
-                                const columnIndex = j
-
-                                j += 1
-                                if (!(j < numColumns)) {
-                                    j = 0
-                                    currentRow = currentRow + 1
-                                }
-
-
-                                if (!isNaN(rowIndex) && !isNaN(columnIndex)) {
-                                    rows[rowIndex][columnIndex] = <IconFile
-                                        key={iHash}
-                                        name={iName}
-                                        netImage={iImage}
-                                        height={fileView.iconSize.height}
-                                        width={fileView.iconSize.width}
-
-                                        onDoubleClick={(e) => {
-                                            if (props.onDoubleClick != undefined) {
-                                                props.onDoubleClick(file)
-                                            }
-                                        }}
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            if (iTo == null) {
-                                                setSelectedHash(iHash)
-                                            } else {
-                                                navigate(iTo)
-                                            }
-                                        }}
-                                        className={iHash == selectedHash ? activeIconClassName : iconClassName}
-
-                                        selected={iHash == selectedHash}
-                                    />
-                                }
-                            }
-                            break;
-                        case "list":
-                        default:
-
-                            // iImage.scale = 1;
-                            array.push(
-                                <div onDoubleClick={(e) => {
-                                    if (props.onDoubleClick != undefined) {
-                                        props.onDoubleClick(file)
-                                    }
-                                }} onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (iTo == null) {
-                                        setSelectedHash(iHash)
-                                    } else {
-                                        navigate(iTo)
-                                    }
-                                }} key={i} style={{ overflowX: "clip", overflowClipMargin: iHash == selectedHash ? 100 : 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                                    <ImageDiv
-                                        style={{ margin: 10, }}
-
-
-                                        className={iHash == selectedHash ? activeIconClassName : iconClassName}
-                                        height={fileView.iconSize.width}
-                                        width={fileView.iconSize.height}
-                                        netImage={iImage}
-
-                                    /><div style={{
-
-                                        textShadow: iHash == selectedHash ? "1px 1px 3px white" : "", display: "flex", alignItems: "center", fontFamily: "webpapyrus", fontSize: "12", whiteSpace: "nowrap", padding: 10, background: iHash == selectedHash ? "black" : "#00000050", color: "white"
-                                    }}>
-                                        {iHash == selectedHash ? iName : iName.length > 11 ? iName.slice(0, 11) + ".." : iName}
-                                    </div>
-
-                                </div>
-
-                            )
-
-                    }
-                    break;
-                case "details":
-                default:
-
-                    array.push(
-                        <div key={i} style={{ width: "100%", display: "flex", paddingLeft: 0 }} className={styles.result} tabIndex={i}
-                            onDoubleClick={(e) => {
-                                if (props.onDoubleClick != undefined) {
-                                    props.onDoubleClick(file)
-                                }
-                            }}
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                if (iTo == null) {
-                                    setSelectedHash(iHash)
-                                } else {
-                                    navigate(iTo)
-                                }
-                                //  setSelectedIndex(Number(index))
-                            }}>
-                            <div style={{ flex: 0.1, alignItems: "center", justifyContent: "center" }}>
-                                {iImage != null &&
-
-                                    <ImageDiv width={20} height={20} style={{ borderRadius: 5, overflow: "hidden" }} netImage={iImage} />
-
-                                }
-                            </div>
-                            <div style={{ flex: 0.2, color: "#888888", }}>{mimeType}</div>
-
-                            <div style={{ flex: 1, color: "white", }}>{iName}</div>
-                            <div style={{ flex: 0.4, maxWidth: 150, minWidth: 80, color: "#888888", whiteSpace: "nowrap", overflow: "clip", marginRight: 10 }}>{mimeType == "link" ? "" : iModified.slice(0, 16)}</div>
-                            <div style={{ flex: 0.3, color: "#888888", display: "flex", whiteSpace: "nowrap", overflow: "clip", }}>{mimeType == "link" ? "" : iSize}</div>
-                        </div>
-                    )
-                    break;
-            }
-        }
-    }*/
-   
-
-    const onRefresh = () =>{
-        console.log("called")
-        if (localDirectory.handle != null) {
-
-            get("arc.cacheFile").then((files) => {
-
-                if (files != undefined) {
-                  //  setFiles();
-                    setAllFiles(files)
-                } else {
-                    setAllFiles([])
-                  //  setFiles([])
-                }
-            })
-        } else {
-            setAllFiles([])
-           // setFiles([])
-        }
-    }
-   /* const observer = useRef({value:null})
-    function createObserver() {
-        
-
-        let options = {
-            root: divRef.current,
-            rootMargin: "0px",
-            threshold: 0
-        };
-
-        observer.current.value = new IntersectionObserver(handleIntersect, options);
-        
-    }
-
-    function handleIntersect(entries, ob) {
-        entries.forEach((entry) => {
-            console.log(entry)
-            if (entry.isIntersecting )
-            {
-                
-                const targetId = entry.target.id
-                const targetRef = getRef(targetId)
-
-                if(targetRef.current){
-                const show = targetRef.current.getShow
-
-                if(!show){
-                    targetRef.current.setShow(true)
-                }}
-            }else{
-                const targetId = entry.target.id
-                const targetRef = getRef(targetId)
-                if(targetRef.current){
-                const show = targetRef.current.getShow
-
-                if (show) {
-                    targetRef.current.setShow(false)
-                }}
-            }
-        });
-    }*/
-
-
-    useEffect(()=>{
-        if(divRef.current){
-          //  createObserver()
-
-            onRefresh()
-        }
-    },[divRef.current])
-
-   /* useEffect(() => {
-
-      
-
-    }, [files, selectedHash, props.filter, fileView, props.width])*/
-
-
-
-    function setAllFiles(files){
+    function setAllFiles(){
         var array = [];
-        console.log("set all files")
         const filter = props.filter != undefined ? props.filter : { name: "", directory: "", type: "" }
         let rows = null
 
         if (files != null) {
             // const bounds =  divRef.current.getBoundingClientRect() 
             const width = props.width != undefined ? props.width : 600
-            const floor = Math.floor(width / (fileView.current.value.iconSize.width + 20))
-            const numColumns = fileView.current.value.direction == "row" ? floor == 0 ? 1 : floor : 1;
+            const floor = Math.floor(width / (fileView.iconSize.width + 20))
+            const numColumns = fileView.direction == "row" ? floor == 0 ? 1 : floor : 1;
             const numRows = files.length > 0 && numColumns != 0 ? Math.ceil(files.length / numColumns) : 1
             rows = new Array(numRows)
 
@@ -423,10 +131,10 @@ const FileList = (props = {}, ref) => {
                 }
             }
 
-            const scale = "scale" in fileView.current.value.iconSize ? fileView.current.value.iconSize.scale : 1
+            const scale = "scale" in fileView.iconSize ? fileView.iconSize.scale : 1
 
-            const backgroundColor = "backgroundColor" in fileView.current.value.iconSize ? fileView.current.value.iconSize.backgroundColor : "#33333390"
-            const backgroundImage = "backgroundImage" in fileView.current.value.iconSize ? fileView.current.value.iconSize.backgroundImage : ""
+            const backgroundColor = "backgroundColor" in fileView.iconSize ? fileView.iconSize.backgroundColor : "#33333390"
+            const backgroundImage = "backgroundImage" in fileView.iconSize ? fileView.iconSize.backgroundImage : ""
             let j = 0;
             let currentRow = 0;
 
@@ -515,9 +223,9 @@ const FileList = (props = {}, ref) => {
                     // if(update != null) iImage.update = update
 
 
-                    switch (fileView.current.value.type) {
+                    switch (fileView.type) {
                         case "icons":
-                            switch (fileView.current.value.direction) {
+                            switch (fileView.direction) {
                                 case "row":
 
 
@@ -534,14 +242,12 @@ const FileList = (props = {}, ref) => {
 
                                         if (!isNaN(rowIndex) && !isNaN(columnIndex)) {
                                             rows[rowIndex][columnIndex] = <IconFile
-                                         
-                                               
-                                                id={iHash}
+                                                showDefault={true}
                                                 key={iHash}
                                                 name={iName}
                                                 netImage={iImage}
-                                                height={fileView.current.value.iconSize.height}
-                                                width={fileView.current.value.iconSize.width}
+                                                height={fileView.iconSize.height}
+                                                width={fileView.iconSize.width}
 
                                                 onDoubleClick={(e) => {
                                                     if (props.onDoubleClick != undefined) {
@@ -560,7 +266,6 @@ const FileList = (props = {}, ref) => {
                                                
                                                 selected={iHash == selectedHash}
                                             />
-                                            
                                         }
                                     }
                                     break;
@@ -586,8 +291,8 @@ const FileList = (props = {}, ref) => {
 
 
                                                 className={iHash == selectedHash ? activeIconClassName : iconClassName}
-                                                height={fileView.current.value.iconSize.width}
-                                                width={fileView.current.value.iconSize.height}
+                                                height={fileView.iconSize.width}
+                                                width={fileView.iconSize.height}
                                                 netImage={iImage}
 
                                             /><div style={{
@@ -643,7 +348,7 @@ const FileList = (props = {}, ref) => {
             }
 
         }
-        if (fileView.current.value.type == "icons" && fileView.current.value.direction == "row") {
+        if (fileView.type == "icons" && fileView.direction == "row") {
             array = []
             for (let i = 0; i < rows.length; i++) {
                 array.push(
@@ -666,7 +371,14 @@ const FileList = (props = {}, ref) => {
 
                 setSelectedHash(hash)
             },
-        }), [selectedHash]);
+
+
+            setFiles: (value) => {
+
+                setFiles(value)
+            },
+            getFiles: files,
+        }), [selectedHash, files]);
 
 
     const lastHash = useRef({ value: null })
@@ -730,8 +442,8 @@ const FileList = (props = {}, ref) => {
 
     return (
         <>
-            <div onClick={(e) => { setSelectedHash(null) }} ref={divRef} style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: fileView.current.value.direction == "list" ? "center" : "" }} >
-                {fileView.current.value.type == "details" &&
+            <div onClick={(e) => { setSelectedHash(null) }} ref={divRef} style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: fileView.direction == "list" ? "center" : "" }} >
+                {fileView.type == "details" &&
                     <div style={{ display: "flex", flex: 1, flexDirection: "column", }}>
                         <div style={{ display: "flex", flex: 1 }}>
 
@@ -764,4 +476,4 @@ const FileList = (props = {}, ref) => {
     )
 }
 
-export default forwardRef(FileList);
+export default forwardRef(LinksList);

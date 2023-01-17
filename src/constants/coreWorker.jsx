@@ -35,6 +35,16 @@ export default () => {
                 })
 
                 break;
+            case "getDirectory":
+                getDirectory(msg.directory).then((result) => {
+                    if (Array.isArray(result)) {
+                        postMessage({ cmd: msg.cmd, success: true, apps: result })
+                    } else {
+                        postMessage({ cmd: msg.cmd, success: false })
+                    }
+                })
+
+                break;
         }
 
     
@@ -45,13 +55,13 @@ export default () => {
     async function getDirectory(directory) {
         const root = await navigator.storage.getDirectory();
 
-        const contextHandle = await root.getDirectoryHandle(directory, { "create": true });
+        const directoryHandle = await root.getDirectoryHandle(directory, { "create": true });
 
         try {
             let all = []
-            for await (const handle of contextHandle.values()) {
+            for await (const handle of directoryHandle.values()) {
                 if (handle.kind == "file") {
-                    const ofInfo = await getOriginFile(handle, contextHandle)
+                    const ofInfo = await getOriginFile(handle, directoryHandle)
                     all.push(ofInfo);
                 }
             }

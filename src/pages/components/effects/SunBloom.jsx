@@ -24,14 +24,14 @@ const SunBloom = ({ bloomScene, strength = 0, radius = 0, threshold = 0 }) => {
     const current = useThree((state) => state.performance.current)
  
     const frameLimiter = useRef({ delta: 0, interval: (1 / 30)  });
-
+    /*
     useEffect(() => {
         const isComplete = loadingStatus != null ? loadingStatus.complete && loadingStatus.index == loadingStatus.length : true
 
         if (loadingStatus != null && !isComplete) {
             regress()
         }
-    }, [loadingStatus])
+    }, [loadingStatus])*/
 
 
     const effect = useRef();

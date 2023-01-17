@@ -11,8 +11,13 @@ import SelectBox from "./components/UI/SelectBox"
 import { typeOptions } from "../constants/constants"
 import { ImagePicker } from "./components/UI/ImagePicker"
 import { FileBrowser } from "./components/UI/FileBrowser"
+import aesjs from 'aes-js';
+import WorkerBuilder from "../constants/WorkerBuilder";
+import Worker from "../constants/coreWorker";
 
 export const AppsAdminPage = (props = {}) => {
+    const coreWorker = new WorkerBuilder(Worker)
+
     const fileUrlRef = useRef()
     const imageUrlRef = useRef()
     const nameRef = useRef()
@@ -21,6 +26,7 @@ export const AppsAdminPage = (props = {}) => {
     const advisoryRef = useRef()
 
     const fileTypeRef = useRef()
+    const availableApps = useRef({value:[]})
 
     const navigate = useNavigate()
     const [fullSize, setFullSize] = useState(false)
@@ -30,25 +36,91 @@ export const AppsAdminPage = (props = {}) => {
     const [currentWidth, setCurrentWidth] = useState(480)
     const pageSize = useZust((state) => state.pageSize)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
-    const [availableApps, setAvailableApps] = useState([])
+    
     const [showIndex, setShowIndex] = useState(0)
 
     const [currentImage, setCurrentImage] = useState(null)
     const [currentFile, setCurrentFile] = useState(null)
+
+    const localDirectory = useZust((state) => state.localDirectory)
+
+
+    
+    const setFile = (fileName, type, bytes) => {
+        return new Promise(resolve => {
+
+                const msg = { cmd: "setFile", name: fileName, bytes: bytes, type: type }
+                coreWorker.onmessage = (e) => {
+
+                    const result = e.data
+                    console.log(result)
+                    switch (result.cmd) {
+                        case "setFile":
+                            resolve(result)
+                            break;
+                    }
+                }
+
+                coreWorker.postMessage(msg)
+
+          
+
+        })
+    }
+    const removeFile = (fileName, type) => {
+        return new Promise(resolve => {
+            const msg = { cmd: "removeFile", name: fileName, type: type }
+            coreWorker.onmessage = (e) => {
+
+                const result = e.data
+
+                switch (result.cmd) {
+                    case "removeFile":
+
+                        resolve(true)
+
+                        break;
+                }
+            }
+            coreWorker.postMessage(msg)
+        })
+    }
+
+    const getDirectory = (directory) => {
+        return new Promise(resolve => {
+            const msg = { cmd: "getDirectory", directory: directory }
+            coreWorker.onmessage = (e) => {
+
+                const result = e.data
+
+                switch (result.cmd) {
+                    case "getDirectory":
+
+                        resolve(result)
+
+                        break;
+                }
+            }
+            coreWorker.postMessage(msg)
+        })
+    }
 
     useEffect(()=>{
         setSocketCmd({cmd: "getAppList", params:{type:"", admin:true}, callback:(results)=>{
             if("success" in results && results.success && "admin" in results && results.admin ){
                 setIsAdmin(true)
              
+                    
 
-                    setAvailableApps(results.apps)
+                    availableApps.current.value = results.apps
               
             }else{
                 navigate("/apps")
             }
         }})
-    },[])
+    },[localDirectory])
+
+
 
     useEffect(() => {
         
@@ -165,12 +237,19 @@ export const AppsAdminPage = (props = {}) => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        flexDirection: "column",
+                     
   
                     }}>
 
-                    <div style={{width:600, height:250}}>
+                    <div style={{width:480}}>
+                            <FileList
+                                width={480}
 
+                                fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
+                                onChange={fileSelected}
+                                filter={{ name: searchText, mimeType: currentMimeType, type: currentType }}
+                                files={currentFiles}
+                            />
                     </div>
                         
     

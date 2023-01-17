@@ -14,6 +14,7 @@ import { ImageDiv } from './components/UI/ImageDiv';
 import { getFileInfo, getPermission, getPermissionAsync, readFileJson } from '../constants/utility';
 import { initStorage } from '../constants/systemMessages';
 import { useLayoutEffect } from 'react';
+import LinksList from './components/UI/LinksList';
 
 
 
@@ -89,23 +90,11 @@ export const LocalStoragePage = () => {
     const [searchText, setSearchText] = useState("")
     const [currentMimeType, setCurrentMimeType] = useState("")
     const [currentType, setCurrentType] = useState("")
-    const allFiles = useRef({current:[]})
+
     const [typeOptions, setTypeOptions] = useState()
     const [fileListWidth, setFileListWidth] = useState(600)
     
-    const loadingStatus = useZust((state) => state.loadingStatus)
-
-    const refreshing = useRef({value:false})
-    useEffect(()=>{
-        if(!refreshing.current.value){
-            refreshing.current.value = true;
-                
-                setTimeout(() => {
-                    onRefresh()
-                    refreshing.current.value = false
-                }, 500);
-        }
-    },[loadingStatus])
+    
 
     useEffect(() => { 
         if(fileListDivRef.current)
@@ -174,7 +163,7 @@ export const LocalStoragePage = () => {
             ])
             
         }
-        onRefresh()
+        
     },[configFile, localDirectory])
 
     useEffect(()=>{
@@ -204,9 +193,6 @@ export const LocalStoragePage = () => {
 
                 switch(sD + ssD){
                     case "/init":
-                        console.log(location)    
-                     
-                        
                         setCurrentFiles([])
                         setShowIndex(1)
                         directoryOptionsRef.current.setValue(sD)
@@ -215,7 +201,7 @@ export const LocalStoragePage = () => {
 
                         directoryOptionsRef.current.setValue(sD)
                         
-                        setCurrentFiles(allFiles.current.value)
+                     
                         setCurrentMimeType("")
                         setCurrentType("")
                         setShowIndex(0)
@@ -223,7 +209,7 @@ export const LocalStoragePage = () => {
                         break;
                     case "/apps":
                         setCurrentDirectories(appsDirectory.directories)
-                        setCurrentFiles( allFiles.current.value)
+                  
                         directoryOptionsRef.current.setValue(sD)
                         setCurrentMimeType("arcnet")
                         setCurrentType("")
@@ -231,7 +217,7 @@ export const LocalStoragePage = () => {
                         break;
                     case "/images":
                         setCurrentDirectories(imagesDirectory.directories)
-                        setCurrentFiles( allFiles.current.value)
+
                         directoryOptionsRef.current.setValue(sD)
                         setCurrentMimeType("image")
                         setCurrentType("")
@@ -243,21 +229,21 @@ export const LocalStoragePage = () => {
                         directoryOptionsRef.current.setValue(sD)
 
                                 setCurrentFiles([
-                                    { to: "/home/localstorage/assets/pcs", name: "pcs", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: "/home/localstorage/assets/npcs", name: "npcs", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: "/home/localstorage/assets/placeables", name: "placeables", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: "/home/localstorage/assets/textures", name: "textures", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: "/home/localstorage/assets/terrain", name: "terrain", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: "/home/localstorage/assets/types", name: "types", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: "/home/localstorage/assets/pcs", name: "pcs", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: "/home/localstorage/assets/npcs", name: "npcs", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: "/home/localstorage/assets/placeables", name: "placeables", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: "/home/localstorage/assets/textures", name: "textures", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: "/home/localstorage/assets/terrain", name: "terrain", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: "/home/localstorage/assets/types", name: "types", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                                 ])
 
                                 setCurrentMimeType("")
                                 setCurrentType("")
-                                setShowIndex(0)
+                                setShowIndex(2)
                                 break;
                             case "/assets/pcs":
                                 setCurrentDirectories(pcsDirectory.directories)
-                                setCurrentFiles( allFiles.current.value)
+                             
                                
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcpc")
@@ -268,7 +254,7 @@ export const LocalStoragePage = () => {
                             case "/assets/npcs":
                                 setCurrentDirectories(npcsDirectory.directories)
 
-                                setCurrentFiles( allFiles.current.value)
+                      
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcnpc")
                                 setCurrentMimeType("asset")
@@ -278,7 +264,7 @@ export const LocalStoragePage = () => {
                             case "/assets/placeables":
                                 setCurrentDirectories(placeablesDirectory.directories)
 
-                                setCurrentFiles( allFiles.current.value)
+                      
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcpl")
                                 setCurrentMimeType("asset")
@@ -287,7 +273,7 @@ export const LocalStoragePage = () => {
                                 break;
                             case "/assets/textures":
                                 setCurrentDirectories(texturesDirectory.directories)
-                                setCurrentFiles( allFiles.current.value)
+                             
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arctex")
                                 setCurrentMimeType("asset")
@@ -295,7 +281,7 @@ export const LocalStoragePage = () => {
                                 break;
                             case "/assets/terrain":
                                 setCurrentDirectories(terrainDirectory.directories)
-                                setCurrentFiles( allFiles.current.value)
+                    
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arcterr")
                                 setCurrentMimeType("asset")
@@ -303,7 +289,7 @@ export const LocalStoragePage = () => {
                                 break;
                             case "/assets/types":
                                 setCurrentDirectories(typesDirectory.directories)
-                                setCurrentFiles( allFiles.current.value)
+                          
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("arctype")
                                 setCurrentMimeType("asset")
@@ -313,7 +299,7 @@ export const LocalStoragePage = () => {
                     
                     case "/models":
                         setCurrentDirectories(modelsDirectory.directories)
-                        setCurrentFiles( allFiles.current.value)
+                    
                          directoryOptionsRef.current.setValue(sD)
                         setCurrentType("")
                         setCurrentMimeType("model")
@@ -325,14 +311,14 @@ export const LocalStoragePage = () => {
                         directoryOptionsRef.current.setValue(sD)
 
                                 setCurrentFiles([
-                                    { to: directory + "/media/audio-video", name: "Audio-Video", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: directory + "/media/audio", name: "Audio", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                                    { to: directory + "/media/video", name: "Video", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: directory + "/media/audio-video", name: "Audio-Video", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: directory + "/media/audio", name: "Audio", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                                    { to: directory + "/media/video", name: "Video", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
 
                                 ])
                                 setCurrentMimeType("")
                                 setCurrentType("")
-                                setShowIndex(0)
+                                setShowIndex(2)
                                 break;
                             case "/media/audio-video":
 
@@ -341,7 +327,7 @@ export const LocalStoragePage = () => {
                                 newDirectories = newDirectories.concat(videoDirectory.directories)
 
                                 setCurrentDirectories(newDirectories)
-                                setCurrentFiles( allFiles.current.value)
+                      
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("")
                                 setCurrentMimeType("media")
@@ -350,7 +336,7 @@ export const LocalStoragePage = () => {
                                 break;
                     case "/media/audio":
                                 setCurrentDirectories(audioDirectory.directories)
-                                setCurrentFiles( allFiles.current.value)
+                           
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("audio")
                                 setCurrentMimeType("media")
@@ -359,7 +345,7 @@ export const LocalStoragePage = () => {
                                 break;
                     case "/media/video":
                                 setCurrentDirectories(videoDirectory.directories)
-                                setCurrentFiles( allFiles.current.value)
+                 
                                 directoryOptionsRef.current.setValue(sD + ssD)
                                 setCurrentType("video")
                                 setCurrentMimeType("media")
@@ -372,7 +358,7 @@ export const LocalStoragePage = () => {
                         
                         directoryOptionsRef.current.setValue(sD)
                         setCurrentFiles([
-                            { to: "/home/localstorage/init", state: { localDirectory: localDirectory.handle }, name: "Setup", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: "/home/localstorage/init", state: { localDirectory: localDirectory.handle }, name: "Setup", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/settings-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         ])
                       
                         setShowIndex(0);
@@ -380,14 +366,14 @@ export const LocalStoragePage = () => {
                     default:
                         if (directoryOptionsRef.current)directoryOptionsRef.current.setValue(sD)
                         setCurrentFiles([
-                            { to: directory + "/all", name: "All", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                            { to: directory + "/assets", name: "Assets", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                            { to: directory + "/images", name: "Images", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                            { to: directory + "/models", name: "Models", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
-                            { to: directory + "/media", name: "Media", mimeType: "link", type: "link", hash: "", lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: directory + "/all", name: "All", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: directory + "/assets", name: "Assets", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: directory + "/images", name: "Images", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: directory + "/models", name: "Models", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
+                            { to: directory + "/media", name: "Media", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
                         ])
                         
-                        setShowIndex(0);
+                        setShowIndex(2);
                         break;
                 }
             
@@ -400,7 +386,7 @@ export const LocalStoragePage = () => {
                     setShowIndex(-1)
             }
         }
-    }, [location, localDirectory, allFiles.current.value])
+    }, [location, localDirectory, ])
 
     const fileSelected = (selectedFile) => {
 
@@ -425,21 +411,7 @@ export const LocalStoragePage = () => {
         }
     }
 
-   function onRefresh() {
-        if (localDirectory.handle != null) {
-            get("arc.cacheFile").then((files) => {
-             
-                if (files != undefined) {
-                    
-                    allFiles.current.value = files
-                } else {
-                    allFiles.current.value = []
-                }
-            })
-        }else{
-            allFiles.current.value = []
-        }
-    }
+  
 
     async function pickAssetDirectory() {
         setSocketCmd({
@@ -565,7 +537,7 @@ export const LocalStoragePage = () => {
                     </div>
                     
                     <div onClick={(e) => {
-                        onRefresh()
+                       
                     }} about={"Refresh"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
 
                         <img src='/Images/icons/refresh-outline.svg' width={20} height={20} style={{ filter: localDirectory.name == "" ? "Invert(25%)" : "Invert(100%" }} />
@@ -728,6 +700,32 @@ export const LocalStoragePage = () => {
                             turnOffLocalStorage()
                         }}
                     />
+                    }
+                    {configFile.handle != null && showIndex == 2 &&
+
+                        <div style={{ overflow: "clip", overflowClipMargin: 500, alignItems: "center", display: "flex", flexDirection: "column", width: "100%", flex: 1, marginRight: 10, marginLeft: 10 }}>
+                            <div style={{ height: 50 }}>&nbsp;</div>
+                            <div ref={fileListDivRef} style={{
+                                overflowClipMargin: 500,
+                                overflowX: fileListWidth > 480 ? 'clip' : "scroll",
+                                minWidth: "600",
+                                overflowY: "scroll",
+                                maxHeight: "95%",
+                                width: "100%",
+
+                                display: "flex"
+
+                            }}>
+
+                                <LinksList
+                                    width={fileListWidth}
+
+                                    fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
+                                    onChange={fileSelected}
+                                    files={currentFiles}
+                                />
+                            </div>
+                        </div>
                     }
               
                   

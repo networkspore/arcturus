@@ -21,7 +21,7 @@ import { FileHandler } from "./handlers/FileHandler";
 
 
 
-import { asyncFind, getFileInfo, getFirstDirectoryAllFiles, getJsonFile } from "./constants/utility";
+import { asyncFind, getFileInfo, getFirstDirectoryAllFiles, getJsonFile, getPermissionAsync } from "./constants/utility";
 import { firstSetup, initDirectory, initStorage } from "./constants/systemMessages";
 
 import { useRef } from "react";
@@ -115,7 +115,52 @@ const HomeMenu = (props = {}) => {
     
     const [loadState, setLoadState] = useState(null)
 
+    async function loadLocalDirectory(value){
+        
+        
 
+        const configFile =  await loadConfig(value, user) 
+
+
+        if (configFile != undefined) {
+            const storageHash = configFile.hash
+
+
+            setSocketCmd({
+                cmd: "checkStorageHash", params: { storageHash: storageHash }, callback: async (result) => {
+
+                    if ("success" in result && result.success) {
+                        setConfigFile(configFile)
+                        setLocalDirectory(value)
+                    }
+                }
+            })
+        }
+    }
+    async function loadConfig(value, user) {
+
+        try {
+
+            const homeHandle = await value.handle.getDirectoryHandle("home")
+            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
+            const engineHandle = await userHomeHandle.getDirectoryHandle("engine")
+            const handle = await engineHandle.getFileHandle(user.userName + ".core")
+
+            const file = await handle.getFile()
+            const fileInfo = await getFileInfo(file, handle, userHomeHandle)
+
+            console.log(fileInfo)
+            return fileInfo
+
+
+        } catch (err) {
+
+            console.log(err.message)
+
+            return undefined
+        }
+    }
+    
     useEffect(() => {
         let currentLocation = location.pathname;
 
@@ -131,9 +176,8 @@ const HomeMenu = (props = {}) => {
             if (currentLocation == '/') {
                 if (location.state != undefined){
                     
-                    if (location.state.configFile != undefined && location.state.configFile != null && location.state.localDirectory != undefined){
-                        setConfigFile(location.state.configFile)
-                        setLocalDirectory(location.state.localDirectory)
+                    if (location.state.localDirectory != undefined){
+                        loadLocalDirectory(location.state.localDirectory)
                     }else{
                        
                         addSystemMessage(initStorage)
@@ -600,7 +644,8 @@ const HomeMenu = (props = {}) => {
                      
                         const item = await worker.getFileInfo(file, entry, directory)
                         let newItem = {
-
+                            width: item.width,
+                            height: item.height,
                             application: item.application,
                             directory: item.directory,
                             mimeType: item.mimeType,
@@ -616,10 +661,11 @@ const HomeMenu = (props = {}) => {
 
                         if (!contains) newCache.push(newItem)
                        // console.log(newItem)
-                        i = i + 1
+                       
                         const isSet = await set("arc.cacheFile", newCache)
 
-                        setLoadingStatus({ name: name, hash: newItem.hash, index: i, length: allFiles.length, complete: true })
+                        setLoadingStatus({ name: name, hash: newItem.hash, file:newItem, index: i, length: allFiles.length, complete: true })
+                        i = i + 1
                         if (i < allFiles.length) {
                            
                             checkFilesRecursive()
@@ -642,7 +688,9 @@ const HomeMenu = (props = {}) => {
                            // const hasDimensions = item.mimeType == "image"
 
                             let newItem = {
-        
+                                
+                                width: item.width,
+                                height: item.height,
                                 application: item.application, 
                                 directory: item.directory, 
                                 mimeType: item.mimeType, 
@@ -658,15 +706,16 @@ const HomeMenu = (props = {}) => {
 
                             await set("arc.cacheFile", newCache)
                                 
-                            i = i + 1
+                           
                             setLoadingStatus({ 
+                                file: newItem,
                                 name: name, 
                                 hash: newItem.hash, 
                                 index: i, 
                                 length: allFiles.length, 
                                 complete: true 
                             })
-
+                            i = i + 1
                             if (i < allFiles.length) {
                                 checkFilesRecursive()
                             } else {
@@ -680,7 +729,8 @@ const HomeMenu = (props = {}) => {
                             const item = await worker.getFileInfo(file,entry, directory)
 
                             let newItem = {
-        
+                                width: item.width,
+                                height: item.height,
                                 application: item.application, 
                                 directory: item.directory, 
                                 mimeType: item.mimeType, 
@@ -697,9 +747,10 @@ const HomeMenu = (props = {}) => {
 
                             if (!contains) newCache.push(newItem)
 
-                            i = i + 1
+                          
                             await set("arc.cacheFile", newCache)
-                            setLoadingStatus({ name: name, hash: newItem.hash, index: i, length: allFiles.length, complete: true })
+                            setLoadingStatus({ file: newItem, name: name, hash: newItem.hash, index: i, length: allFiles.length, complete: true })
+                            i = i + 1
                             if (i < allFiles.length) {
 
                                 checkFilesRecursive()

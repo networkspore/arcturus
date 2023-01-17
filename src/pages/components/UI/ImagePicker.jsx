@@ -34,6 +34,7 @@ export const ImagePicker = (props ={}) =>{
     const [imageSearch, setImageSearch] = useState("")
     const [directoryOptions, setDirectoryOptions] = useState([])
     const [currentDirectory, setCurrentDirectory] = useState("")
+    const [filesFocus, setFilesFocus] = useState(false)
 
     function onRefresh() {
         if (localDirectory.handle != null) {
@@ -233,7 +234,7 @@ export const ImagePicker = (props ={}) =>{
                 justifyContent: "center",
                 transform: "translate(-50%, -50%)",
                 boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
-                backgroundImage: "linear-gradient(to bottom, #10131450,#00030480,#10131450)",
+                backgroundColor: "rgba(0,3,4,.95)",
                 
             }}>
                 <div style={{display:"flex", width:"100%"}}>
@@ -459,23 +460,25 @@ export const ImagePicker = (props ={}) =>{
 
 
                         }}>
-                       <div style={{width:300}}>
-                        <div style={{
-                            display:"flex",
-                            overflowX: "clip",
-                            overflowClipMargin:100,
-                            overflowY: "scroll",
-                            maxHeight: 630,
-                            width: "100%",
-                          
-}}>
+                       <div style={{}}>
+                            <div onClick={(e) => { setFilesFocus(true) }} onMouseLeave={(e)=>{
+                                if(filesFocus) setFilesFocus(false)}
+                            } style={{
+                                display:"flex",
+                                overflowX: "clip",
+                                overflowClipMarginX:100,
+                                overflowY: "scroll",
+                                maxHeight: 630,
+                                width: filesFocus ? 490 : 150,}}>
+
                                 <FileList
+                                    width={filesFocus ? 490 : 150 }
                                     onDoubleClick={(e)=>{setViewImage(e)}}
                                     className={styles.bubble__item}
                                     activeClassName={styles.bubbleActive__item}
                                     onChange={onHashSelected}
                                     filter={{ name: imageSearch, mimeType:"image", directory: currentDirectory }}
-                                    fileView={{ type: "icons", direction: "list", iconSize: { width: 100, height: 100, scale:1.2 } }}
+                                    fileView={{ type: "icons", direction: "row", iconSize: { width: 100, height: 100, scale:1.2 } }}
                                     files={allFiles}
                                 />
                             </div>

@@ -152,29 +152,7 @@ import { get, set } from "idb-keyval";
     
     const setSocketCmd = useZust((state) => state.setSocketCmd)
 
-    async function loadConfig(value, user) {
-
-         try {
-
-             const homeHandle = await value.handle.getDirectoryHandle("home")
-             const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
-             const engineHandle = await userHomeHandle.getDirectoryHandle("engine")
-             const handle = await engineHandle.getFileHandle(user.userName + ".core")
-
-             const file = await handle.getFile()
-             const fileInfo = await getFileInfo(file, handle, userHomeHandle)
-          
-            console.log(fileInfo)
-            return fileInfo
-           
-
-         } catch (err) {
-
-             console.log(err.message)
-
-             return undefined
-         }
-     }
+   
 
 
     function login()
@@ -190,60 +168,27 @@ import { get, set } from "idb-keyval";
                 
                     setSocketCmd({cmd:"login", params:{nameEmail: name_email, password: pass},callback: async (response)=>{
                     
-                        setDisable(false)
-                    if(response.success){
+                     
+                        if(response.success){
 
-                        const user = response.user
-                        const contacts = response.contacts
-                        const userFiles = response.userFiles
+                            const user = response.user
+                            const contacts = response.contacts
+                            const userFiles = response.userFiles
 
-                        await set(user.userID + "userFiles", userFiles)
+                            await set(user.userID + "userFiles", userFiles)
 
 
-                        setContacts(contacts)
-                        setUser(user)
-                        
+                            setContacts(contacts)
+                            setUser(user)
+                            
                             const value = await get(user.userID + "localDirectory")
-                            
+                            const verified = await getPermissionAsync(value.handle)
 
-                            if(value != undefined ){
-                                const verified = await getPermissionAsync(value.handle)
-                            
-                                const configFile = verified ? await loadConfig(value, user) : undefined
-                                
-                            
-                                if (configFile != undefined) {
-                                    const storageHash = configFile.hash
-                        
-
-                                    setSocketCmd({cmd:"checkStorageHash", params:{storageHash:storageHash}, callback:async (result)=>{
-                                        
-                                        if("success" in result && result.success){
-                                          
-                                                resolve(true)
-
-                                                navigate("/", { state: { configFile: configFile, localDirectory: value } })
-                                           
-
-                                               
-                                        }else{
-                                            resolve(true)
-                                            navigate("/", { state: { error: "config" } })
-                                        }
-                                    }})    
-
-                                } else {
-                                    resolve(true)
-                                    await set(user.userID + "localDirectory", undefined)
-                                    navigate("/", { state: { configFile: null } })
-                                }
-                            }else{
-                                resolve(true)
-                                navigate("/", { state: { configFile: null } })
-                            }
-                        
+                            navigate("/", { state: {localDirectory: value !== undefined && verified ? value : undefined } })
+                                            
+                                                   
                         }else{
-
+                            setDisable(false)
                             resolve(false)
                         }
                     }})    

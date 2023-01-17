@@ -18,9 +18,11 @@ export const AccountSettingsPage = (props = {}) => {
     const pageSize = useZust((state) => state.pageSize)
     const updateUserImage = useZust((state) => state.updateUserImage)
     const user = useZust((state) => state.user)
+    const setSocketCmd = useZust((state) => state.setSocketCmd)
 
     const [showIndex, setShowIndex] = useState(0);
     const [userAccess, setUserAccess] = useState("")
+
 
     useEffect(() => {
        if(user!=null && user.userID != null){

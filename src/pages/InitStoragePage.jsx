@@ -141,7 +141,7 @@ export const InitStoragePage = (props = {}) => {
                     console.log(result)
                     switch (result.cmd) {
                         case "setFile":
-                            resolve(msg.success)
+                            resolve(result)
                             break;
                     }
                 }

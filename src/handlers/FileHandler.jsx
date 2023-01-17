@@ -106,14 +106,14 @@ export const FileHandler = ( props = {}) =>{
         }
     },[processing.current])
 
-
+    const svgMime = "image/svg+xml"
 
     const executeFileCommand = (request) => {
         return new Promise(resolve => {
 
             switch (request.command) {
                 case "getIcon":
-                    const svgMime = "image/svg+xml"
+                    
                     if (request.file.type.slice(0, svgMime.length) != svgMime) {
 
                         get(request.file.hash + ".arcicon").then((dataUrl) => {
@@ -139,8 +139,32 @@ export const FileHandler = ( props = {}) =>{
 
                         })
 
-                        break;
-                    }
+                       
+                    }else{
+                        get(request.file.hash + ".arcsvg").then((dataUrl) => {
+
+                            if (dataUrl != undefined) {
+
+
+                                resolve({ success: "true", dataUrl: dataUrl, request: request })
+                            } else {
+
+                                if (request.p2p) {
+
+                                    makeDownloadRequest(request).then((peersResult) => {
+
+                                        resolve(peersResult)
+
+                                    })
+                                } else {
+                                    resolve({ error: "not connected" })
+                                }
+
+                            }
+
+                        })
+                    } 
+                    break;
                 case "getImage":
                 case "getFile":
                     searchLocalFiles(request).then((result) => {
@@ -149,7 +173,7 @@ export const FileHandler = ( props = {}) =>{
                             if (request.p2p) {
 
                                 makeDownloadRequest(request).then((peersResult) => {
-
+                                   
                                     resolve(peersResult)
 
                                 })
@@ -157,7 +181,21 @@ export const FileHandler = ( props = {}) =>{
                                 resolve({ error: "not connected" })
                             }
                         }else{
-                           resolve( { success: true, file: result, request: request })
+                            if (request.file.type.slice(0, svgMime.length) != svgMime) {        
+                                resolve( { success: true, file: result, request: request })
+                            }else{
+
+                                get(request.file.hash + ".arcsvg").then((dataUrl) => {
+
+                                    if (dataUrl != undefined) {
+
+
+                                        resolve({ success: "true", dataUrl: dataUrl, request: request })
+                                    }else{
+                                        resolve({ error: "no svg" })
+                                    }
+                                })
+                            }
                          
                         }
                         

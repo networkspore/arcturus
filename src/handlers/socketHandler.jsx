@@ -9,6 +9,7 @@ import sha256 from 'crypto-js/sha256';
 import styles from '../pages/css/home.module.css';
 import { getStringHash, generateCode, browserID, getUintHash } from "../constants/utility";
 import { decrypt, generateKey, encrypt, createMessage, readKey, decryptKey, readPrivateKey,readMessage } from 'openpgp';
+import { set } from "idb-keyval";
 
 export const SocketHandler = (props = {}) => {
     
@@ -553,7 +554,6 @@ export const SocketHandler = (props = {}) => {
                         const user = response.user
                         const contacts = response.contacts
                         const userFiles = response.userFiles
-
                         await set(user.userID + "userFiles", userFiles)
                         setContacts(contacts)
                         setUser(user)

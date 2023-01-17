@@ -14,14 +14,14 @@ export const ProfilePage = (props = {}) =>{
 
 
     const [profileInfo, setProfileInfo] = useState(null);
-    const nav = useNavigate();
+    const navigate = useNavigate();
 
     const [showIndex, setShowIndex] = useState(0);
  
 
 
     function onCancelClick(e) {
-        props.cancel();
+        navigate("/home")
     }
 
     function onOKclick(e) {
@@ -38,8 +38,9 @@ export const ProfilePage = (props = {}) =>{
                     backgroundColor: "rgba(0,3,4,.95)", 
                     width: 800, 
                     height: 500, 
-                    left: (pageSize.width/2) - 400, 
-                    top: (pageSize.height/2) - 250,
+                    left: "50vw", 
+                    top: "50vh",
+                    transform:"translate(-50%, -50%)",
                         boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
                     }}>
                     <div style={{

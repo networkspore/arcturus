@@ -786,8 +786,12 @@ export async function getFileInfo(file, entry, dirHandle) {
                 width = svg.clientWidth
                 height = svg.clientHeight
 
-                
+                const encoded = window.btoa(window.decodeURI(text))
 
+                const header = 'data:image/svg+xml;base64,'
+                const dataUrl = header + encoded
+
+                await set(hash + ".arcsvg", dataUrl)
               
             }
         }
