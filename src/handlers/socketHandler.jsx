@@ -7,13 +7,15 @@ import { io } from "socket.io-client";
 import { ImageDiv } from "../pages/components/UI/ImageDiv";
 import sha256 from 'crypto-js/sha256';
 import styles from '../pages/css/home.module.css';
-import { getStringHash, generateCode, browserID, getUintHash } from "../constants/utility";
+import { getStringHash, generateCode, browserID, getUintHash, getPermissionAsync } from "../constants/utility";
 import { decrypt, generateKey, encrypt, createMessage, readKey, decryptKey, readPrivateKey,readMessage } from 'openpgp';
-import { set } from "idb-keyval";
+import { set, get } from "idb-keyval";
+
 
 export const SocketHandler = (props = {}) => {
     
     const user = useZust((state) => state.user)
+    const appHandler = useRef()
     const socketCmd = useZust((state) => state.socketCmd)
     const setSocketCmd = useZust((state) => state.setSocketCmd)
     const setContactsCmd = useZust((state) => state.setContactsCmd)
@@ -24,8 +26,9 @@ export const SocketHandler = (props = {}) => {
     const setSocketConnected = useZust((state) => state.setSocketConnected)
     const [showLogin, setShowLogin] = useState(false)
     const setUploadRequest = useZust((state) => state.setUploadRequest)
-
-    
+    const setContacts = useZust((state) => state.setContacts)
+    const setUser = useZust((state) => state.setUser)
+    const addFileRequest = useZust((state) => state.addFileRequest)
     const sock = useRef({value:null})
 
     const contextRef = useRef({ value: null })
@@ -46,7 +49,35 @@ export const SocketHandler = (props = {}) => {
         }
     }, [user])
 
- 
+
+    useEffect(() => {
+
+        if (sock.current.value == null && user.userID > 0) {
+
+
+
+            setSocketConnected(false)
+
+            setShowLogin(true)
+
+
+        } else {
+            if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected) {
+
+                contextRef.current.value = null
+                sock.current.value = null
+                setSocketConnected(false)
+
+
+                setShowLogin(true)
+
+            } else {
+
+                setShowLogin(false)
+            }
+        }
+
+    }, [sock.current.value, user])
 
 
     async function createNewContext(){
@@ -78,7 +109,7 @@ export const SocketHandler = (props = {}) => {
 
 
     async function encryptStringToServer(string){
-        
+        try{
         const publicKeyArmored = serverKeyRef.current.value
 
 
@@ -98,72 +129,53 @@ export const SocketHandler = (props = {}) => {
             message: await createMessage({ text: string }), // input as Message object
             encryptionKeys: publicKey
         });
+         return encrypted
+        }catch(err){
+            sock.current.value = null
+            console.log(err)
+        }
     
 
-        return encrypted
+       
     }
 
     async function decryptFromServer(encryptedString) {
+        try{
+            const contextCode = contextRef.current.value.code
+            const armoredPrivateKey = contextRef.current.value.key.privateKey
 
-        const contextCode = contextRef.current.value.code
-        const armoredPrivateKey = contextRef.current.value.key.privateKey
+            const decryptedKey = await decryptKey({
+                privateKey: await readPrivateKey({ armoredKey: armoredPrivateKey }),
+                passphrase: contextCode
+            });
 
-        const decryptedKey = await decryptKey({
-            privateKey: await readPrivateKey({ armoredKey: armoredPrivateKey }),
-            passphrase: contextCode
-        });
-
-        const decryptedMessage = await readMessage({
-            armoredMessage: encryptedString
-        });
+            const decryptedMessage = await readMessage({
+                armoredMessage: encryptedString
+            });
 
 
-        const decrypted = await decrypt({
-            message: decryptedMessage,
-            decryptionKeys: decryptedKey
+            const decrypted = await decrypt({
+                message: decryptedMessage,
+                decryptionKeys: decryptedKey
 
-        });
+            });
 
-        const chunks = [];
-        for await (const chunk of decrypted.data) {
-            chunks.push(chunk);
+            const chunks = [];
+            for await (const chunk of decrypted.data) {
+                chunks.push(chunk);
+            }
+
+            const decryptedString = chunks.join('');
+
+            return decryptedString
+        }catch(e){
+            sock.current.value = null
+            return undefined
         }
-
-        const decryptedString = chunks.join('');
-
-        return decryptedString
 
     }
  
 
-    useEffect(()=>{
-       
-        if (sock.current.value == null && user.userID > 0){
-
-            
-            
-            setSocketConnected(false)
-          
-            setShowLogin(true)
-           
-           
-        } else {
-            if (user.userID > 0 && sock.current.value != null && !sock.current.value.connected) {
-
-                contextRef.current.value = null
-                sock.current.value = null
-                setSocketConnected(false)
-
-
-                setShowLogin(true)
-
-            } else{
-           
-            setShowLogin( false )
-        }
-    }
-     
-    }, [sock.current, user])
 
     const userCode = useRef({value:null})
 
@@ -191,39 +203,43 @@ export const SocketHandler = (props = {}) => {
                     sock.current.value.emit("login", encryptedJson, (encryptedResponse) => {
                        
                         decryptFromServer(encryptedResponse).then((decryptedString)=>{
-                            const response = JSON.parse(decryptedString)
+                            if(decryptedString != undefined){
+                                const response = JSON.parse(decryptedString)
 
-                            if ("success" in response && response.success) {
-                            
-                                // setSocket(sock.current.value)
-                                loggedIn.current.value = true
-                                setSocketConnected(true)
-
+                                if ("success" in response && response.success) {
                                 
-                                userCode.current.value = response.userCode
+                                    // setSocket(sock.current.value)
+                                    loggedIn.current.value = true
+                                    setSocketConnected(true)
 
-                                const loginResponse = {
-                                    success: true,
-                                    user: response.user,
-                                    contacts: response.contacts,
-                                    userFiles: response.userFiles,
-                                
+                                    
+                                    userCode.current.value = response.userCode
+
+                                    const loginResponse = {
+                                        success: true,
+                                        user: response.user,
+                                        contacts: response.contacts,
+                                        userFiles: response.userFiles,
+                                    
+                                    }
+
+                                    
+                                    setShowLogin(false)
+                                    
+                                    addDefaultListeners()
+                                    
+                                    connectCmd.callback(loginResponse)
+                                } else {
+                        
+                                    sock.current.value.disconnect()
+                                    sock.current.value = null;
+                                    loggedIn.current.value = false
+                                    
+                                    connectCmd.callback({ success: false})
+
                                 }
-
-                                
-                                setShowLogin(false)
-                                
-                                addDefaultListeners()
-                                
-                                connectCmd.callback(loginResponse)
-                            } else {
-                    
-                                sock.current.value.disconnect()
-                                sock.current.value = null;
-                                loggedIn.current.value = false
-                                
-                                connectCmd.callback({ success: false})
-
+                            }else{
+                                connectCmd.callback({ success: false })
                             }
                         })
                     })
@@ -330,10 +346,14 @@ export const SocketHandler = (props = {}) => {
                         encryptStringToServer(jsonString).then((encryptedParams) => {
                             sock.current.value.emit('checkRefCodeEmail', encryptedParams, (encryptedResponse) => {
                                 decryptFromServer(encryptedResponse).then((resultJson) => {
-                                    const response = JSON.parse(resultJson)
-                                    console.log(response)
-                                    
-                                    codeCallback(response)
+                                    if(resultJson != undefined){
+                                        const response = JSON.parse(resultJson)
+                                        console.log(response)
+                                        
+                                        codeCallback(response)
+                                    }else{
+                                        codeCallback({error: new Error("Unable to decrypt")})
+                                    }
                                 })
 
 
@@ -345,16 +365,39 @@ export const SocketHandler = (props = {}) => {
 
             }else{
 
-                
+                          
                 switch (socketCmd.cmd) {
-                    case "checkOnline":
-                        socketCmd.callback({success:true})
-                        break;
-                   
-                    case "checkPassword":
-                        sock.current.value.emit("checkPassword", socketCmd.params.hash, (response) => {
-                            socketCmd.callback(response)
+                    case "createApp":
+                        
+                        encryptStringToServer(JSON.stringify(socketCmd.params)).then((encryptedParams) => {
+                        
+                            sock.current.value.emit("createApp", encryptedParams, (encryptedResponse) => {
+                                
+                                decryptFromServer(encryptedResponse).then((resultJson) => {
+                                    if(resultJson != undefined){
+                                        const response = JSON.parse(resultJson)
+                                    
+                                        socketCmd.callback(response)
+                                    }else{
+                                        socketCmd.callback({error: new Error("Unable to decrypt")})
+                                    }
+                                })
+                            })
                         })
+
+                        break;
+                    case "checkOnline":
+                        console.log("checkingOnline")
+                        sock.current.value.timeout(500).emit("ping", (err, response)=>{
+                            if(err){
+                                sock.current.value = null
+                                socketCmd.callback({ error: err })
+                            }else{
+                                 socketCmd.callback({ success: true, response:response})
+                            }
+                           
+                        })
+                        
                         break;
                     case "getAppList":
                         sock.current.value.emit("getAppList", socketCmd.params, (response) => {
@@ -540,7 +583,7 @@ export const SocketHandler = (props = {}) => {
             window.location.replace("/")
         }
     }
-    const setContacts = useZust((state) => state.setContacts)
+
   //  const setUserFiles = useZust((state) => state.setUserFiles)
 
     function login(name_email = "", pass = "") {
@@ -548,64 +591,40 @@ export const SocketHandler = (props = {}) => {
             setSocketCmd({
           
                 cmd: "login", params: { nameEmail: name_email, password: pass }, callback: async (response) => {
-             
-                    if("success" in response && response.success)
-                    {
+                    if (response.success) {
+
                         const user = response.user
                         const contacts = response.contacts
                         const userFiles = response.userFiles
+
                         await set(user.userID + "userFiles", userFiles)
+
+
                         setContacts(contacts)
                         setUser(user)
 
                         const value = await get(user.userID + "localDirectory")
-
-
-                        if (value != undefined) {
-                            const verified = await getPermissionAsync(value.handle)
-
-                            const configFile = verified ? await loadConfig(value, user) : undefined
-
-
-                            if (configFile != undefined) {
-                                const storageHash = configFile.hash
-
-
-                                setSocketCmd({
-                                    cmd: "checkStorageHash", params: { storageHash: storageHash }, callback: async (result) => {
-
-                                        if ("success" in result && result.success) {
-
-
-                                            navigate("/", { state: { configFile: configFile, localDirectory: value } })
-
-                                        } else {
-                                            navigate("/", { state: { error: "config" } })
+                        let verified = false
+                        if (value != undefined){ 
+                            verified = await getPermissionAsync(value.handle)
+                        
+                            if (verified) addFileRequest({
+                                command: "loadStorage", localDirectory: value, page: "login", id: crypto.randomUUID(), callback: (result) => {
+                                    result.then((loaded) => {
+                                        if (!loaded) {
+                                            addSystemMessage(initStorage)
                                         }
-                                    }
-                                })
-
-                            } else {
-                                await set(user.userID + "localDirectory", undefined)
-                                navigate("/", { state: { configFile: null } })
-                            }
-                        } else {
-
-                            navigate("/", { state: { configFile: null } })
+                                    }) 
+                            }})
                         }
-                    }else{
-                       
-                        if ("success" in response && !response.success){
-                            alert("Check your password and try again")
-                            setShowLogin(true)
-                        }else if("error" in response){
-                            alert(response.error.message)
-                            setShowLogin(true)
-                        }
+                  
+
+
+                    } else {
+                        setDisable(false)
+                        resolve(false)
                     }
-                   
-                }
-            })
+            }})
       
     }
 
@@ -613,13 +632,14 @@ export const SocketHandler = (props = {}) => {
     return (
         
         <>
+       
         {
             !socketConnected && user.userID > 0 &&
                 <ImageDiv className={styles.glow} onClick={(e) => {
                 setShowLogin(true)
             }} width={25} height={30} netImage={{ image: "/Images/icons/key-outline.svg", scale: .7, filter: "invert(100%)" }} />
         }
-        {showLogin && user.userID > 0 &&
+            {showLogin && user.userID > 0 && !socketConnected &&
             <div style={{
                 display: "flex",
                 left: "50%",

@@ -5,7 +5,7 @@ import SparkMD5 from 'spark-md5'
 import { get, set, update } from "idb-keyval";
 import aesjs from 'aes-js';
 import { randInt } from "three/src/math/MathUtils";
-import {  fileTypes, MB, tableChunkSize } from "./constants";
+import {  fileTypes, MB, svgMime, tableChunkSize } from "./constants";
 import getBrowserFingerprint from 'get-browser-fingerprint';
 
 export const browserID = getBrowserFingerprint({hardwareOnly:false, enableWebgl:true}).toString(16);
@@ -160,7 +160,9 @@ export async function generateCode(length = 45, readable = false) {
 
     const fingerHash = await getStringHash(browserID + "", 64)
 
-    const dateHash = await getStringHash((dateSlice + WordArray.random(randInt2).toString()), 64)
+    const word1 = getCryptoWordHex(randInt2)
+
+    const dateHash = await getStringHash((dateSlice + word1), 64)
 
     let arrSeed = []
     let arrSeed2 = []
@@ -714,7 +716,19 @@ export async function getEntryInfo(entry, dirHandle){
 export async function getFileInfo(file, entry, dirHandle) {
    
    
-   
+    const hashTable = await getFileHashTable(file)
+
+    const fileHash = await getStringHash(hashTable)
+
+    const crcTable = await getFileCRCTable(file)
+
+    const strHash = await getStringHash(crcTable)
+
+    const startHash = hashTable.slice(0, 32)
+    const endHash = hashTable.slice(96, 128)
+
+    const hash = startHash + endHash + fileHash + strHash
+
     
     const fileSize = file.size;
     
@@ -731,7 +745,9 @@ export async function getFileInfo(file, entry, dirHandle) {
 
     const isAssetType =  fileTypes.asset.includes(ext) 
     
-    const isAppType =  fileTypes.app.includes(ext) 
+    const isAppType = fileTypes.app.includes(ext)
+
+  
 
     const isMediaType = fileTypes.media.includes(ext)
 
@@ -742,47 +758,37 @@ export async function getFileInfo(file, entry, dirHandle) {
     const slashIndex = fileType.indexOf("/")
     const baseType = slashIndex == -1 ? fileType : fileType.slice(0, slashIndex) 
 
-    const hashTable = await getFileHashTable(file) +""
-  
-    const fileHash = await getStringHash(hashTable)
-
-    const crcTable = await getFileCRCTable(file)
-  
-    const strHash = await getStringHash(crcTable)
-
-    const startHash = hashTable.slice(0, 32)
-    const endHash = hashTable.slice(96, 128)
-
-    const hash = startHash + endHash + fileHash + strHash
+   
 
     await set(hash + ".hashTable", hashTable)
     await set(hash + ".crcTable", crcTable)
     
     let width = undefined
     let height = undefined
+    let installed = undefined
 
     if (fileMimeType == "image") {
         const exists = await get(hash + ".arcicon")
       
 
         if(exists == undefined){
-            const svgMime = "image/svg+xml"
+
             if (file.type.slice(0, svgMime.length) != svgMime) {
 
-                const dataUrl = await getFileThumnailDataUrl(file,{width:100, height:100}, (size)=>{
+                const dataUrl = await getFileThumnailDataUrl(file, { width: 100, height: 100 }, (size) => {
                     width = size.width
                     height = size.height
-                }) 
+                })
 
-                if(dataUrl != undefined) await set(hash + ".arcicon", dataUrl)
+                if (dataUrl != undefined) await set(hash + ".arcicon", dataUrl)
 
             } else {
                 const text = await file.text()
                 const doc = new DOMParser().parseFromString(text, "image/svg+xml")
 
-               const svg = document.adoptNode(doc.documentElement)
+                const svg = document.adoptNode(doc.documentElement)
 
-              //  const bounds =  svg.getBoundingClientRect()
+                //  const bounds =  svg.getBoundingClientRect()
                 width = svg.clientWidth
                 height = svg.clientHeight
 
@@ -792,15 +798,38 @@ export async function getFileInfo(file, entry, dirHandle) {
                 const dataUrl = header + encoded
 
                 await set(hash + ".arcsvg", dataUrl)
-              
+
             }
         }
-    }
+    } 
   
-    const fileInfo = {width: width, height:height, application: baseType,  directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
+    const fileInfo = { width: width, height:height, application: baseType,  directory: dirHandle, mimeType: fileMimeType, name: file.name, hash: hash, size: fileSize, type: fileType, lastModified: file.lastModified, handle: entry }
     
    
     return fileInfo     
+}
+
+export const getIconDataUrl = async (file, fileType, hash) =>{
+   console.log(hash)
+    if (fileType.slice(0, svgMime.length) != svgMime) {
+
+        const dataUrl = await getFileThumnailDataUrl(file, { width: 100, height: 100 })
+
+        if (dataUrl != undefined) await set(hash + ".arcicon", dataUrl)
+
+        return dataUrl
+    } else {
+        const text = await file.text()
+
+        const encoded = window.btoa(window.decodeURI(text))
+
+        const header = 'data:image/svg+xml;base64,'
+        const dataUrl = header + encoded
+
+        await set(hash + ".arcsvg", dataUrl)
+
+        return dataUrl
+    }
 }
 /*
 export async function getFileInfo(entry, dirHandle, type) {

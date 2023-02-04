@@ -115,7 +115,7 @@ export const HomePage = (props ={}) => {
         
        <>
             
-            <div style={{display:"flex", flexDirection:"column", position: "fixed", boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710", backgroundColor: "rgba(10,13,14,.6)", width: 300, height: pageSize.height, left: 95, top: "0px" }}>
+            <div  style={{ display: "flex", flexDirection: "column", position: "fixed",  backgroundImage: "linear-gradient(to bottom, #000000,#20232570)", width: 300, height: pageSize.height, left: 95, top: "0px" }}>
 
 
                 <div about={"Account"} onClick={(e) => {
@@ -127,7 +127,7 @@ export const HomePage = (props ={}) => {
                     <ImageDiv className={styles.glow} width={150} height={150}  netImage={{
                         scale:1,
                         update: {
-                            command: "getImage",
+                            command: "getIcon",
                             file: user.image,
                             waiting: { url: "/Images/spinning.gif", style: { filter: "invert(0%)" }},
                             error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
@@ -548,8 +548,8 @@ export const HomePage = (props ={}) => {
                         </div>
                     }
                 </div>
-                <div onClick={(e) => { window.location.replace("/") }} style={{ height: "100%", width: 290, display: "flex", flexDirection: "column", justifyContent: "end", alignItems: "center", marginBottom: 50, marginTop: 50, }}>
-                    <div style={{ width: 100, height: 30, borderRadius: 10 }} className={styles.bubbleButton}>Log Out</div>
+                <div  style={{ height: "100%", width: 290, display: "flex", flexDirection: "column", justifyContent: "end", alignItems: "center", marginBottom: 50, marginTop: 50, }}>
+                    <div onClick={(e) => { window.location.replace("/") }} style={{ width: 100, height: 30, borderRadius: 10 }} className={styles.bubbleButton}>Log Out</div>
                 </div>
 
             </div>
@@ -558,7 +558,9 @@ export const HomePage = (props ={}) => {
         
 
             {showIndex == 2 &&
-                <LocalStoragePage cancel={() => { setshowIndex(0) }} />
+                <LocalStoragePage cancel={() => { setshowIndex(0) }} onReload={() => { 
+                   console.log("homepage reload")
+                    props.onReload() }}/>
             }
             
             {showIndex == 3 &&

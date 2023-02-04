@@ -6,20 +6,23 @@ import produce from "immer";
 import useZust from "../../../hooks/useZust";
 import { ImageViewer } from "./ImageViewer";
 import IconFile from "./IconFile";
-import useDynamicRefs from "use-dynamic-refs";
+
+import { get } from "idb-keyval";
+import RowFile from "./RowFile";
 
 
-const LinksList = (props = {}, ref) => {
+const AppList = (props = {}, ref) => {
     if (props == null) props = {};
     const onChange = "onChange" in props ? props.onChange : null;
+    const dbRef = useRef({value:null})
+   // const [getRef, setRef] = useDynamicRefs()
     const idHeader = window.crypto.randomUUID()
-    const [getRef, setRef] = useDynamicRefs()
-
     //const fileListID = useId()
 
     const divRef = useRef()
     const navigate = useNavigate()
     const [list, setList] = useState(null);
+    const localDirectory = useZust((state)=> state.localDirectory)
 
     const pageSize = useZust((state) => state.pageSize)
 
@@ -48,6 +51,10 @@ const LinksList = (props = {}, ref) => {
         color: "#cdd4da"
     }
 
+    const [selectedHash, setSelectedHash] = useState(null);
+    //const [files, setFiles] = useState([]);
+   
+    const loadingStatus = useZust((state) => state.loadingStatus)
 
 
     if ("tableStyle" in props) {
@@ -78,50 +85,43 @@ const LinksList = (props = {}, ref) => {
         });
     }
 
-    const [selectedHash, setSelectedHash] = useState(null);
-    const [files, setFiles] = useState([]);
-    const [fileView, setFileView] = useState({ type: "details", direction: "row", iconSize: { width: 100, height: 100, scale: 1 } })
 
-    useEffect(() => {
+    const fileView = useRef({ value: { type: "details", direction: "row", iconSize: { width: 100, height: 100, scale: 1 } } })
 
-        if ("files" in props) {
-            setFiles(props.files);
-            lastHash.current.value = null
+
+  
+ 
+    const onBlur = (e) => {
+
+        if (e.relatedTarget == null) {
+           
+            setSelectedHash(null)
+        } else {
+            const prevId = e.relatedTarget.id
+            const prevIdSlice = prevId != null && prevId.length > idHeader.length ? prevId.slice(0, idHeader.length) : prevId
+
+
+            if (prevIdSlice != idHeader) {
+                setSelectedHash(null)
+            }
         }
 
-    }, [props.files])
 
-    useEffect(() => {
-        if ("fileView" in props) {
-
-            setFileView(produce((state) => {
-                let optionsArray = Object.getOwnPropertyNames(props.fileView);
-
-                optionsArray.forEach(element => {
-                    state[element] = props.fileView[element]
-                })
-            }))
-        }
-    }, [props.fileView])
+    }
 
 
 
-    useEffect(() => {
-
-       setAllFiles()
-
-    }, [files, selectedHash, props.filter, fileView, props.width])
-
-    function setAllFiles(){
+    function setAllFiles(files){
         var array = [];
+     
         const filter = props.filter != undefined ? props.filter : { name: "", directory: "", type: "" }
         let rows = null
 
         if (files != null) {
             // const bounds =  divRef.current.getBoundingClientRect() 
             const width = props.width != undefined ? props.width : 600
-            const floor = Math.floor(width / (fileView.iconSize.width + 20))
-            const numColumns = fileView.direction == "row" ? floor == 0 ? 1 : floor : 1;
+            const floor = Math.floor(width / (fileView.current.value.iconSize.width + 20))
+            const numColumns = fileView.current.value.direction == "row" ? floor == 0 ? 1 : floor : 1;
             const numRows = files.length > 0 && numColumns != 0 ? Math.ceil(files.length / numColumns) : 1
             rows = new Array(numRows)
 
@@ -131,17 +131,19 @@ const LinksList = (props = {}, ref) => {
                 }
             }
 
-            const scale = "scale" in fileView.iconSize ? fileView.iconSize.scale : 1
+            const scale = "scale" in fileView.current.value.iconSize ? fileView.current.value.iconSize.scale : 1
 
-            const backgroundColor = "backgroundColor" in fileView.iconSize ? fileView.iconSize.backgroundColor : "#33333390"
-            const backgroundImage = "backgroundImage" in fileView.iconSize ? fileView.iconSize.backgroundImage : ""
+            const backgroundColor = "backgroundColor" in fileView.current.value.iconSize ? fileView.current.value.iconSize.backgroundColor : "#33333390"
+            const backgroundImage = "backgroundImage" in fileView.current.value.iconSize ? fileView.current.value.iconSize.backgroundImage : ""
             let j = 0;
             let currentRow = 0;
 
             for (let i = 0; i < files.length; i++) {
+                const arcturus = ".arcturus"
+
                 const file = files[i]
 
-                const iName = file.name + "";
+                const iName = file.app.name ;
                 const iDirectoryName = ("directory" in file) ? file.directory.name : null;
                 const mimeType = ("mimeType" in file) ? file.mimeType : "";
                 const iType = ("type" in file) ? file.type : "";
@@ -200,32 +202,26 @@ const LinksList = (props = {}, ref) => {
 
                     const iTo = "to" in file ? file.to : null
                     const iHandle = file.handle;
-                    const iIcon = ("icon" in file) ? file.icon : "/Images/icons/document-outline.svg";
+             
                     const iHash = ("hash" in file) ? file.hash : null
 
-                    const update = iTo == null ? {
-                        command: "getIcon",
-                        file: file,
-                        waiting: { url: "/Images/spinning.gif", style: { filter: "" } },
-                        error: { url: "/Images/icons/document-outline.svg", style: { filter: "invert(100%)" } },
+               
 
-                    } : null
-
-                    const iImage = iTo == null ? {
+                    const iImage = {
                         filter: "",
                         scale: scale,
                         backgroundColor: backgroundColor,
                         backgroundImage: backgroundImage,
-                        image: iIcon,
+                        image: file.image.url,
                         borderRadius: 15,
-                        update: update,
-                    } : file.netImage
+                       
+                    } 
                     // if(update != null) iImage.update = update
 
 
-                    switch (fileView.type) {
+                    switch (fileView.current.value.type) {
                         case "icons":
-                            switch (fileView.direction) {
+                            switch (fileView.current.value.direction) {
                                 case "row":
 
 
@@ -238,19 +234,25 @@ const LinksList = (props = {}, ref) => {
                                             j = 0
                                             currentRow = currentRow + 1
                                         }
-
+                                        const showInstalled = props.installed != undefined
+                                        const installed = showInstalled ? props.installed.findIndex(file => file.hash == iHash) : null
 
                                         if (!isNaN(rowIndex) && !isNaN(columnIndex)) {
                                             rows[rowIndex][columnIndex] = <IconFile
-                                                id={iHash}
                                                 idHeader={idHeader}
-                                                showDefault={true}
+                                                onFocus={(e)=>{
+                                     
+                                                    setSelectedHash(iHash)
+                                                }}
+                                                installed={installed}
+                                                onBlur={onBlur}
+                                                hash={iHash}
                                                 key={iHash}
                                                 name={iName}
                                                 netImage={iImage}
-                                                height={fileView.iconSize.height}
-                                                width={fileView.iconSize.width}
-
+                                                height={fileView.current.value.iconSize.height}
+                                                width={fileView.current.value.iconSize.width}
+                                              
                                                 onDoubleClick={(e) => {
                                                     if (props.onDoubleClick != undefined) {
                                                         props.onDoubleClick(file)
@@ -258,11 +260,9 @@ const LinksList = (props = {}, ref) => {
                                                 }}
                                                 onClick={(e) => {
                                                     e.stopPropagation()
-                                                    if (iTo == null) {
-                                                        setSelectedHash(iHash)
-                                                    } else {
-                                                        navigate(iTo)
-                                                    }
+                                                  //  console.log("click")
+                                                  //      setSelectedHash(iHash)
+                                                
                                                 }}
                                                 className={iHash == selectedHash ? activeIconClassName : iconClassName}
                                                
@@ -276,35 +276,30 @@ const LinksList = (props = {}, ref) => {
 
                                     // iImage.scale = 1;
                                     array.push(
-                                        <div onDoubleClick={(e) => {
-                                            if (props.onDoubleClick != undefined) {
-                                                props.onDoubleClick(file)
-                                            }
-                                        }} onClick={(e) => {
-                                            e.stopPropagation()
-                                            if (iTo == null) {
-                                                setSelectedHash(iHash)
-                                            } else {
-                                                navigate(iTo)
-                                            }
-                                        }} key={i} style={{ overflowX: "clip", overflowClipMargin: iHash == selectedHash ? 100 : 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                                            <ImageDiv
-                                                style={{ margin: 10, }}
+                                        <IconFile
+                                            key={iHash}
+                                            name={iName}
+                                            netImage={iImage}
+                                            height={fileView.current.value.iconSize.height}
+                                            width={fileView.current.value.iconSize.width}
 
+                                            onDoubleClick={(e) => {
+                                                if (props.onDoubleClick != undefined) {
+                                                    props.onDoubleClick(file)
+                                                }
+                                            }}
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                if (iTo == null) {
+                                                    setSelectedHash(iHash)
+                                                } else {
+                                                    navigate(iTo)
+                                                }
+                                            }}
+                                            className={iHash == selectedHash ? activeIconClassName : iconClassName}
 
-                                                className={iHash == selectedHash ? activeIconClassName : iconClassName}
-                                                height={fileView.iconSize.width}
-                                                width={fileView.iconSize.height}
-                                                netImage={iImage}
-
-                                            /><div style={{
-
-                                                textShadow: iHash == selectedHash ? "1px 1px 3px white" : "", display: "flex", alignItems: "center", fontFamily: "webpapyrus", fontSize: "12", whiteSpace: "nowrap", padding: 10, background: iHash == selectedHash ? "black" : "#00000050", color: "white"
-                                            }}>
-                                                {iHash == selectedHash ? iName : iName.length > 11 ? iName.slice(0, 11) + ".." : iName}
-                                            </div>
-
-                                        </div>
+                                            selected={iHash == selectedHash}
+                                        />
 
                                     )
 
@@ -314,7 +309,7 @@ const LinksList = (props = {}, ref) => {
                         default:
 
                             array.push(
-                                <div key={i} style={{ width: "100%", display: "flex", paddingLeft: 0 }} className={styles.result} tabIndex={i}
+                                <RowFile key={i} style={{ width: "100%", display: "flex", paddingLeft: 0 }} className={styles.result} tabIndex={i}
                                     onDoubleClick={(e) => {
                                         if (props.onDoubleClick != undefined) {
                                             props.onDoubleClick(file)
@@ -328,20 +323,15 @@ const LinksList = (props = {}, ref) => {
                                             navigate(iTo)
                                         }
                                         //  setSelectedIndex(Number(index))
-                                    }}>
-                                    <div style={{ flex: 0.1, alignItems: "center", justifyContent: "center" }}>
-                                        {iImage != null &&
-
-                                            <ImageDiv width={20} height={20} style={{ borderRadius: 5, overflow: "hidden" }} netImage={iImage} />
-
-                                        }
-                                    </div>
-                                    <div style={{ flex: 0.2, color: "#888888", }}>{mimeType}</div>
-
-                                    <div style={{ flex: 1, color: "white", }}>{iName}</div>
-                                    <div style={{ flex: 0.4, maxWidth: 150, minWidth: 80, color: "#888888", whiteSpace: "nowrap", overflow: "clip", marginRight: 10 }}>{mimeType == "link" ? "" : iModified.slice(0, 16)}</div>
-                                    <div style={{ flex: 0.3, color: "#888888", display: "flex", whiteSpace: "nowrap", overflow: "clip", }}>{mimeType == "link" ? "" : iSize}</div>
-                                </div>
+                                    }}
+                                    netImage={iImage}
+                                    mimeType={mimeType}
+                                    name={iName}
+                                    modified={iModified}
+                                    size={iSize}
+                                />
+                                    
+                                
                             )
                             break;
                     }
@@ -350,7 +340,7 @@ const LinksList = (props = {}, ref) => {
             }
 
         }
-        if (fileView.type == "icons" && fileView.direction == "row") {
+        if (fileView.current.value.type == "icons" && fileView.current.value.direction == "row") {
             array = []
             for (let i = 0; i < rows.length; i++) {
                 array.push(
@@ -373,32 +363,43 @@ const LinksList = (props = {}, ref) => {
 
                 setSelectedHash(hash)
             },
-
-
-            setFiles: (value) => {
-
-                setFiles(value)
-            },
-            getFiles: files,
-        }), [selectedHash, files]);
+        }), [selectedHash]);
 
 
     const lastHash = useRef({ value: null })
 
-    useEffect(() => {
 
+    useEffect(()=>{
+        if ("fileView" in props) {
+
+
+            let optionsArray = Object.getOwnPropertyNames(props.fileView);
+            let op = {}
+            optionsArray.forEach(element => {
+                op[element] = props.fileView[element]
+            })
+            fileView.current.value = op
+    
+
+        }
+     
         if (onChange != null) {
             if (lastHash.current.value != selectedHash) {
+               
+                onChange({
+
+                    lastHash:lastHash.current.value,
+                    selectedHash:selectedHash
+                });
                 lastHash.current.value = selectedHash;
-
-                onChange(selectedHash);
-
             }
         }
 
-    }, [selectedHash])
+        if (props.files != undefined) {
+            setAllFiles(props.files)
+        }
 
-
+    }, [props.files, selectedHash, localDirectory, divRef.current, props.fileView])
 
 
 
@@ -444,8 +445,14 @@ const LinksList = (props = {}, ref) => {
 
     return (
         <>
-            <div onClick={(e) => { setSelectedHash(null) }} ref={divRef} style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: fileView.direction == "list" ? "center" : "" }} >
-                {fileView.type == "details" &&
+            <div ref={divRef} style={{
+                minHeight: props.minHeight == undefined ? "" : props.minHeight, 
+                display: "flex", 
+                flexDirection: "column", 
+                flex: 1, 
+                alignItems: fileView.current.value.direction == "list" ? "center" : "" 
+            }} >
+                {fileView.current.value.type == "details" &&
                     <div style={{ display: "flex", flex: 1, flexDirection: "column", }}>
                         <div style={{ display: "flex", flex: 1 }}>
 
@@ -478,4 +485,4 @@ const LinksList = (props = {}, ref) => {
     )
 }
 
-export default forwardRef(LinksList);
+export default forwardRef(AppList);

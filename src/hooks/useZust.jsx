@@ -20,7 +20,27 @@ const useZust = create((set) => ({
    setOpenFile: (value) => set({openFile: value}),
    allFiles:[],
    setAllFiles: (value) => set({allFiles:value}),
+   downloadingApps: [],
+   setDownloadingApps: (value) => set({downloadingApps:value}),
+   addDownloadingApp: (value) => set(produce((state)=>{
+      const index = state.downloadingApps.findIndex(dlApps => dlApps.hash == value.hash);
 
+      if(index == -1){
+         state.downloadingApps.push(value)
+      }
+   })),
+   removeDownloadingApp:(value) =>set(produce((state)=>{
+      const index = state.downloadingApps.findIndex(dlApps => dlApps.hash == value.hash);
+
+      if (index != -1) {
+         if(state.downloadingApps.length == 1)
+         {
+            state.downloadingApps.pop()
+         }else{
+             state.downloadingApps.splice(index, 1)
+         }
+      }
+   })),
    currentContact: null,
    setCurrentContact: (value) => set({currentContact:value}),
    contactsCmd: {cmd:null, params:null, callback:null},
@@ -30,7 +50,7 @@ const useZust = create((set) => ({
    downloadRequest:{download:null},
    setDownloadRequest: (value = {download:null}) => set({downloadRequest: value}),
    peerUpload:[],
-   setPeerUpload: (value) => set(produce((state) =>{
+   setPeerUpload: (value) => set(produce((state) =>{ 
       if (Array.isArray(value)) {
          let tmp = []
          value.forEach(pUp => {
@@ -255,15 +275,7 @@ const useZust = create((set) => ({
       LoggedIn: false, userID: '', userName: '', userEmail: '', userHandle: '', image: null }) => set({user: u}),
    socketConnected: false,
    setSocketConnected: (value) => set({socketConnected: value}),
-   updateUserImage: (update = {
-      fileID: -1,
-      fileName: null,
-      fileType: null,
-      fileCRC: null,
-      fileMimeType: null,
-      fileSize: null,
-      fileLastModified: null
-   }) => set(produce((state) => {
+   updateUserImage: (update) => set(produce((state) => {
       state.user.image = update
    })),
    socketCmd:{cmd:null, params:{},callback:null},

@@ -18,7 +18,7 @@ import LinksList from './components/UI/LinksList';
 
 
 
-export const LocalStoragePage = () => {
+export const LocalStoragePage = (props = {}) => {
 
     const searchInputRef = useRef()
     const directoryOptionsRef = useRef()
@@ -364,6 +364,7 @@ export const LocalStoragePage = () => {
                         setShowIndex(0);
                         break;
                     default:
+                        
                         if (directoryOptionsRef.current)directoryOptionsRef.current.setValue(sD)
                         setCurrentFiles([
                             { to: directory + "/all", name: "All", mimeType: "link", type: "link", hash: window.crypto.randomUUID(), lastModified: null, size: null, netImage: { opacity: .7, backgroundColor: "", image: "/Images/icons/folder-outline.svg", width: 15, height: 15, filter: "invert(100%)" } },
@@ -383,6 +384,8 @@ export const LocalStoragePage = () => {
                     setShowIndex(1)
                 break;
                 default:
+                    
+                    
                     setShowIndex(-1)
             }
         }
@@ -442,36 +445,12 @@ export const LocalStoragePage = () => {
         setCurrentFiles([])
     }
     
-
-
+    const addFileRequest = useZust((state) => state.addFileRequest)
     async function turnOffLocalStorage(){
        
         
         try{
-            
-            setAppsDirectory()
-            setImagesDirectory();
-
-            setModelsDirectory();
-
-            setMediaDirectory();
-            setCacheDirectory()
-            
-            setAssetsDirectory()
-            setPcsDirectory()
-            setNpcsDirectory()
-            setTexturesDirectory()
-            setTerrainDirectory()
-            setPlaceablesDirectory()
-            setTypesDirectory()
-
-            clearSearch()
-
-            del(user.userID + "localDirectory").catch((err) => {console.log("no local directory in idb")})
-
-        
-            setLocalDirectory();
-            setConfigFile();
+            addFileRequest({})
             return true;
         }catch(err){
             console.log(err)
@@ -484,15 +463,16 @@ export const LocalStoragePage = () => {
         
        <>
             <div  style={{
+                
                 position: "fixed",
-                backgroundColor: "rgba(0,3,4,.9)",
+                backgroundColor: "rgba(0,3,4,.8)",
                 width: pageSize.width - 410,
                 height: pageSize.height,
                 left: 410,
                 top: 0,
                 display: "flex",
                 flexDirection: "column",
-             
+                boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
             }}>
                 <div style={{
                   
@@ -537,10 +517,13 @@ export const LocalStoragePage = () => {
                     </div>
                     
                     <div onClick={(e) => {
-                       
-                    }} about={"Refresh"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
+                        if (localDirectory.handle != null) {
+                         
+                            props.onReload()
+                        }
+                    }} about={"Reload Files"} style={{ paddingLeft: 10, paddingRight: 10, display: "flex", alignItems: "center" }} className={styles.tooltip__item} >
 
-                        <img src='/Images/icons/refresh-outline.svg' width={20} height={20} style={{ filter: localDirectory.name == "" ? "Invert(25%)" : "Invert(100%" }} />
+                        <img src='/Images/icons/refresh-outline.svg' width={20} height={20} style={{ filter: localDirectory.handle == null ? "Invert(25%)" : "Invert(100%" }} />
 
                     </div>
                     <div  style={{ 
@@ -685,15 +668,17 @@ export const LocalStoragePage = () => {
                                     fileView={{ type: fileViewType, direction: "row", iconSize: { width: 100, height: 100 } }}
                                     onChange={fileSelected}
                                     filter={{ name: searchText, mimeType: currentMimeType, type: currentType }}
-                                    files={currentFiles}
+                                 
                                 />
                             </div>
                         </div>
                     }
               
-                {showIndex == 1 &&
+                {showIndex == 1 && props.onReload != undefined &&
                     <InitStoragePage 
-                        
+                        onReload={()=>{
+                       
+                            props.onReload()}}
                         close={()=>{
                             navigate("/home/localstorage")
                         }} resetLocalStorage={()=>{

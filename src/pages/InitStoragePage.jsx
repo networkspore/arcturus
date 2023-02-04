@@ -10,14 +10,15 @@ import produce from "immer";
 import SelectBox from "./components/UI/SelectBox"
 import { set } from "idb-keyval";
 
-import { generateCode, getFileInfo, getRandomInt, getRandomIntSync, getStringHash, getUintHash } from "../constants/utility";
+import { generateCode, getFileInfo, getPermissionAsync, getRandomInt, getRandomIntSync, getStringHash, getUintHash } from "../constants/utility";
 import { access, constants } from "../constants/constants";
 import { decrypt, generateKey } from 'openpgp';
 import aesjs from 'aes-js';
 import { termsOfService } from "../constants/termsOfService";
 import WorkerBuilder from "../constants/WorkerBuilder";
 import Worker from "../constants/coreWorker";
-import { randInt } from "three/src/math/MathUtils";
+
+import { flushSync } from "react-dom";
 
 
 
@@ -69,7 +70,7 @@ export const InitStoragePage = (props = {}) => {
            
                         checkDirectoryKey(user, location.state.localDirectory)
                     }else{
-                        navigate("/home/localstorate")
+                        navigate("/home/localstorage")
                     }
             }})
 
@@ -138,7 +139,7 @@ export const InitStoragePage = (props = {}) => {
                 coreWorker.onmessage = (e) => {
 
                     const result = e.data
-                    console.log(result)
+                  
                     switch (result.cmd) {
                         case "setFile":
                             resolve(result)
@@ -177,28 +178,40 @@ export const InitStoragePage = (props = {}) => {
                 resolve({ error: new Error("no key") })
             }else{
         
-                try{ 
+           
 
                     setSocketCmd({
                         cmd: "getUserCode", params: {}, callback: async (userCodeHex) => {
 
 
-                        
+                            
                             const uintCode = new Uint8Array(aesjs.utils.hex.toBytes(userCodeHex))
 
                             const key = await getUintHash(uintCode, 32)
+
+                            const permission = await getPermissionAsync(setupInfo.directory) 
 
                          
 
                             await updateKey(userName, key)
 
+                          try{ 
+                              console.log(setupInfo.directory)
+                            
                             const homeHandle = await setupInfo.directory.getDirectoryHandle("home", { create: true })
-                            const userHomeHandle = await homeHandle.getDirectoryHandle(userName, { create: true })
-                            const engineHandle = await userHomeHandle.getDirectoryHandle("engine", { create: true })
-                            const fileHandle = await engineHandle.getFileHandle(userName + ".core", { create: true })
 
+                   
+                        
+                            const userHomeHandle =  await homeHandle.getDirectoryHandle(userName, { create: true })
+                              
+                              const appsHandle = await userHomeHandle.getDirectoryHandle("apps", { create: true })
+                    
+                            const engineHandle = await userHomeHandle.getDirectoryHandle("core", { create: true })
+                           
+                            const fileHandle = await engineHandle.getFileHandle(userName + ".core", { create: true })
+                         
                             const configFileStream = await fileHandle.createWritable()
-                                                
+                            
                             const core = await generateKey({
                                 type: 'ecc', 
                                 curve: 'curve25519', 
@@ -231,20 +244,19 @@ export const InitStoragePage = (props = {}) => {
                                                     
                             const file = await newHandle.getFile()
 
-                        
+                            console.log(file)
                         
                             const info = await getFileInfo(file, newHandle, engineHandle)
 
-                            console.log(info)
                                                                             
                             resolve({ success: true, localFile: info })
-                                                                        
+                             } catch (err) {
+                                 console.log(err)
+                                 resolve({ error: err })
+                             }                                     
                     }})                                 
 
-                } catch (err) {
-                    console.log(err)
-                    resolve({ error: err })
-                }
+               
 
             }
         })
@@ -255,7 +267,7 @@ export const InitStoragePage = (props = {}) => {
          
             const homeHandle = await dirHandle.getDirectoryHandle("home")
             const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
-            const engineHandle = await userHomeHandle.getDirectoryHandle("engine")
+            const engineHandle = await userHomeHandle.getDirectoryHandle("core")
             const fileHandle = await engineHandle.getFileHandle(user.userName + ".core")
             const file = await fileHandle.getFile()
 
@@ -291,9 +303,12 @@ export const InitStoragePage = (props = {}) => {
         const localDir = { name: dirName, handle: directory }
         await set(user.userID + "localDirectory", localDir)
   
-        setLocalDirectory(localDir)
-        setConfigFile(file)
-        
+            flushSync(() => {
+                setLocalDirectory(localDir)
+                setConfigFile(file)
+            })
+           props.onReload()
+     
         navigate("/home/localstorage")
         }
     }
@@ -315,10 +330,10 @@ export const InitStoragePage = (props = {}) => {
             
             if ("success" in result && result.success){
                 
-                    const {localFile} = result
+                    const { localFile } = result
                     
                         setSocketCmd({
-                            cmd: "createStorage", params: { storageHash: localFile.hash }, callback: async (result)=>{
+                            cmd: "createStorage", params: { storageHash: localFile.hash }, callback: (result)=>{
                         
                         console.log(result)
                         if("success" in result)
@@ -326,18 +341,19 @@ export const InitStoragePage = (props = {}) => {
                             
                             const setupDir = setupInfo.directory
                             const localDir = { name: setupDir.name, handle: setupDir}
-                            await set(user.userID + "localDirectory", localDir)
-                            
+                            set(user.userID + "localDirectory", localDir).then((result)=>{
+                           
+                                flushSync(() => {
+                                    setLocalDirectory(localDir)
+                                    setConfigFile(localFile)
+                                })
 
-                            setLocalDirectory(localDir)
-                            setConfigFile(localFile)
-
-                            alert("Setup complete.")
-                            navigate("/home/localstorage")
                             
-                            
+                                props.onReload()
+                                navigate("/home/localstorage")
+                            })
                         }else{
-                            alert("Please try again.")
+                           
                             navigate("/home/localstorage")
                         }
                     }})

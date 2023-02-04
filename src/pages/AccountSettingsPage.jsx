@@ -73,6 +73,7 @@ export const AccountSettingsPage = (props = {}) => {
             cmd: "updateUserImage", params: { imageInfo: fileInfo }, callback: (updateResult) => {
                 if ("success" in updateResult && updateResult.success) {
                     updateUserImage(updateResult.file)
+
                 }
 
             }
@@ -82,7 +83,7 @@ export const AccountSettingsPage = (props = {}) => {
     return (
 
         <>
-            {showIndex == 0 &&
+            {(showIndex == 0 || showIndex == 6) &&
                 <div id='Profile' style={{
                     position: "fixed",
                     backgroundColor: "rgba(0,3,4,.95)",
@@ -94,11 +95,11 @@ export const AccountSettingsPage = (props = {}) => {
                 }}>
                     <div style={{
 
-                        paddingLeft: 5,
-                        paddingRight:5,
+                        borderRadius:10,
                         textAlign: "center",
                         width: "100%",
-                        paddingTop: "20px",
+                        paddingTop: "12px",
+                        marginBottom:8,
                         fontFamily: "WebRockwell",
                         fontSize: "18px",
                         fontWeight: "bolder",
@@ -111,7 +112,7 @@ export const AccountSettingsPage = (props = {}) => {
                         {user.userName}
                     </div>
                     <div style={{ paddingLeft: "15px", display: "flex", height: "430px", }}>
-
+                        <div  style={{ display: "flex", flexDirection: "column",  }}>
                         <div onClick={(e)=>{
                             setShowIndex(5)
                             }} style={{ cursor:"pointer", display: "flex", flexDirection: "column", alignItems: "center", height: "150px", width: 200, padding: "10px" }}>
@@ -128,13 +129,27 @@ export const AccountSettingsPage = (props = {}) => {
                                 backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
 
                             }} />
-
                         
+                           
+                            </div> 
+                            <div style={{display:"flex", flexDirection:"column",margin:10, alignItems:"center"}}>
+                            
+                            <div onClick={(e)=>{setShowIndex(0)}} className={styles.bubbleButton} style={{
+                                width:130,
+                                backgroundColor: showIndex == 0 ? "#22222250" : "", padding:3
+                            }} >Profile</div>
+
+                            <div style={{height:20}}></div>
+                                <div onClick={(e) => { setShowIndex(6) }} className={styles.bubbleButton} 
+                                style={{ width: 130, backgroundColor:showIndex == 6 ? "#22222250": "", padding: 3 }} >Account Settings</div>
+                            
+                            </div>
                         </div>
+                      
                         <div style={{ width: 2, height: "100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #77777733, #000304DD)", }}>&nbsp;</div>
                         <div style={{ display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", width: 530 }}>
                             <div style={{ width: "100%", flex: 1, backgroundColor: "#33333322", display: "flex", alignItems: "center", flexDirection: "column", justifyContent: "center", }}>
-                                <div style={{
+                                {showIndex == 6 &&<div style={{
                                     width: "300px",
                                     fontFamily: "Webrockwell",
                                     color: "#cdd4da",
@@ -193,24 +208,30 @@ export const AccountSettingsPage = (props = {}) => {
                                        <div style={{ paddingLeft: "20px", whiteSpace:"nowrap" }} > Access </div>
                                         </div>
                                        
-                                    </div>
+                                    </div>}
 
                                     
-                                <div style={{
-                                    justifyContent: "center",
-
-                                    paddingTop: "10px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    width: "100%"
-                                }}>
-
-
-
-                                    <div style={{ height: 40, width: 80 }} className={styles.OKButton} onClick={onOKclick} >Back</div>
-                                </div>
-                                </div>
                              
+                                </div> 
+                            <div style={{
+                                justifyContent: "center",
+
+                                paddingTop: "10px",
+                                display: "flex",
+                                alignItems: "center",
+                                width: "100%"
+                            }}>
+
+
+
+                                <div style={{ height: 40, width: 80 }} className={styles.OKButton} onClick={(e) => { 
+                                    if(showIndex == 6){
+                                        setShowIndex(0)
+                                    }else{
+                                        navigate(-1)
+                                    }
+                                }} >Back</div>
+                            </div>
                             </div>
                             
                         </div>

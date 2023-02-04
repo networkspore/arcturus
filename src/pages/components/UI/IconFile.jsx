@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useImperativeHandle, forwardRef, useRef } from "react"
+import React from "react"
 
+import styles from "../../css/home.module.css"
 import { ImageDiv } from "./ImageDiv"
 import { useInView } from 'react-intersection-observer';
 
@@ -12,35 +13,16 @@ const IconFile = (props ={}) =>{
     });
   
 
-    //const isVisible = !!entry?.isIntersecting
-    /*useImperativeHandle(
-        ref,
-        () => ({
-            setShow:(value) =>{setOnScreen(value)},
-            getShow:onScreen,
-            divRef:divRef,
-        }),[divRef.current, onScreen])*/
-
-
-    /*useEffect(()=>{
-        if(divRef.current){
-            if(props.observe != undefined){
-                props.observe(divRef.current)
-            }
-        }
-        return ()=>{
-            props.unobserve(divRef.current)
-        }
-    },[])*/
-
-
 
     return (
         <div
-            id={props.id} 
+            tabIndex={0}
+            id={props.idHeader+props.hash}
             ref={ref}
             onDoubleClick={props.onDoubleClick}
             onClick={props.onClick}
+            onFocus={props.onFocus}
+            onBlur={props.onBlur}
             style={{ 
                 overflow: "clip", 
                 maxWidth: 120, 
@@ -63,10 +45,10 @@ const IconFile = (props ={}) =>{
             <div style={{
                 boxShadow: props.selected ? "0 0 10px #ffffff80" : "",
                 textShadow: props.selected ? "1px 1px 3px black" : "", display: "flex", alignItems: "center", fontFamily: "webpapyrus", fontSize: "12", whiteSpace: "nowrap", padding: 5, 
-                background: props.selected ? "#777777" : "", 
+                backgroundColor: props.selected ? "#777777" : "", 
                 color: props.selected ? "black" : "white", borderRadius: 10
             }}>
-                {props.selected ? props.name : props.name.length > 11 ? props.name.slice(0, 11) + ".." : props.name}
+                {props.selected ? props.name : props.name.length > 12 ? props.name.slice(0, 12) + ".." : props.name}
             </div></> : <><div
         style={{
             margin: 10,
@@ -77,11 +59,22 @@ const IconFile = (props ={}) =>{
         <div style={{
               
                 display: "flex", alignItems: "center", fontFamily: "webpapyrus", fontSize: "12", whiteSpace: "nowrap", padding: 5,
-                background: props.selected ? "#777777" : "",
+                    backgroundColor: props.selected ? "#777777" : "",
                 color: props.selected ? "black" : "white", borderRadius: 10
             }}>
                 &nbsp;
-            </div></>
+            </div>
+                    <div style={{ position: "absolute", top: 0, right: 0 }}>  <ImageDiv about={"Uninstall"} className={styles.tooltipCenter__item}
+                        width={20}
+                        height={20}
+                        style={{ borderRadius: 0 }}
+                        netImage={{
+                            backgroundColor: "",
+                            image: "/Images/icons/trash.svg",
+                            filter: "drop-shadow(0px 0px 3px #cdd4daCC)"
+                        }}
+                    /></div>
+            </>
             }
 
         </div>

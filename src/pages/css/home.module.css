@@ -339,7 +339,7 @@
 
 .tooltipCenter__item:hover {
 
-	filter: drop-shadow(0 0 20px #ffffff80);
+	filter: drop-shadow(0 0 5px #ffffff50);
 }
 
 /* create tooltip after each menu item  */

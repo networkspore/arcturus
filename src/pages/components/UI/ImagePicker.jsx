@@ -19,11 +19,11 @@ export const ImagePicker = (props ={}) =>{
     const textRef = useRef()
     const titleRef = useRef()
     //const pickerID = useId()
-
+    const user = useZust((state) => state.user)
     const pageSize = useZust((state) => state.pageSize)
     const configFile = useZust((state) => state.configFile)
-    const [allFiles, setAllFiles] = useState([])
-    const userFiles = useZust((state) => state.userFiles)
+   
+    
 
     const localDirectory = useZust((state) => state.localDirectory)
     const imagesDirectory = useZust((state) => state.imagesDirectory)
@@ -35,46 +35,21 @@ export const ImagePicker = (props ={}) =>{
     const [directoryOptions, setDirectoryOptions] = useState([])
     const [currentDirectory, setCurrentDirectory] = useState("")
     const [filesFocus, setFilesFocus] = useState(false)
+    const userFiles = useRef({value:[]})
 
-    function onRefresh() {
-        if (localDirectory.handle != null) {
-
-            get("arc.cacheFile").then((files) => {
-
-                if (files != undefined) {
-                    setAllFiles(files)
-                } else {
-                    setAllFiles([])
-                }
-            })
-        } else {
-            setAllFiles([])
-        }
+    const getUserFiles = async (userID) => {
+        const uFiles = await get(userID + "userFiles")
+       userFiles.current.value = uFiles
     }
 
     useEffect(() => {
-
-        onRefresh()
-
-    }, [localDirectory])
-
-    const refreshing = useRef({ value: false })
-
-    useEffect(() => {
-        if (!refreshing.current.value) {
-            refreshing.current.value = true;
-
-            setTimeout(() => {
-                onRefresh()
-                refreshing.current.value = false
-            }, 500);
-        }
-    }, [loadingStatus])
-
+        getUserFiles(user.userID)
+    }, [user])
 
    useLayoutEffect(() => {
+    console.log(imagesDirectory)
         if (imagesDirectory.directories != null) {
-
+            console.log(imagesDirectory.directories)
             const options = []
 
             options.push({ value: null, label: "All" })
@@ -87,6 +62,8 @@ export const ImagePicker = (props ={}) =>{
                     }
                 });
             }
+
+        
             setDirectoryOptions(options)
         }
     }, [imagesDirectory])
@@ -108,10 +85,10 @@ export const ImagePicker = (props ={}) =>{
            
             const hash = props.selectedImage.hash
 
-            const index = userFiles.findIndex(file => file.hash == hash)
+            const index = userFiles.current.value.findIndex(file => file.hash == hash)
 
 
-            const userImage = index == -1 ? props.selectedImage : userFiles[index]
+            const userImage = index == -1 ? props.selectedImage : userFiles.current.value[index]
            
             
             if("accessID" in userImage)
@@ -147,7 +124,8 @@ export const ImagePicker = (props ={}) =>{
 
     const directoryChanged = (index) => {
         console.log(index)
-        if (directoryOptions.length > 0) {
+        
+        if (index != null && directoryOptions.length > 0) {
             const directoryName = directoryOptions[index].value
             setCurrentDirectory(directoryName)
         } else {
@@ -173,20 +151,23 @@ export const ImagePicker = (props ={}) =>{
 
    
 
-    const onHashSelected = (hash) => {
+    const onHashSelected = async (hash) => {
         
         
 
-        const userFileindex = userFiles.findIndex(file => file.hash == hash)
+        const userFileindex = userFiles.current.value.findIndex(file => file.hash == hash)
 
+        const allFiles = await get(user.userName + "arc.cacheFile")
+        
 
-       
-
-        const index = userFileindex == -1 ? allFiles.findIndex(files => files.hash == hash) : null
+        const index = allFiles.findIndex(files => files.hash == hash)
 
         
 
-        const userImage = userFileindex != -1 ? userFiles[userFileindex] : index != -1 ? allFiles[index] : null
+        const userImage = userFileindex != -1 ? userFiles.current.value[userFileindex] : index != -1 ? allFiles[index] : null
+
+
+    
         if ("accessID" in userImage) {
          
             accessRef.current.setValue(userImage.accessID)
@@ -297,7 +278,9 @@ export const ImagePicker = (props ={}) =>{
                     </div>
                     <div style={{ margin: 3, width: "100%", display:"flex", alignItems:"center", justifyContent:"center",  }}>
                         <div style={{width:80}}>
-                        <SelectBox onChange={directoryChanged} textStyle={{ backgroundColor: "#33333340", border: 0, outline: 0, color: "white" }} placeholder={"All"} options={directoryOptions} />
+                        <SelectBox onChange={directoryChanged} textStyle={{ backgroundColor: "#33333340", border: 0, outline: 0, color: "white" }} 
+                        placeholder={"All"} 
+                        options={directoryOptions} />
                             </div>
                       
                     </div>
@@ -317,7 +300,7 @@ export const ImagePicker = (props ={}) =>{
 
                     display: "flex",
 
-                    alignItems: "center",
+                    alignItems: "start",
                     justifyContent: "center",
 
                 }}>
@@ -457,30 +440,36 @@ export const ImagePicker = (props ={}) =>{
 
                             display: "flex",
                             flexDirection: "column",
-
-
+                            height:"100%",
+                          
                         }}>
                        <div style={{}}>
-                            <div onClick={(e) => { setFilesFocus(true) }} onMouseLeave={(e)=>{
-                                if(filesFocus) setFilesFocus(false)}
-                            } style={{
+                            <div style={{
+                                backgroundImage: "linear-gradient(to bottom, #11111190, #050505C0)",
                                 display:"flex",
-                                overflowX: "clip",
-                                overflowClipMarginX:100,
-                                overflowY: "scroll",
-                                maxHeight: 630,
-                                width: filesFocus ? 490 : 150,}}>
-
+                                }}>
+                                <div style={{ width: 2, height: "100%", backgroundImage: "linear-gradient(to bottom, #000304DD, #33333333, #000304DD)", }}>&nbsp;</div>
+                                <div style={{
+                                    display: "flex",
+                                    overflowX: "clip",
+                                    overflowClipMarginX: 100,
+                                    overflowY: "scroll",
+                                    height: 620,
+                                    width: 505,
+                                    marginLeft:15,
+                                    marginTop:15
+                                }}>
                                 <FileList
-                                    width={filesFocus ? 490 : 150 }
+                                    width={490 }
                                     onDoubleClick={(e)=>{setViewImage(e)}}
                                     className={styles.bubble__item}
                                     activeClassName={styles.bubbleActive__item}
                                     onChange={onHashSelected}
                                     filter={{ name: imageSearch, mimeType:"image", directory: currentDirectory }}
                                     fileView={{ type: "icons", direction: "row", iconSize: { width: 100, height: 100, scale:1.2 } }}
-                                    files={allFiles}
+                                   
                                 />
+                                </div>
                             </div>
 
                         </div>

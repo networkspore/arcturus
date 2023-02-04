@@ -2,17 +2,22 @@ import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useZust from "../hooks/useZust";
-
+import FileList from "./components/UI/FileList";
 import BubbleList from "./components/UI/BubbleList";
 import styles from "./css/home.module.css"
 import { ImageDiv } from "./components/UI/ImageDiv";
 import produce from "immer";
 import { AppsAdminPage } from "./AppsAdminPage";
 
+import { AddAppPage } from "./AddAppPage";
+
 
 
 export const AppsPage = () =>{
     const user = useZust((state) => state.user)
+    const searchInputRef = useRef()
+    const directoryOptionsRef = useRef()
+
     const bubbleRef = useRef()
     const navigate = useNavigate();
     const location = useLocation();
@@ -23,12 +28,12 @@ export const AppsPage = () =>{
     const setSocketCmd = useZust((state) => state.setSocketCmd)
     const [showMenu, setShowMenu] = useState(false)
     
-
+    const [fileListWidth, setFileListWidth] = useState(480)
     const [selectedApp, setSelectedApp] = useState(null)
 
     const [selectedItem, setSelectedItem] = useState(null)
 
-    const apps = useZust((state)=> state.apps)
+    const [apps, setApps] = useState([])
 
     const [appItems, setAppItems] = useState([])
 
@@ -40,6 +45,19 @@ export const AppsPage = () =>{
     const addSystemMessage = useZust((state) => state.addSystemMessage)
 
     const addFileRequest = useZust((state) => state.addFileRequest)
+
+    const [searchText, setSearchText] = useState("")
+
+    const handleChange = (e) => {
+
+        const { name, value } = e.target;
+
+        if (name == "searchText") {
+            setSearchText(value)
+        }
+    }
+
+
 
  
     useEffect(() => {
@@ -53,10 +71,8 @@ export const AppsPage = () =>{
                     setShowIndex(10)
                     break;
                 case "/apps/add":
-                    if ("selectedItem" in location.state) {
-                        setSelectedItem(location.state.selectedItem)
-                        setShowIndex(1)
-                    }
+                    setShowIndex(5)            
+            
                     break;
                 case "/apps":
                     setShowIndex(0)
@@ -66,53 +82,21 @@ export const AppsPage = () =>{
             setShowIndex(-1)
         }
     }, [location, configFile])
+
+    const divRef = useRef()
+    useEffect(()=>{
+        if(divRef.current)
+        {
+           
+            const offsetWidth = divRef.current.offsetWidth
+            setFileListWidth(offsetWidth > 480 ? offsetWidth : 480)
+        }else{
+            setFileListWidth(480)
+        }
+    },[divRef.current, pageSize])
     
 
-    useEffect(()=>{
-        if(apps != null){
-         
-            if(apps.length > 0)
-            {
-                
-                const tmp = []
-                
-                apps.forEach(app => {
-                    
-                    console.log(app.image)
-                            tmp.push(
-                                {
-                                    index: app.appIndex,
-                                    page: app.appPage,
-                                    hash: app.hash,
-                                    name: app.appName,
-                                    netImage: {
-                                        update: {
-                                            command: "getImage",
-                                            file: app.image,
-                                            waiting: { url: "/Images/spinning.gif" },
-                                            error: { url: "/Images/icons/cloud-offline-outline.svg", style: { filter: "invert(100%)" } },
-                                        },
-                                        backgroundColor: "#44444450",
-                                        backgroundImage: "radial-gradient(#cccccc 5%, #0000005 100%)",
-
-                                    }
-                                }
-                            )
-                      
-                        
-                    })
-                    
-                    
-                
-                setAppItems(tmp)
-            }else{
-                setAppItems([])
-            }
-        }else{
-            setAppItems([])
-        }
-    },[apps])
-
+  
     const onAdd = (app, callback) => {
 
        
@@ -137,7 +121,7 @@ export const AppsPage = () =>{
     }
 
 
-    const onAppChange = (r) =>{
+    const onfileSelected = (r) =>{
         setShowMenu(false)
         if(r != null && r.id > -1 )
         {
@@ -363,95 +347,73 @@ export const AppsPage = () =>{
             </div>
                     <div style={{ height: 1, width: "100%", backgroundImage: "linear-gradient(to right, #000304DD, #77777755, #000304DD)", paddingBottom: 2, marginBottom: 5 }}>&nbsp;</div>
                     <div style={{ height: 20 }}></div>
-                    <div  style={{ display:"flex", width:"100%"}}> 
-                    {selectedItem == null && selectedApp == null && false &&
-                    <>
-                    < div style={{ display: "flex", justifyContent: "start", alignItems: "center", flex: 1, marginRight:"5%" }}>
-                            <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onPrevPage} style={{}}>
-
-                                <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/chevron-back-outline.svg", filter: "invert(100%)" }} />
-
-                            </div>
-
-                        </div>
-                        < div style={{ display: "flex", justifyContent: "end", alignItems: "center", flex: 1, marginRight:"5%" }}>
-                            <div about={"Next Page"} className={styles.tooltipCenter__item} onClick={onNextPage} style={{}}>
-
-                                <ImageDiv width={30} height={30} netImage={{ image: "/Images/icons/chevron-forward-outline.svg", filter: "invert(100%)" }} />
-
-                            </div>
-
-                        </div>
-                        </>
-                    }
-                    {selectedItem != null && selectedApp == null &&
-                        <>
-                            <div onClick={(e) => { 
-                                bubbleRef.current.clear()
-                              
-                            }} style={{  display: "flex", flex: 1, alignItems: "center", justifyContent:"center", zIndex:999 }}>
-                            
-                                <div style={{ width: 55, borderRadius: 55 }} about={"Find Apps"} className={styles.tooltipCenter__item} onClick={onAddApp}>
-
-                                    <ImageDiv style={{ filter: "drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)" }} 
-                                    width={55} height={55} netImage={{ backgroundColor: "", 
-                                    image: "/Images/icons/rocket-outline.svg", filter: "invert(100%) drop-shadow(0 0 10px #ffffff40) drop-shadow(0 0 20px #ffffff40)" }} />
-
-                                </div></div>
-                        </>
-                    }
-                    {selectedApp != null &&
-                        <>
-                           
-                            <div style={{display:"flex", flex: 1, alignItems:"center" }}> 
-                            <div style={{width:50}}>&nbsp;</div>
-                                <div style={{  width: 30, borderRadius: 20 }} about={"Menu"} className={styles.tooltipCenter__item} onClick={(e)=>{
-                                    setShowMenu(true)
-                                }}>
-
-                                    <ImageDiv width={35} height={35} netImage={{ backgroundColor: "", image: "/Images/icons/menu-outline.svg", filter: "invert(100%) drop-shadow(0 0 10px #ffffff40) drop-shadow(0 0 20px #ffffff40)" }} />
-
-                            </div></div>
-
-                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex:1,}}>
-                              
-
-                                <div about="Open" 
-                                    className={styles.tooltipCenter__item} 
-                              
-                                    style={{display: "flex", 
-                                    }}>
-                                    <div style={{ width: 100 }}>&nbsp;</div>
-                                    <ImageDiv style={{ filter:"drop-shadow(0 0 10px #ffffff90) drop-shadow(0 0 20px #ffffff70)"}} width={55} height={55} netImage={{ scale: 1,  backgroundColor: "", image: "/Images/icons/enter-outline.png", filter: "invert(100%)" }} />
-                                    <div style={{ width: 100 }}>&nbsp;</div>
-                                </div>
-                              
+                 
+            <div style={{width:"90%", display:"flex",height:"calc(100vh-300)", flex:1, marginTop:30, flexDirection:"column"}}>
+             
+                        <div ref={divRef} className={styles.bubble}  style={{ display: "flex", cursor: "default", flexDirection: "column", backgroundImage: "linear-gradient(to bottom, #000000,#20232570)", flex:1}}>
+                        <div style={{display:"flex", height:90, flex:1, flexDirection:"column", backgroundImage:"linear-gradient(to bottom,#ffffff10 0%, #000000EE 30%, #11111110 90%)",}}>
+                            <div style={{height:30}}>&nbsp;</div>
+                            <div style={{display:"flex", }}>
+                                <div style={{width:20}}></div>
                                    
+                                    <div className={styles.bubbleButton} onClick={(e) => { navigate("/apps/add") }} style={{
+                                        height: 30,
+                                        width:30,
+                                        borderRadius: 15,
+                                        marginTop:7,
+                                        marginLeft:5
+                                    }}>
+                                        <ImageDiv about={"Add App"} className={styles.tooltipCenter__item} 
+                                            width={35}
+                                            height={35}
+                                            netImage={{
+                                                backgroundColor: "",
+                                                image: "/Images/icons/add-outline.svg",
+                                                filter: "drop-shadow(0px 0px 3px #cdd4da)"
+                                            }}
+                                        />
 
-                            </div>
+                                    </div>
+                                <div style={{ display:"flex", flex:1, height:40, justifyContent:"center", alignItems:"center", marginTop:10}}>
 
-                            <div style={{display:"flex", justifyContent:"end", alignItems:"center", flex:1, }}>
-                                    &nbsp;
-                                
-                            </div>
-                       
-                        </>
-                    }
+                                        <div style={{ margin: 15, paddingTop:5, paddingBottom:5, paddingLeft:10, borderRadius:15, backgroundColor: "#33333350", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            <input ref={searchInputRef} name={"searchText"} onChange={handleChange} style={{
+                                                color: "white",
+                                                backgroundColor: "#00000000",
+                                                fontFamily: "webpapyrus",
+                                                fontSize: 18,
+                                                width: 350,
+                                                outline: 0,
+                                                border: 0
+                                            }} type={"text"} />
+                                        </div>
+                                        
+                                        <div about={"Search"} className={styles.tooltipCenter__item} onClick={(e) => { searchInputRef.current.focus() }} style={{
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            cursor: "pointer",
+                                            width:20, height:20,borderRadius:15
+                                           
+                                        }}>
+                                            <ImageDiv width={30} height={30} style={{ filter: "drop-shadow(0px 0px 8px #cdd4da)" }} netImage={{ backgroundColor: "", filter: "invert(0%)", image: "/Images/icons/search.svg" }} />
+                                        </div>
+                                </div>
+                                    <div style={{ width: 80 }}></div>
+                                   
+                                </div>
+                        </div>
+                      <div style={{maxHeight:pageSize.height - 300, overflowY:"scroll", marginLeft:30}}>
+                                <FileList
+                                    width={fileListWidth-50}
+                                    fileView={{ type: "icons", direction: "row", iconSize: { width: 100, height: 100 } }}
+                                    onChange={(e) => { }}
+                                    filter={{ name: "", mimeType: "app", type: "" }}
+                                />
+                 
+                        </div>
                     </div>
-            <div style={{width:"100%", display:"flex",height:"100%", flex:1}}>
-                
-                <BubbleList 
-                    ref={bubbleRef}
-                
-                    onChange={(item)=>{
-                  
-                    onAppChange(item)
-                }} items={appItems}
-                            defaultItem={{ netImage:{ backgroundColor:""} }}
-                    
-                />
+                       
             </div>
-           
+           <div style={{height:50}}></div>
         </div>
         </>
         }
@@ -480,6 +442,9 @@ export const AppsPage = () =>{
         }
         {showIndex == 10 &&
             <AppsAdminPage />
+        }
+        {showIndex == 5 &&
+            <AddAppPage />
         }
         </>
     )

@@ -447,7 +447,7 @@ export const ContactsPage = () => {
             {currentContact == null &&
             <div  style={{
                 width: 300, height: pageSize.height, 
-                backgroundImage:"linear-gradient(to bottom, #00000088,#10131488)", 
+                    backgroundImage: "linear-gradient(to bottom, #000000,#20232570)" ,
                 position: "fixed", 
                 padding: 0,  left:95, top: 0 ,
                 boxShadow: "0 0 10px #ffffff05, 0 0 20px #ffffff05", 

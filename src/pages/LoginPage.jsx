@@ -25,7 +25,7 @@ import { get, set } from "idb-keyval";
     
     const [disable, setDisable] = useState(false)
     const [userList, setUserList] = useState(null)
-    const loginStatusLength = 3200
+    const loginStatusLength = 3800
      const interval = useRef({ value: null })
      const [loginStatus, setLoginStatus] = useState(null)
   
@@ -174,16 +174,17 @@ import { get, set } from "idb-keyval";
                             const user = response.user
                             const contacts = response.contacts
                             const userFiles = response.userFiles
-
+                         
                             await set(user.userID + "userFiles", userFiles)
-
+                           
 
                             setContacts(contacts)
                             setUser(user)
                             
                             const value = await get(user.userID + "localDirectory")
-                            const verified = await getPermissionAsync(value.handle)
-
+                            let verified = false
+                            if(value != undefined)verified = await getPermissionAsync(value.handle)
+                        
                             navigate("/", { state: {localDirectory: value !== undefined && verified ? value : undefined } })
                                             
                                                    
@@ -210,13 +211,12 @@ return (
         position: "fixed",
         transform:"translate(-50%,-50%)",
         width: 600,
-        
-        boxShadow: "0 0 10px #ffffff10, 0 0 20px #ffffff10, inset 0 0 30px #77777710",
-        backgroundImage: "linear-gradient(to bottom,  #00030490,#13161780)",
+        boxShadow: `0 0 10px #ffffff${(((loginStatus / loginStatusLength) * 80)+30).toString(16).slice(0, 2)}`,
+        backgroundImage: `linear-gradient(to bottom,  #00030490,#131617${(((loginStatus / loginStatusLength) * 80) + 150).toString(16).slice(0, 2)})`,
         textShadow: "2px 2px 2px black",
         flexDirection:"column",
         alignItems:"center",
-    
+        borderRadius:6,
         
     }}
     >
@@ -255,7 +255,7 @@ return (
 
 
         }}></div>
-            <div style={{ textShadow: "0 0 10px #ffffff40, 0 0 20px #ffffff60", cursor: "default", paddingTop: 15, paddingBottom: 20, fontWeight: "bold", fontSize: "50px", fontFamily: "WebPapyrus", color:"#cdd4da" }}>
+                <div style={{ textShadow: `0 0 10px #ffffff${((loginStatus / loginStatusLength) * 150).toString(16).slice(0, 2)}, 0 0 20px #ffffff${((loginStatus / loginStatusLength) * 150).toString(16).slice(0, 2)}`, cursor: "default", paddingTop: 15, paddingBottom: 20, fontWeight: "bold", fontSize: "50px", fontFamily: "WebPapyrus", color:"#cdd4da" }}>
                 Log In
             </div>
             <form onSubmit={event => handleSubmit(event)}>
@@ -353,21 +353,23 @@ return (
                     width:"100%",
                     display:"flex",
                     paddingTop:5,
-                    opacity:.5
+                    opacity:.5,
+                   
                     }}>
                           {loginStatus != null ?
 
                     <div style={{
                             flex: loginStatus / loginStatusLength,
-                            height: 2,
+                            height: 5,
                             backgroundImage: `linear-gradient(to bottom, #cdd4da${(((loginStatus / loginStatusLength) * 200)+55).toString(16).slice(0, 2)} ${(loginStatus / loginStatusLength * 100) + "%"}, #000000${((loginStatusLength / loginStatus) * 255).toString(16).slice(0, 2) } ${(loginStatus / loginStatusLength * 100) + "%"})`,
                             boxShadow: `0 0 5px #ffffff40, 0 0 10px #ffffff${(((loginStatus / loginStatusLength) * 255)).toString(16).slice(0, 2)}`,
+                            
                     }}>
                         &nbsp;
                          
                         </div> : <div style={{
                             flex: loginStatus / loginStatusLength,
-                            height: 2,
+                            height: 5,
                         }} > &nbsp;
 
                         </div>

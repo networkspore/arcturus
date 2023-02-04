@@ -28,7 +28,6 @@ import { useRef } from "react";
 
 import { createWorkerFactory, useWorker } from '@shopify/react-web-worker';
 import { SocketHandler } from "./handlers/socketHandler";
-import { StorageHandler } from "./handlers/StorageHandler";
 import { ContactsHandler } from "./handlers/ContactsHandler";
 import { fileTypes, MB } from "./constants/constants";
 import useDynamicRefs from 'use-dynamic-refs';
@@ -38,6 +37,8 @@ import { AppMenu } from "./pages/components/UI/AppMenu";
 import { LoadingStatusBar } from "./pages/components/UI/LoadingStatusBar";
 import { BackUp } from "./pages/components/UI/BackUp";
 import { ProfileButton } from "./pages/components/UI/ProfileButton";
+
+
 
 const createWorker = createWorkerFactory(() => import('./constants/utility'));
 
@@ -52,29 +53,17 @@ const HomeMenu = (props = {}) => {
     const setCurrentHash = useZust((state) => state.setCurrentHash)
     const location = useLocation()
     const openFile = useZust((state) => state.openFile)
-    const [getRef, setRef] = useDynamicRefs()
-    const prevUserID = useRef({value:false})
 
-  
-    const setCacheDirectory = useZust((state) => state.setCacheDirectory)
-    const setAppsDirectory = useZust((state) => state.setAppsDirectory);
 
     const setImagesDirectory = useZust((state) => state.setImagesDirectory);
-    const setModelsDirectory = useZust((state) => state.setModelsDirectory);
+
     const setMediaDirectory = useZust((state) => state.setMediaDirectory);
-    const setAudioDirectory = useZust((state) => state.setAudioDirectory);
-    const setVideoDirectory = useZust((state) => state.setVideoDirectory);
-    
+
     const setAssetsDirectory = useZust((state) => state.setAssetsDirectory)
-    const setPcsDirectory = useZust((state) => state.setPcsDirectory)
-    const setNpcsDirectory = useZust((state) => state.setNpcsDirectory)
-    const setTexturesDirectory = useZust((state) => state.setTexturesDirectory)
-    const setTerrainDirectory = useZust((state) => state.setTerrainDirectory)
-    const setPlaceablesDirectory = useZust((state) => state.setPlaceablesDirectory)
-    const setTypesDirectory = useZust((state) => state.setTypesDirectory)
+
 
     const openApp = useZust((state) => state.openApp)
-    const setSocketCmd = useZust((state) => state.setSocketCmd)
+
 
     const [showMenu, setShowMenu] = useState(false)
 
@@ -84,8 +73,6 @@ const HomeMenu = (props = {}) => {
     const user = useZust((state) => state.user);
 
     const [currentApps, setCurrentApps] = useState([])
-    const configFile = useZust((state) => state.configFile)
-    const setConfigFile = useZust((state) => state.setConfigFile)
 
 
     const addSystemMessage = useZust((state) => state.addSystemMessage)
@@ -97,69 +84,17 @@ const HomeMenu = (props = {}) => {
     const [showIndex, setShowIndex] = useState(false);
 
 
-    //const connected = useZust((state)=>state.connected)
-    //const setConnected = useZust((state) => state.setConnected)
-
-    const localDirectory = useZust((state) => state.localDirectory)
-
-
-
-    const setLocalDirectory = useZust((state) => state.setLocalDirectory)
-
     const [directory, setDirectory] = useState("")
 
     const setPage = useZust((state) => state.setPage)
 
-
+    const isComplete = useRef({ value: false })
     
     
-    const [loadState, setLoadState] = useState(null)
-
-    async function loadLocalDirectory(value){
-        
-        
-
-        const configFile =  await loadConfig(value, user) 
-
-
-        if (configFile != undefined) {
-            const storageHash = configFile.hash
-
-
-            setSocketCmd({
-                cmd: "checkStorageHash", params: { storageHash: storageHash }, callback: async (result) => {
-
-                    if ("success" in result && result.success) {
-                        setConfigFile(configFile)
-                        setLocalDirectory(value)
-                    }
-                }
-            })
-        }
-    }
-    async function loadConfig(value, user) {
-
-        try {
-
-            const homeHandle = await value.handle.getDirectoryHandle("home")
-            const userHomeHandle = await homeHandle.getDirectoryHandle(user.userName)
-            const engineHandle = await userHomeHandle.getDirectoryHandle("engine")
-            const handle = await engineHandle.getFileHandle(user.userName + ".core")
-
-            const file = await handle.getFile()
-            const fileInfo = await getFileInfo(file, handle, userHomeHandle)
-
-            console.log(fileInfo)
-            return fileInfo
-
-
-        } catch (err) {
-
-            console.log(err.message)
-
-            return undefined
-        }
-    }
+    const addFileRequest = useZust((state) => state.addFileRequest)
+            
+  
+    const userNameRef = useRef({value:""})
     
     useEffect(() => {
         let currentLocation = location.pathname;
@@ -172,12 +107,18 @@ const HomeMenu = (props = {}) => {
 
 
         if (user.userID > 0) {
-
+            userNameRef.current.value = user.userName
             if (currentLocation == '/') {
                 if (location.state != undefined){
                     
                     if (location.state.localDirectory != undefined){
-                        loadLocalDirectory(location.state.localDirectory)
+                        addFileRequest({command:"loadStorage", localDirectory:location.state.localDirectory,
+                            page:"login", id:crypto.randomUUID(), callback:(result)=>{
+                             console.log(result)
+                                
+                            }
+                    })
+                        
                     }else{
                        
                         addSystemMessage(initStorage)
@@ -289,15 +230,22 @@ const HomeMenu = (props = {}) => {
         
         return true
     }*/
-
    
     useEffect(()=>{
-        console.log(localDirectory.handle, configFile.handle)
-        if (  localDirectory.handle != null && configFile.handle != null){
+       
+        if(loadingComplete != isComplete.current.value){
+            isComplete.current.value = loadingComplete
+        }
+    },[loadingComplete])
+   
+    /*
+    useEffect(()=>{
+        
+        if ( !isComplete.current.value && localDirectory.handle != null && configFile.handle != null){
 
             setFolderDefaults(localDirectory, configFile)
         }
-    }, [localDirectory, configFile])
+    }, [localDirectory, configFile])*/
 
    /* useEffect(()=>{
         if(realms != null && realms.length > 0){
@@ -554,18 +502,18 @@ const HomeMenu = (props = {}) => {
     //const addFiles = useZust((state) => state.addFiles)
 
 
-    async function setFolderDefaults(localDirectory, configFile) {
-           
+    async function setFolderDefaults() {
+          
+        console.log(user.userName)
             try {
-                const appsHandle = await configFile.directory.getDirectoryHandle("apps", { create: true })
+    
+                const localDirectory = await get(user.userID + "localDirectory")
+                const imageHandle =  await localDirectory.handle.getDirectoryHandle("images") 
+                const mediaHandle = await localDirectory.handle.getDirectoryHandle("media") 
+                const assetsHandle = await localDirectory.handle.getDirectoryHandle("assets")
 
-                const imageHandle =  await localDirectory.handle.getDirectoryHandle("images", { create: true }) 
-                const mediaHandle = await localDirectory.handle.getDirectoryHandle("media", { create: true }) 
-                const assetsHandle = await localDirectory.handle.getDirectoryHandle("assets", {create: true})
 
-
-           
-                const apps = await getFirstDirectoryAllFiles(appsHandle)
+      
                 
                 const images = await getFirstDirectoryAllFiles(imageHandle);
  
@@ -574,10 +522,6 @@ const HomeMenu = (props = {}) => {
                 const assets = await getFirstDirectoryAllFiles(assetsHandle);
            
                 let allFiles = []
-
-                apps.files.forEach(entry =>{
-                    allFiles.push(entry)
-                })
 
                 images.files.forEach(entry => {
                    allFiles.push(entry)
@@ -593,7 +537,7 @@ const HomeMenu = (props = {}) => {
                     allFiles.push(entry)
                 });
 
-                setAppsDirectory({name: "apps", handle: appsHandle, directories: apps.directories})
+      
               
                 setAssetsDirectory({ name: "assets", handle: assetsHandle, directories: assets.directories})
 
@@ -605,7 +549,7 @@ const HomeMenu = (props = {}) => {
                 checkAllFiles(allFiles)
 
             } catch (err) {
-             
+                console.log(err)
                 addSystemMessage(initStorage)
                       
             } 
@@ -615,17 +559,17 @@ const HomeMenu = (props = {}) => {
     const setLoadingComplete = useZust((state) => state.setLoadingComplete)
    
     const checkAllFiles = (allFiles = []) =>{
-       
+        console.log("checking all files")
         return new Promise(resolve => {
             let i = 0;
-          
-            get("arc.cacheFile").then((idbCacheArray)=>{
+            const userName = userNameRef.current.value
+            get(userName + "arc.cacheFile").then((idbCacheArray)=>{
                 
                 const isArray = Array.isArray(idbCacheArray)
                 const noCache = (isArray && idbCacheArray.length == 0) || !isArray
                 let newCache = []
                 setLoadingComplete(false)
-
+                
               
 
                 async function checkFilesRecursive(){
@@ -662,7 +606,7 @@ const HomeMenu = (props = {}) => {
                         if (!contains) newCache.push(newItem)
                        // console.log(newItem)
                        
-                        const isSet = await set("arc.cacheFile", newCache)
+                        const isSet = await set(userName + "arc.cacheFile", newCache)
 
                         setLoadingStatus({ name: name, hash: newItem.hash, file:newItem, index: i, length: allFiles.length, complete: true })
                         i = i + 1
@@ -704,7 +648,7 @@ const HomeMenu = (props = {}) => {
                             
                             newCache.push(newItem)
 
-                            await set("arc.cacheFile", newCache)
+                            await set(userName + "arc.cacheFile", newCache)
                                 
                            
                             setLoadingStatus({ 
@@ -748,7 +692,7 @@ const HomeMenu = (props = {}) => {
                             if (!contains) newCache.push(newItem)
 
                           
-                            await set("arc.cacheFile", newCache)
+                            await set(userName + "arc.cacheFile", newCache)
                             setLoadingStatus({ file: newItem, name: name, hash: newItem.hash, index: i, length: allFiles.length, complete: true })
                             i = i + 1
                             if (i < allFiles.length) {
@@ -879,9 +823,9 @@ const HomeMenu = (props = {}) => {
 
     }, [quickBar, realms, currentRealmID, showIndex,])
  */
-    
-
- 
+    const onReload = () => {
+        setFolderDefaults()
+    }
 
 
     return (
@@ -902,7 +846,11 @@ const HomeMenu = (props = {}) => {
                 <ContactsPage />
             }
             {showIndex == 4 &&
-                <HomePage />
+                <HomePage onReload={()=>{
+              
+                        onReload()
+             
+                }} />
             }
             {showIndex == 5 &&
                 <RecoverPasswordPage />
@@ -920,14 +868,12 @@ const HomeMenu = (props = {}) => {
 
                         <div style={{ flex: 1 }}>
 
-
-
                             <div onClick={(e) => {
 
                                 navigate("/contacts")
 
 
-                            }} style={{ outline: 0 }} className={directory == "/contacts" ? styles.menuActive : styles.menu__item} about="Arcturus Network" >
+                            }} style={{ outline: 0 }} className={directory == "/contacts" ? styles.menuActive : styles.menu__item} about="Arcturus" >
                                 <img src="/Images/logo.png" width={50} height={50} />
                             </div>
 
@@ -943,20 +889,19 @@ const HomeMenu = (props = {}) => {
                             </NavLink>
 
 
+                            <div onClick={(e) => { navigate("/home") }} style={{ outline: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+                                className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName} >
 
-                            <NavLink style={{ outline: 0 }} className={directory == "/home" ? styles.menuActive : styles.menu__item} about={user.userName}
-                                to={'/home'}>
-                                <ImageDiv width={60} height={60}   netImage={{
-                                    image: "", filter: "", scale:.8, update: {
+                                <ImageDiv width={50} height={50} style={{ borderRadius: 20, border: "2px solid black" }} netImage={{
+                                    backgroundColor: "#22222260",
+                                    image: "", filter: "", update: {
                                         command: "getIcon",
                                         file: user.image,
                                         waiting: { url: "/Images/spinning.gif", style: { filter: "invert(100%)" } },
                                         error: { url: "/Images/icons/person.svg", style: { filter: "invert(100%)" } },
-
                                     },
-                                       }} />
-                            </NavLink>
-
+                                }} />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -972,13 +917,14 @@ const HomeMenu = (props = {}) => {
 
                  
                     <div style={{ display: "flex", alignItems: "center", marginLeft:5  }}>
-                        {!loadingComplete && user.userID > 0 &&
+                        {!loadingComplete && user.userID > 0 &&<>
                             < div style={{ paddingLeft: 5, paddingRight: 5 }} >
-                        <ImageDiv width={20} height={20} netImage={{ backgroundImage: "radial-gradient(#000000 30%, #ffffff 98%)", image: "/Images/icons/hourglass-outline.svg", filter: "invert(100%)" }} />
+                                <ImageDiv width={20} height={20} netImage={{ backgroundImage: "radial-gradient(#000000 30%, #ffffff 98%)", image: "/Images/icons/hourglass-outline.svg", filter: "invert(100%)" }} />
                             </div>
-                   
-                        }
-                        <LoadingStatusBar />
+
+                            <LoadingStatusBar />
+                         </>}
+                       
                         {location.pathname != "/" && location.pathname != "/login" &&
                             <BackUp />
                         }
@@ -986,9 +932,10 @@ const HomeMenu = (props = {}) => {
                            <>
                                 <PeerNetworkHandler />
 
-                                <FileHandler />
-                               <StorageHandler />
+                                <FileHandler userName={user.userName} userID={user.userID}/>
+                        
                                 <ContactsHandler />
+                               
                             </>
                         }
                

@@ -3,10 +3,12 @@ import React from "react";
 
 export const tableChunkSize = 8192
 export const MB = 1065536
+export const svgMime = "image/svg+xml"
+
 
 export const typeOptions = [
     { value: { mimeType: "", type: "" }, label: "All" },
-    { value: { mimeType: "app", type: "arcnet" }, label: "Apps" },
+    { value: { mimeType: "app", type: "arcturus" }, label: "Apps" },
     {
         value: { mimeType: "image", type: "" }, label: "Images"
     },
@@ -23,27 +25,101 @@ export const typeOptions = [
         value: { mimeType: "model", type: "" }, label: "Models"
     },
     {
-        value: { mimeType: "asset", type: "" }, label: "Assets"
-    },
-    {
-        value: { mimeType: "asset", type: "arcpc" }, label: "PCs"
-    },
-    {
-        value: { mimeType: "asset", type: "arcnpc" }, label: "NPCs"
-    },
-    {
-        value: { mimeType: "asset", type: "arcpl" }, label: "Placeables"
-    },
-    {
-        value: { mimeType: "asset", type: "arctext" }, label: "Textures"
-    },
-    {
-        value: { mimeType: "asset", type: "arcterr" }, label: "Terrain"
-    },
-    {
-        value: { mimeType: "asset", type: "arctype" }, label: "Types"
+        value: { mimeType: "asset", type: "arctype" }, label: "Assets"
     },
 
+]
+export const allExtOptions = [
+    {
+        value: "arctype", label: "arctype"
+    },
+     {
+        value: "arcturus", label: "arcturus"
+    },
+     {
+         value: "webp", label: "webp"
+    }, {
+         value: "apng", label: "apng"
+    }, {
+         value: "avif", label: "avif"
+    }, {
+         value: "gif", label: "gif"
+    }, {
+         value: "jpg", label: "jpg"
+    },  {
+         value: "jpeg", label: "jpeg"
+    }, {
+         value: "jfif", label: "jfif"
+    }, {
+         value: "pjpeg", label: "pjpeg"
+    }, {
+        value: "pjp", label: "pjp"
+    }, {
+         value: "png", label: "png"
+    }, {
+         value: "svg", label: "svg"
+    }, {
+         value: "bmp", label: "bmp"
+    },  {
+         value: "ico", label: "ico"
+    },  {
+         value: "cur", label: "cur"
+    },
+     {
+         value: "json", label: "json"
+    },  {
+         value: "obj", label: "obj"
+    }, {
+         value: "fbx", label: "fbx"
+    }, {
+         value: "gltf", label: "gltf"
+    },  {
+         value: "glb", label: "glb"
+    }, {
+         value: "dae", label: "dae"
+    }, {
+         value: "babylon", label: "babylon"
+    }, {
+         value: "stl", label: "stl"
+    }, {
+         value: "ply", label: "ply"
+    }, {
+         value: "vrml", label: "vrml"
+    },
+     {
+         value: "pcm", label: "pcm"
+    },  {
+         value: "mp3", label: "mp3"
+    },  {
+         value: "ogg", label: "ogg"
+    },  {
+         value: "webm", label: "webm"
+    },  {
+         value: "aac", label: "aac"
+    },  {
+         value: "wav", label: "wav"
+    },  {
+         value: "3gp", label: "3gp"
+    },
+    {
+        value: "avi", label: "avi"
+    }, {
+        value: "mov", label: "mov"
+    }, {
+        value: "mp4", label: "mp4"
+    }, {
+        value: "m4v", label: "m4v"
+    }, {
+        value: "m4a", label: "m4a"
+    }, {
+        value: "mkv", label: "mkv"
+    }, {
+        value: "ogv", label: "ogv"
+    }, {
+        value: "ogm", label: "ogm"
+    }, {
+        value: "oga", label: "oga"
+    },
 ]
 
 export const fileTypes = Object.freeze({
@@ -52,16 +128,10 @@ export const fileTypes = Object.freeze({
     audio: ["pcm", "mp3", "ogg", "webm", "aac", "wav",],
     video: ["3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", "oga",],
     media: ["3gp", "avi", "mov", "mp4", "m4v", "m4a", "mkv", "ogv", "ogm", "oga", "pcm", "mp3", "ogg", "webm", "aac", "wav",],
-    asset: ["arctype", "arcpc","arcnpc","arcpl","arctex", "arcterr"],
-    app:["arcnet"],
-    type: ["arctype"],
-    PC: ["arcpc"],
-    NPC: ["arcnpc"],
-    placeables: ["arcpl"],
-    textures: ["arctex"],
-    terrain: ["arcterr"],
+    asset: ["arctype"],
+    app:["arcturus"],
     all: [
-        "arctype", "arcpc", "arcnpc", "arcpl", "arctex", "arcterr", 
+        "arctype", "arcturus",
         "webp", "apng", "avif", "gif", "jpg", "jpeg", "jfif", "pjpeg", "pjp", "png", "svg", "svg", "bmp", "ico", "cur",
         "json", "obj", "fbx", "gltf", "glb", "dae", "babylon", "stl", "ply", "vrml",
         "pcm", "mp3", "ogg", "webm", "aac", "wav", "3gp", 
